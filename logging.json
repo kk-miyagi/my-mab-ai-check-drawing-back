@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+
+  "formatters": {
+    "default": {
+      "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    }
+  },
+
+  "handlers": {
+    "console": {
+      "class": "logging.StreamHandler",
+      "formatter": "default",
+      "stream": "ext://sys.stdout"
+    },
+    "file": {
+      "class": "logging.FileHandler",
+      "formatter": "default",
+      "filename": "app.log",
+      "encoding": "utf8"
+    }
+  },
+  "root": {
+    "level": "INFO",
+    "handlers": ["console"]
+  },
+  "loggers": {
+    "main": {
+      "level": "INFO",
+      "handlers": ["file"],
+      "propagate": false
+    }
+  }
+}
+
