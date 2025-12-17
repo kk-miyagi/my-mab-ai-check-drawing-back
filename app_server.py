@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from app_manager import Managers
-from session_manager import SessionManager
+from manager.session_manager import SessionManager
 from app_router import AppRouter
 
 

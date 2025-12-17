@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-import hello
-import file_upload
+import router.hello as hello
+import router.file_upload as file_upload
 
 class AppRouter:
     def __init__(self, app):
