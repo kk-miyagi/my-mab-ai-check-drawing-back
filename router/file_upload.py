@@ -1,6 +1,6 @@
-from fastapi import APIRouter
+from app_router import AppRouter
 
-router = APIRouter()
+router = AppRouter()
 
 @router.post('/file_upload/')
 def Hello():

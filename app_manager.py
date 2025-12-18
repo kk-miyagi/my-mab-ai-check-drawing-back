@@ -1,6 +1,9 @@
 
 class ManagerException(Exception):
-   pass
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
 
 class Manager:
     def __init__(self, app, logger):
@@ -10,10 +13,11 @@ class Manager:
     def setup(self):
         raise ManagerException()
 
-    def start(self, request):
+    def start(self, request, app_session):
         raise ManagerException()
 
-    def get_except_responce(self, exp, request):
+    def get_except_responce(
+            self, exp, request, app_session):
         raise ManagerException()
 
 class Managers:
@@ -29,13 +33,14 @@ class Managers:
             m.setup()
 
 
-    def start_managers(self, request):
+    def start_managers(self, request, app_session):
         ret = None
         for m in self.managers:
             try:
-                m.start(request)
+                m.start(request, app_session)
             except ManagerException as e:
-                ret = m.get_except_responce(e, request)
+                ret = m.get_except_responce(
+                        e, request, app_session)
                 continue
 
         return ret

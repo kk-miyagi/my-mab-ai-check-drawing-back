@@ -7,17 +7,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from app_manager import Managers
 from manager.session_manager import SessionManager
+from manager.app_status_manager import AppStatusManager
 from app_router import AppRouter
+import router.hello as hello
+import router.file_upload as file_upload 
 
 
+# 各種マネージャー格納用
 MANAGERS = Managers()
+# application session用
+APP_SESSION = {}
 
 class AppMiddleware(BaseHTTPMiddleware):
     
     async def dispatch(self, request, call_next):
         print(f"app middle ware request:{request}")
         # manager 処理の実行
-        res = MANAGERS.start_managers(request)
+        res = MANAGERS.start_managers(request, APP_SESSION)
         if res is not None:
             return res
         response = await call_next(request)
@@ -26,17 +32,6 @@ class AppMiddleware(BaseHTTPMiddleware):
 
 
 class AppServer():
-
-    def getManagers(self):
-        managers = Managers()
-        # session manager
-        managers.add_manager(SessionManager(
-            self.app,
-            self.logger
-            )
-        )
-
-        return managers
 
     def __init__(self, host="127.0.0.1", port=8000):
 
@@ -52,21 +47,23 @@ class AppServer():
             CORSMiddleware,
             allow_origins=origins,
             allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
+            allow_methods=["*"], # TODO
+            allow_headers=["*"], # TODO
         )
-        # application sessionの作成
-        self._APP_SESSION = {}
 
         # https dsipatvh
         self.app.add_middleware(AppMiddleware)
 
         # TODO session 
         MANAGERS.add_manager(SessionManager(self.app, self.logger))
+        MANAGERS.add_manager(AppStatusManager(self.app, self.logger))
         MANAGERS.setup_managers()
 
         # routing 実行
-        self.router = AppRouter(self.app)
+        # TODO 再度routingを分けたい
+        AppRouter.set_app_session(APP_SESSION)
+        self.app.include_router(hello.router)
+        self.app.include_router(file_upload.router)
 
 
     def start(self):

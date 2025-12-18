@@ -7,6 +7,8 @@ from app_manager import Manager, ManagerException
 
 class SessionManager(Manager):
 
+    SESSION_EXPIRE_ERROR = "SESSION_EXPIRE_ERROR"
+
     def setup(self):
 
         self.app.add_middleware(
@@ -18,7 +20,7 @@ class SessionManager(Manager):
         self.__SESSION_LIFETIME = 60 # セッションの有効時間(秒)
 
     # overload
-    def start(self, request):
+    def start(self, request, app_session):
 
         session = request.session
 
@@ -34,17 +36,26 @@ class SessionManager(Manager):
             self.logger.debug("clear session")
             session.clear()
             # TODO message
-            raise ManagerException() 
+            raise ManagerException(self.SESSION_EXPIRE_ERROR) 
         session["count"] += 1
 
-    def get_except_response(self,exp, request):
+    def get_except_response(
+            self, exp, request, app_session):
         error_log = {
             "status": "",
             "message": "",
             "detail": ""
         }
-        slef.logger.error(f"END: {log_data}")
 
+        http_status = 503
+        if exp.message == self.SESSION_EXPIRE_ERROR:  
+            error_log['message'] =  "session expire error"
+            http_status = 402
+        else:
+            error_log['message'] =  "some session error"
+
+        # TODO ERROR LOG
+        slef.logger.error(f"END: {log_data}")
         return JSONResponse(
                 content=error_log, 
-                status_code=402)
+                status_code=http_status)

@@ -1,8 +1,9 @@
-from fastapi import APIRouter
+from app_router import AppRouter
 
-router = APIRouter()
+router = AppRouter()
 
 @router.post('/hello/')
 def Hello():
+    print(router.app)
     return {'Hello': 'World!'}
 
