@@ -13,7 +13,7 @@ class Manager:
     def setup(self):
         raise ManagerException()
 
-    def start(self, request, app_session):
+    def start(self, request, body, app_session):
         raise ManagerException()
 
     def get_except_responce(
@@ -33,11 +33,11 @@ class Managers:
             m.setup()
 
 
-    def start_managers(self, request, app_session):
+    def start_managers(self, request, body, app_session):
         ret = None
         for m in self.managers:
             try:
-                m.start(request, app_session)
+                m.start(request, body, app_session)
             except ManagerException as e:
                 ret = m.get_except_responce(
                         e, request, app_session)

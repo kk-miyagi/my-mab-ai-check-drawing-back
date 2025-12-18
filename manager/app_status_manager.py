@@ -3,6 +3,7 @@ from app_manager import Manager, ManagerException
 from dataclasses import dataclass
 from enum import IntEnum
 import uuid as uu
+import json
 
 class Status(IntEnum):
     START = 0
@@ -53,7 +54,7 @@ class AppStatus:
 
     @classmethod
     def delete_app_session(cls, status, app_session):
-        if cls.APP_STATUS_SESSION_KEY in spp_session:
+        if cls.APP_STATUS_SESSION_KEY not in spp_session:
             raise ValueError()
         status_list = app_session[cls.APP_STATUS_SESSION_KEY]
         eq_idxs = [i for i, s in enumerate(status_list) if s.equals(status)]
@@ -63,32 +64,32 @@ class AppStatus:
 
 
     @classmethod
-    def _get_req_status(cls, request, key):
+    def _get_req_status(cls, body, key):
         ret = None
-        if key in request:
-            ret = request[key]
+        if key in body:
+            ret = body[key]
         return ret
 
 
     @classmethod
-    def create_from_request(cls, request):
+    def create_from_request(cls, body):
         return AppStatus(
-                cls._get_req_status(request, cls.APP_STATUS_USER),
-                cls._get_req_status(request, cls.APP_STATUS_EPIC),
-                cls._get_req_status(request, cls.APP_STATUS_OPE),
-                cls._get_req_status(request, cls.APP_STATUS_OPE_ID),
-                cls._get_req_status(request, cls.APP_STATUS_STATUS)
+                cls._get_req_status(body, cls.APP_STATUS_USER),
+                cls._get_req_status(body, cls.APP_STATUS_EPIC),
+                cls._get_req_status(body, cls.APP_STATUS_OPE),
+                cls._get_req_status(body, cls.APP_STATUS_OPE_ID),
+                cls._get_req_status(body, cls.APP_STATUS_STATUS)
         )
     
     @classmethod
     def get_session_status(cls, status, app_session):
-        if cls.APP_STATUS_SESSION_KEY in spp_session:
+        if cls.APP_STATUS_SESSION_KEY not in app_session:
             raise ValueError()
         status_list = app_session[cls.APP_STATUS_SESSION_KEY]
         eq_idxs = [i for i, s in enumerate(status_list) if s.equals(status)]
-        if len(eq_idx) == 0:
+        if len(eq_idxs) == 0:
             ret = None
-        elif len(eq_idx) == 1:
+        elif len(eq_idxs) == 1:
             ret = status_list[eq_idxs[0]]  
         else: 
             raise ValueError("session invalid values error")
@@ -123,9 +124,13 @@ class AppStatusManager(Manager):
     def setup(self):
         pass
 
-    def start(self, request, app_session):
+    def start(self, request, body, app_session):
+
+        # TODO ここで初期化するかは要検討 app session init
+        if AppStatus.APP_STATUS_SESSION_KEY not in app_session:
+            app_session[AppStatus.APP_STATUS_SESSION_KEY] = []
         # status check
-        req_status = AppStatus.create_from_request(request)
+        req_status = AppStatus.create_from_request(body)
         if not req_status.is_not_none():
             raise ManagerException(self.NO_VALUE_ERROR)
 

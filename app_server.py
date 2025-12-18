@@ -2,7 +2,7 @@ import os
 import logging
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from app_manager import Managers
@@ -23,7 +23,8 @@ class AppMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         print(f"app middle ware request:{request}")
         # manager 処理の実行
-        res = MANAGERS.start_managers(request, APP_SESSION)
+        body_json = await request.json()
+        res = MANAGERS.start_managers(request, body_json, APP_SESSION)
         if res is not None:
             return res
         response = await call_next(request)
@@ -54,18 +55,23 @@ class AppServer():
         # https dsipatvh
         self.app.add_middleware(AppMiddleware)
 
-        # TODO session 
+        # manager setup 
+        self.setup_managers()
+
+        # routing setup
+        self.setup_routers()
+
+
+    def setup_managers(self):
         MANAGERS.add_manager(SessionManager(self.app, self.logger))
         MANAGERS.add_manager(AppStatusManager(self.app, self.logger))
         MANAGERS.setup_managers()
 
-        # routing 実行
-        # TODO 再度routingを分けたい
+    def setup_routers(self):
         AppRouter.set_app_session(APP_SESSION)
         self.app.include_router(hello.router)
         self.app.include_router(file_upload.router)
-
-
+    
     def start(self):
         import uvicorn
         uvicorn.run(self.app, host=self.host, port=self.port)

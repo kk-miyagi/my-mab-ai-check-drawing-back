@@ -4,7 +4,7 @@ import requests
 
 def main(req_time):
     url = f"http://127.0.0.1:8000/{req_time}/"
-    data = {"title": "foo", "body": "bar", "userId": 1}
+    data = {"user": "foo", "epic": "TEST", "operation": "TEST", "status": "start"}
 
     response = requests.post(url, json=data)  # JSON形式で送信
     print(response.status_code)

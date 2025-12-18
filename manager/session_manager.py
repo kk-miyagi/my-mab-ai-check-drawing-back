@@ -20,7 +20,7 @@ class SessionManager(Manager):
         self.__SESSION_LIFETIME = 60 # セッションの有効時間(秒)
 
     # overload
-    def start(self, request, app_session):
+    def start(self, request, body, app_session):
 
         session = request.session
 
