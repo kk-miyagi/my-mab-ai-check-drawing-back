@@ -11,6 +11,7 @@ from manager.app_status_manager import AppStatusManager
 from app_router import AppRouter
 import router.hello as hello
 import router.file_upload as file_upload 
+import router.issue_operation_id as issue_operation_id 
 
 
 # 各種マネージャー格納用
@@ -71,6 +72,7 @@ class AppServer():
         AppRouter.set_app_session(APP_SESSION)
         self.app.include_router(hello.router)
         self.app.include_router(file_upload.router)
+        self.app.include_router(issue_operation_id.router)
     
     def start(self):
         import uvicorn

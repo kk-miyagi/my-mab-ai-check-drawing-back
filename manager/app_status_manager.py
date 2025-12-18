@@ -11,7 +11,7 @@ class Status(IntEnum):
     END = 2
     
     @classmethod
-    def str_to_status(mess):
+    def str_to_status(cls, mess):
         ret = None
         if mess == "start":
             ret = Status.START
@@ -20,6 +20,18 @@ class Status(IntEnum):
         elif mess == "end":
             ret = Status.END 
         return ret
+    
+    @classmethod
+    def status_to_str(cls, status):
+        ret = None
+        if status == Status.START:
+            ret = "start"
+        elif status == Status.DOING:
+            ret = "doing"
+        elif status == Status.END:
+            ret = "end"
+        return ret
+
 
 @dataclass
 class AppStatus:
@@ -43,14 +55,15 @@ class AppStatus:
             app_session[cls.APP_STATUS_SESSION_KEY] = []
 
         status_list = app_session[cls.APP_STATUS_SESSION_KEY]
-        status_list.append(AppStatus(
+        ret = AppStatus(
                 status.user,
                 status.epic,
                 status.operation,
-                str(uu.uuid3()),
+                str(uu.uuid4()),
                 status.status
-            )
-        )
+        ) 
+        status_list.append(ret)
+        return ret
 
     @classmethod
     def delete_app_session(cls, status, app_session):
@@ -78,7 +91,7 @@ class AppStatus:
                 cls._get_req_status(body, cls.APP_STATUS_EPIC),
                 cls._get_req_status(body, cls.APP_STATUS_OPE),
                 cls._get_req_status(body, cls.APP_STATUS_OPE_ID),
-                cls._get_req_status(body, cls.APP_STATUS_STATUS)
+                Status.str_to_status(cls._get_req_status(body, cls.APP_STATUS_STATUS))
         )
     
     @classmethod

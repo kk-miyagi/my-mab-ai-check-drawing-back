@@ -2,11 +2,12 @@ import sys
 import requests
 
 
-def main(req_time):
-    url = f"http://127.0.0.1:8000/{req_time}/"
+def main(req_url):
+    url = f"http://127.0.0.1:8000/{req_url}/"
     data = {"user": "foo", "epic": "TEST", "operation": "TEST", "status": "start"}
 
     response = requests.post(url, json=data)  # JSON形式で送信
+    print(response.headers)
     print(response.status_code)
     print(response.json())
 
