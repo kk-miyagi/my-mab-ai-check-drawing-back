@@ -55,11 +55,15 @@ class AppStatus:
             app_session[cls.APP_STATUS_SESSION_KEY] = []
 
         status_list = app_session[cls.APP_STATUS_SESSION_KEY]
+        ret_id = status.operation_id
+        if cls._is_none_and_black(ret_id):
+            ret_id = str(uu.uuid4())
+
         ret = AppStatus(
                 status.user,
                 status.epic,
                 status.operation,
-                str(uu.uuid4()),
+                ret_id,
                 status.status
         ) 
         status_list.append(ret)
@@ -110,14 +114,14 @@ class AppStatus:
 
     @classmethod
     def _is_none_and_black(cls, val):
-        return (val is not None) and len(val.strip()) > 0
+        return (val is None) or len(val.strip()) == 0
 
 
     def is_not_none(self):
         return all([
-                self._is_none_and_black(self.user),
-                self._is_none_and_black(self.epic),
-                self._is_none_and_black(self.operation)]
+                not self._is_none_and_black(self.user),
+                not self._is_none_and_black(self.epic),
+                not self._is_none_and_black(self.operation)]
         )
 
 
