@@ -1,7 +1,7 @@
 from app_router import AppRouter
 from fastapi import Body, UploadFile, File
 from manager.app_status_manager import AppStatus, Status
-import dataclass
+from dataclasses import dataclass
 
 router = AppRouter()
 
@@ -21,7 +21,7 @@ class MultiFileUploadInfo:
     operation: str
     operation_id: str
     status: str
-    file_infos: List[FileInfo]
+    file_infos: list[FileInfo]
     all_num: int
 
     @classmethod
@@ -48,11 +48,14 @@ async def multi_fileupload(body = Body(...),files: list[UploadFile] = File(...))
     match req_staus:
         case Status.START:
             # TODO 一応想定外だがどうするか？
+            print("START")
         case Status.DOING:
             # ファイルの保存処理
             # fileuploadinfoの更新
+            print("DOING")
         case Status.END:
             # fileuploadinfoの確認
             # 20秒くらい待つ想定
             # fileuploadinfoの更新
+            print("END")
     return ret

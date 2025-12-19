@@ -74,7 +74,7 @@ class AppServer():
         self.app.include_router(hello.router)
         self.app.include_router(file_upload.router)
         self.app.include_router(issue_operation_id.router)
-        self.app.include_router(imulti_fileupload.router)
+        self.app.include_router(multi_fileupload.router)
  
     def start(self):
         import uvicorn
