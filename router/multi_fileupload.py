@@ -35,7 +35,7 @@ class MultiFileUploadInfo:
             self.user,
             self.epic,
             self.operation,
-            sefl.operation_id
+            self.operation_id
         ])
 
 
@@ -45,7 +45,7 @@ async def multi_fileupload(body = Body(...),files: list[UploadFile] = File(...))
     print(f"body: {body}/ file num: {len(files)}")
     ret = None
     req_status = AppStatus.create_from_request(body)
-    match req_staus:
+    match req_status:
         case Status.START:
             # TODO 一応想定外だがどうするか？
             print("START")
