@@ -13,12 +13,14 @@ class Status(IntEnum):
     @classmethod
     def str_to_status(cls, mess):
         ret = None
+        print(f"str_to_status input: {mess}")
         if mess == "start":
             ret = Status.START
         elif mess == "doing":
             ret = Status.DOING
         elif mess == "end":
             ret = Status.END 
+        print(f"str_to_status ret: {ret}")
         return ret
     
     @classmethod
@@ -87,6 +89,15 @@ class AppStatus:
                 Status.str_to_status(cls._get_req_status(body, cls.APP_STATUS_STATUS))
         )
     
+    @classmethod
+    def create_from_state(cls, state):
+        return AppStatus(
+                state.user,
+                state.epic,
+                state.operation,
+                state.operation_id,
+                Status.str_to_status(state.status)
+        )
     @classmethod
     def get_session_status(cls, status, app_session):
         if cls.APP_STATUS_SESSION_KEY not in app_session:

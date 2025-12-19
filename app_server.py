@@ -25,8 +25,29 @@ class AppMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         # manager 処理の実行
         print(f"app midele ware request header: {request.headers}")
-        body_json = await request.json()
+        content_type = dict(request.headers)['content-type'] 
+        if (content_type == 'application/x-www-form-urlencoded' or
+            content_type.startswith('multipart/form-data')):
+            form_data = await request.form()
+
+            request.state.user = form_data.get('user')
+            request.state.epic = form_data.get('epic')
+            request.state.operation = form_data.get('operation')
+            request.state.operation_id = form_data.get('operation_id')
+            request.state.status = form_data.get('status')
+            request.state.files = form_data.get('files')
+
+            body_json = { 
+                         'user': request.state.user,
+                         'epic': request.state.epic,
+                         'operation': request.state.operation,
+                         'operation_id': request.state.operation_id,
+                         'status': request.state.status
+            }
+        elif content_type == 'application/json':
+            body_json = await request.json()
         print(f"app middle ware request body:{body_json}")
+
         res = MANAGERS.start_managers(request, body_json, APP_SESSION)
         if res is not None:
             return res

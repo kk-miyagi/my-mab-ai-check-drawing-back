@@ -1,5 +1,5 @@
 from app_router import AppRouter
-from fastapi import Body, UploadFile, File
+from fastapi import Request, Form, UploadFile, File 
 from manager.app_status_manager import AppStatus, Status
 from dataclasses import dataclass
 
@@ -38,14 +38,12 @@ class MultiFileUploadInfo:
             self.operation_id
         ])
 
-
-
 @router.post('/multi_fileupload/')
-async def multi_fileupload(body = Body(...),files: list[UploadFile] = File(...)):
-    print(f"body: {body}/ file num: {len(files)}")
+async def multi_fileupload(request: Request):
     ret = None
-    req_status = AppStatus.create_from_request(body)
-    match req_status:
+    req_status = AppStatus.create_from_state(request.state)
+    print(f"req_status: {req_status}")
+    match req_status.status:
         case Status.START:
             # TODO 一応想定外だがどうするか？
             print("START")
