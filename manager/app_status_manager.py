@@ -66,16 +66,8 @@ class AppStatus:
                 ret_id,
                 status.status
         ) 
-        status_dic[status.get_hash_key()] = ret
+        status_dic[ret.get_hash_key()] = ret
         return ret
-
-    @classmethod
-    def delete_app_session(cls, status, app_session):
-        if cls.APP_STATUS_SESSION_KEY not in spp_session:
-            raise ValueError()
-        status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
-        return status_dic.pop(status.get_hash_key())
-
 
     @classmethod
     def _get_req_status(cls, body, key):
@@ -100,6 +92,7 @@ class AppStatus:
         if cls.APP_STATUS_SESSION_KEY not in app_session:
             raise ValueError()
         status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
+        print(status.operation_id)
         if cls._is_none_and_black(status.operation_id):
             ret = None
         elif status.get_hash_key() not in status_dic:
