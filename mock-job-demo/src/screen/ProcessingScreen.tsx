@@ -1,0 +1,17 @@
+import React from 'react';
+import { useUpload } from './UploadContext';
+
+export const ProcessingScreen: React.FC = () => {
+  const { phase, progress, logs, operationId, completedRequests, totalRequests } = useUpload();
+
+  return (
+    <div className="page center">
+      <h2>処理中... ({phase})</h2>
+      {operationId && <p>operation_id: {operationId}</p>}
+      <div className="progress" aria-label="upload progress">
+        <div className="bar" style={{ width: `${progress}%` }} />
+      </div>
+      <p>{progress}% 完了 ({completedRequests}/{totalRequests} リクエスト)</p>
+    </div>
+  );
+};
