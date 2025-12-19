@@ -100,10 +100,12 @@ class AppStatus:
         if cls.APP_STATUS_SESSION_KEY not in app_session:
             raise ValueError()
         status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
-        if status.get_hash_key() not in status_dic:
+        if status.operation_id is None:
+            ret = None
+        elif status.get_hash_key() not in status_dic:
             ret = None
         else:
-            ret = status_list[status.get_hash_key()]  
+            ret = status_dic[status.get_hash_key()]  
         return ret
 
     @classmethod

@@ -23,9 +23,10 @@ APP_SESSION = {}
 class AppMiddleware(BaseHTTPMiddleware):
     
     async def dispatch(self, request, call_next):
-        print(f"app middle ware request:{request}")
         # manager 処理の実行
+        print(f"app midele ware request header: {request.headers}")
         body_json = await request.json()
+        print(f"app middle ware request body:{body_json}")
         res = MANAGERS.start_managers(request, body_json, APP_SESSION)
         if res is not None:
             return res

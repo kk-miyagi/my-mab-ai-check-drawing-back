@@ -39,7 +39,7 @@ class SessionManager(Manager):
             raise ManagerException(self.SESSION_EXPIRE_ERROR) 
         session["count"] += 1
 
-    def get_except_response(
+    def get_except_responce(
             self, exp, request, app_session):
         error_log = {
             "status": "",

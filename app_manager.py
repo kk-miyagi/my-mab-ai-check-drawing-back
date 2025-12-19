@@ -6,19 +6,20 @@ class ManagerException(Exception):
         super().__init__(self.message)
 
 class Manager:
+    NOT_OVERRIDE_ERROR = "NOT_OVERRIDE_ERROR"
     def __init__(self, app, logger):
         self.app = app
         self.logger = logger
 
     def setup(self):
-        raise ManagerException()
+        raise ManagerException(self.NOT_OVERRIDE_ERROR)
 
     def start(self, request, body, app_session):
-        raise ManagerException()
+        raise ManagerException(self.NOT_OVERRIDE_ERROR)
 
     def get_except_responce(
             self, exp, request, app_session):
-        raise ManagerException()
+        raise ManagerException(self.NOT_OVERRIDE_ERROR)
 
 class Managers:
 
