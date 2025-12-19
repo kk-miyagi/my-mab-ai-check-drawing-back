@@ -31,6 +31,12 @@ class MultiFileUploadInfo:
         # TODO
 
     def get_hash_key(self):
+        return '_'.join([
+            self.user,
+            self.epic,
+            self.operation,
+            sefl.operation_id
+        ])
 
 
 
