@@ -71,7 +71,7 @@ class AppStatus:
 
     @classmethod
     def delete_app_session(cls, status, app_session):
-        if cls.APP_STATUS_SESSION_KEY not in spp_session:
+        if cls.APP_STATUS_SESSION_KEY not in app_session:
             raise ValueError()
         status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
         return status_dic.pop(status.get_hash_key())
@@ -172,10 +172,10 @@ class AppStatusManager(Manager):
             error_log['message'] = "app status no value error"
             http_status = 401
         elif exp.message == self.INVALID_STATUS_ERROR:
-            errpr_log['message'] = "invalid app status error"
+            error_log['message'] = "invalid app status error"
             http_status = 401
         else:
-            errpr_log['message'] = "some error app status"
+            error_log['message'] = "some error app status"
 
         return JSONResponse(
                     content=error_log, 
