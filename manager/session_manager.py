@@ -35,7 +35,6 @@ class SessionManager(Manager):
         if now  > session["expire_time"]:
             self.logger.debug("clear session")
             session.clear()
-            # TODO message
             raise ManagerException(self.SESSION_EXPIRE_ERROR) 
         session["count"] += 1
 
