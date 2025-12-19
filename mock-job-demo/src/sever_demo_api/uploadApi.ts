@@ -13,7 +13,7 @@ import type {
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 
-const FILE_UPLOAD_ENDPOINT = '/upload/';
+const FILE_UPLOAD_ENDPOINT = '/multi_fileupload/';
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 

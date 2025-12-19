@@ -16,7 +16,16 @@ export const issueOperationId = async (
     await wait(300);
     return { operation_id: `op_${Date.now()}`, status: 'start' };
   }
-
-  const { data } = await http.post<OperationIssueResponse>(ISSUE_OPERATION_ENDPOINT, payload);
-  return data;
+  // Retry once on 402 (session expire on backend) to get a fresh session
+  try {
+    const { data } = await http.post<OperationIssueResponse>(ISSUE_OPERATION_ENDPOINT, payload);
+    return data;
+  } catch (err: any) {
+    const status = err?.response?.status;
+    if (status === 402) {
+      const { data } = await http.post<OperationIssueResponse>(ISSUE_OPERATION_ENDPOINT, payload);
+      return data;
+    }
+    throw err;
+  }
 };
