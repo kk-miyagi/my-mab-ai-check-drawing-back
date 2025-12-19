@@ -55,7 +55,7 @@ class SessionManager(Manager):
             error_log['message'] =  "some session error"
 
         # TODO ERROR LOG
-        slef.logger.error(f"END: {log_data}")
+        self.logger.error(f"END: {log_data}")
         return JSONResponse(
                 content=error_log, 
                 status_code=http_status)
