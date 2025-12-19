@@ -1,0 +1,93 @@
+:root {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #1f2933;
+  background-color: #f6f7fb;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+}
+
+.page {
+  max-width: 640px;
+  margin: 48px auto;
+  background: #ffffff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.07);
+}
+
+h1,
+h2 {
+  margin-top: 0;
+}
+
+button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.3);
+}
+
+button.primary {
+  min-width: 200px;
+}
+
+.page.center {
+  text-align: center;
+}
+
+.progress {
+  border: 1px solid #d0d7e2;
+  width: 320px;
+  height: 20px;
+  margin: 20px auto;
+  border-radius: 999px;
+  overflow: hidden;
+  background: linear-gradient(90deg, #f1f5f9, #e2e8f0);
+}
+
+.progress .bar {
+  height: 100%;
+  background: linear-gradient(90deg, #34d399, #16a34a);
+  transition: width 0.5s ease-in-out;
+}
+
+.note {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.success {
+  color: #16a34a;
+}
+
+.error {
+  color: #dc2626;
+}
+
+.log-box {
+  background: #111827;
+  color: #e5e7eb;
+  height: 260px;
+  overflow-y: auto;
+  padding: 12px;
+  border-radius: 8px;
+  font-family: monospace;
+  margin-top: 16px;
+}
