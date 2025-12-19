@@ -12,6 +12,7 @@ from app_router import AppRouter
 import router.hello as hello
 import router.file_upload as file_upload 
 import router.issue_operation_id as issue_operation_id 
+import router.multi_fileupload as multi_fileupload
 
 
 # 各種マネージャー格納用
@@ -73,7 +74,8 @@ class AppServer():
         self.app.include_router(hello.router)
         self.app.include_router(file_upload.router)
         self.app.include_router(issue_operation_id.router)
-    
+        self.app.include_router(imulti_fileupload.router)
+ 
     def start(self):
         import uvicorn
         uvicorn.run(self.app, host=self.host, port=self.port)
