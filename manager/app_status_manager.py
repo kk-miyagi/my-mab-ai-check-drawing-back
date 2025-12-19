@@ -52,9 +52,9 @@ class AppStatus:
         if status.status != Status.START:
             raise ValueError()
         if cls.APP_STATUS_SESSION_KEY not in app_session:
-            app_session[cls.APP_STATUS_SESSION_KEY] = []
+            app_session[cls.APP_STATUS_SESSION_KEY] = {}
 
-        status_list = app_session[cls.APP_STATUS_SESSION_KEY]
+        status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
         ret_id = status.operation_id
         if cls._is_none_and_black(ret_id):
             ret_id = str(uu.uuid4())
@@ -66,18 +66,15 @@ class AppStatus:
                 ret_id,
                 status.status
         ) 
-        status_list.append(ret)
+        status_dic[status.get_hash_key()] = ret
         return ret
 
     @classmethod
     def delete_app_session(cls, status, app_session):
         if cls.APP_STATUS_SESSION_KEY not in spp_session:
             raise ValueError()
-        status_list = app_session[cls.APP_STATUS_SESSION_KEY]
-        eq_idxs = [i for i, s in enumerate(status_list) if s.equals(status)]
-
-        for i in eq_idxs:
-            status_list.pop(i)
+        status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
+        return status_dic.pop(status.get_hash_key())
 
 
     @classmethod
@@ -102,14 +99,11 @@ class AppStatus:
     def get_session_status(cls, status, app_session):
         if cls.APP_STATUS_SESSION_KEY not in app_session:
             raise ValueError()
-        status_list = app_session[cls.APP_STATUS_SESSION_KEY]
-        eq_idxs = [i for i, s in enumerate(status_list) if s.equals(status)]
-        if len(eq_idxs) == 0:
+        status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
+        if status.get_hash_key() not in status_dic:
             ret = None
-        elif len(eq_idxs) == 1:
-            ret = status_list[eq_idxs[0]]  
-        else: 
-            raise ValueError("session invalid values error")
+        else:
+            ret = status_list[status.get_hash_key()]  
         return ret
 
     @classmethod
@@ -133,6 +127,14 @@ class AppStatus:
                 self.operation_id == status.operation_id]
         )
 
+    def get_hash_key(self):
+        return '_'.join([
+            self.user,
+            self.epic,
+            self.operation,
+            self.operation_id
+        ])
+
 class AppStatusManager(Manager):
 
     NO_VALUE_ERROR = "NO_VALUE_EROOR"
@@ -143,9 +145,9 @@ class AppStatusManager(Manager):
 
     def start(self, request, body, app_session):
 
-        # TODO ここで初期化するかは要検討 app session init
+        # app_session init
         if AppStatus.APP_STATUS_SESSION_KEY not in app_session:
-            app_session[AppStatus.APP_STATUS_SESSION_KEY] = []
+            app_session[AppStatus.APP_STATUS_SESSION_KEY] = {}
         # status check
         req_status = AppStatus.create_from_request(body)
         if not req_status.is_not_none():

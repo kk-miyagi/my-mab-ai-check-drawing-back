@@ -1,6 +1,6 @@
 from app_router import AppRouter
 from fastapi import Body
-from manager.app_status_manager import AppStatus, Status
+from manager.app_status_manager import AppStatus
 
 router = AppRouter()
 
@@ -12,11 +12,7 @@ async def issue_operation_id(body = Body(...)):
             req_status,
             AppRouter.app_session
     )
-    return {
-        "user": session_status.user,
-        "epic": session_status.epic,
-        "operation": session_status.operation,
-        "operation_id": session_status.operation_id,
-        "status": Status.status_to_str(session_status.status)
-    }
+    return router.create_responce_from_status(
+            session_status
+    )
 
