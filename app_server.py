@@ -29,7 +29,7 @@ class AppMiddleware(BaseHTTPMiddleware):
         if (content_type == 'application/x-www-form-urlencoded' or
             content_type.startswith('multipart/form-data')):
             form_data = await request.form()
-
+            
             request.state.user = form_data.get('user')
             request.state.epic = form_data.get('epic')
             request.state.operation = form_data.get('operation')
