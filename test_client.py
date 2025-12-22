@@ -18,7 +18,8 @@ def main(req_url):
         datas = [
            {"user": "XXXX", "epic": "TEST", "operation": "TEST", "operation_id": "AAA", "status": "doing"},
         ]
-        files.append({'files': open('test_client.py', 'rb')})
+        files.append({'file_1': open('test_client.py', 'rb')})
+        files.append({'file_2': open('test_app.py', 'rb')})
     else:
         print(f"URL UNMATCH: {req_url}")
         sys.exit(1)

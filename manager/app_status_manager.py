@@ -113,6 +113,23 @@ class AppStatus:
         return ret
 
     @classmethod
+    def update_session_status(cls, status, app_session):
+        if cls.APP_STATUS_SESSION_KEY not in app_session:
+            raise ValueError()
+        status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
+        update_status = None
+        for key in status_dic.keys():
+            print(f"update key checck session:{key}/request:{status.get_hash_key()}")
+            if key == status.get_hash_key():
+                update_key = key
+                update_status = status
+                continue
+        if update_status is not None:
+            print("upadte app session status!!")
+            status_dic[update_key] = update_status
+
+
+    @classmethod
     def _is_none_and_black(cls, val):
         return (val is None) or len(val.strip()) == 0
 
@@ -161,7 +178,7 @@ class AppStatusManager(Manager):
 
         session_status = AppStatus.get_session_status(req_status, app_session)
         if session_status is not None:
-            print(f"req status: {req_status.status}: session_status:{session_status}") # FOR DEBUG
+            print(f"req status: {req_status.status}: session_status:{session_status.status}") # FOR DEBUG
             if ((req_status.status < session_status.status) 
                 or (req_status.status - session_status.status > 1)):
                 raise ManagerException(self.INVALID_STATUS_ERROR)

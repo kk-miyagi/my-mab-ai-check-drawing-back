@@ -35,8 +35,12 @@ class AppMiddleware(BaseHTTPMiddleware):
             request.state.operation = form_data.get('operation')
             request.state.operation_id = form_data.get('operation_id')
             request.state.status = form_data.get('status')
-            request.state.file_1 = form_data.get('file_1')
-            request.state.file_2 = form_data.get('file_2')
+            request.state.bf_file = form_data.get('bf_file')
+            request.state.af_file = form_data.get('af_file')
+            request.state.bf_file_csv = form_data.get('bf_file_csv')
+            request.state.af_file_csv = form_data.get('af_file_csv')
+            request.state.number = form_data.get('number')
+            request.state.sum_number = form_data.get('sum_number')
 
             body_json = { 
                          'user': request.state.user,
@@ -47,6 +51,21 @@ class AppMiddleware(BaseHTTPMiddleware):
             }
         elif content_type == 'application/json':
             body_json = await request.json()
+            if 'user' in body_json:
+                request.state.user = body_json['user']
+            if 'epic' in body_json:
+                request.state.epic = body_json['epic']
+            if 'operation' in body_json:
+                request.state.operation = body_json['operation']
+            if 'operation_id' in body_json:
+                request.state.operation_id = body_json['operation_id']
+            if 'status' in body_json:
+                request.state.status = body_json['status']
+            if 'number' in body_json:
+                request.state.number = body_json['number']
+            if 'sum_number' in body_json:
+                request.state.sum_number = body_json['sum_number']
+            request.state.body = body_json 
         print(f"app middle ware request body:{body_json}")
 
         res = MANAGERS.start_managers(request, body_json, APP_SESSION)
