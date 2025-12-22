@@ -35,7 +35,8 @@ class AppMiddleware(BaseHTTPMiddleware):
             request.state.operation = form_data.get('operation')
             request.state.operation_id = form_data.get('operation_id')
             request.state.status = form_data.get('status')
-            request.state.files = form_data.get('files')
+            request.state.file_1 = form_data.get('file_1')
+            request.state.file_2 = form_data.get('file_2')
 
             body_json = { 
                          'user': request.state.user,

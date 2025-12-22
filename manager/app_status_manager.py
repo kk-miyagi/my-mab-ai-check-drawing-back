@@ -161,7 +161,9 @@ class AppStatusManager(Manager):
 
         session_status = AppStatus.get_session_status(req_status, app_session)
         if session_status is not None:
-            if req_status.status < session_status.status:
+            print(f"req status: {req_status.status}: session_status:{session_status}") # FOR DEBUG
+            if ((req_status.status < session_status.status) 
+                or (req_status.status - session_status.status > 1)):
                 raise ManagerException(self.INVALID_STATUS_ERROR)
 
     def get_except_responce(

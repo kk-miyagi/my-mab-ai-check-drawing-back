@@ -51,7 +51,8 @@ async def multi_fileupload(request: Request):
             # ファイルの保存処理
             # fileuploadinfoの更新
             print("DOING")
-            print(f"files type:{type(request.state.files)}")
+            pre = request.state.file_1
+            print(pre.filename)
         case Status.END:
             # fileuploadinfoの確認
             # 20秒くらい待つ想定
