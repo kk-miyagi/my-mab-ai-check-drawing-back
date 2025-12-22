@@ -50,3 +50,53 @@ npm run dev
    - `npm run preview`: ビルド結果をローカルで確認。
    - `npm run mock:server`: モックサーバー起動 (ポート 8000)。
 
+## 新しい画面を追加する手順 (フロント)
+1. 画面の配置先を決める
+   - `/label-create` 系: `src/screen/label-create/`
+   - `/cheking-drawings` 系: `src/screen/cheking-drawings/`
+   - 共通部品: `src/screen/utils/`
+
+2. コンポーネントを作成
+   - 例: `src/screen/label-create/MyNewScreen.tsx`
+   - アップロード状態が必要なら `import { useUpload } from '../utils/UploadContext'`
+
+3. 再エクスポートを追加
+   - `src/screen/Screens.tsx` に `export { MyNewScreen } from './label-create/MyNewScreen';` のように追記
+
+4. ルーティングを追加
+   - `src/App.tsx` と `src/screen/UploadApp.tsx` に `<Route path="/my-path" element={<MyNewScreen />} />` を追加
+   - デフォルト遷移先は `/hub`。必要なら `HubScreen` からリンクを追加
+
+5. ナビゲーションを更新
+   - `src/screen/HubScreen.tsx` にリンクカードを追加して行き先を案内
+
+6. 動作確認
+   - `npm run dev` を実行し、追加したパスにブラウザでアクセスして確認
+
+### ステータスごとに画面を切り替える場合
+`UploadContext` が `phase` で状態を持っています (`idle` | `issuing_id` | `uploading` | `verifying` | `complete` | `error`)。
+
+例: 進捗画面をカスタムしたい場合
+```tsx
+import { useUpload } from './screen/utils/UploadContext';
+
+export const MyProcessing: React.FC = () => {
+   const { phase, progress, completedRequests, totalRequests, logs } = useUpload();
+   if (phase === 'error') return <div>エラー: {logs.at(-1)}</div>;
+   return (
+      <div>
+         <h2>状態: {phase}</h2>
+         <div>{progress}% ({completedRequests}/{totalRequests})</div>
+      </div>
+   );
+};
+```
+
+ルーターで差し替える
+```tsx
+// App.tsx / UploadApp.tsx の Routes に追加/置き換え
+<Route path="/processing" element={<MyProcessing />} />
+```
+
+結果画面を変えたい場合も同様に、`useUpload` で `resultData` / `failedUploads` / `operationId` を取得してコンポーネントを作り、ルートを差し替えます。
+

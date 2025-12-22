@@ -47,7 +47,7 @@ export const uploadApi = {
     form.append('number', String(payload.number));
     // Use explicit field names for before/after files
     payload.files.forEach((file, idx) => {
-      const field = idx === 0 ? 'bf_file' : idx === 1 ? 'af_file' : `file_${idx + 1}`;
+      const field = payload.file_field_keys?.[idx] ?? (idx === 0 ? 'bf_file' : idx === 1 ? 'af_file' : `file_${idx + 1}`);
       form.append(field, file);
     });
 

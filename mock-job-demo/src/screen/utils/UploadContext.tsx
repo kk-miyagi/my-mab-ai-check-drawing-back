@@ -1,16 +1,16 @@
 import React, { createContext, useContext, useMemo, useState, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { uploadApi } from '../sever_demo_api/uploadApi';
-import { issueOperationId } from '../ustils/issueOperationId';
-import { runWithLimit } from '../ustils/runWithLimit';
-import type { UploadResponse, OperationIssueRequest } from '../types/uploadServer';
-import type { UploadPhase, UploadResult, FailedUpload } from '../types/uploadClient';
+import { uploadApi } from '../../sever_demo_api/uploadApi';
+import { issueOperationId } from '../../ustils/issueOperationId';
+import { runWithLimit } from '../../ustils/runWithLimit';
+import type { UploadResponse, OperationIssueRequest } from '../../types/uploadServer';
+import type { UploadPhase, UploadResult, FailedUpload } from '../../types/uploadClient';
 
 interface StartOptions {
   epic?: string;
   operation?: string;
-  allowedFileNames?: string[]; // when reuploading, restrict to these names
-  isRetry?: boolean; // lower concurrency when retrying
+  allowedFileNames?: string[];
+  isRetry?: boolean;
 }
 
 interface UploadContextType {
@@ -146,6 +146,7 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             status: 'doing',
             number,
             files: pair,
+            file_field_keys: chosenEpic === 'label-create' ? ['bf_file_csv', 'bf_file'] : undefined,
           };
 
           console.info('[upload] uploadPair request', requestPayload);
