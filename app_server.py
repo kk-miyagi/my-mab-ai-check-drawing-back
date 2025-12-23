@@ -11,6 +11,7 @@ import router.hello as hello
 import router.file_upload as file_upload
 import router.issue_operation_id as issue_operation_id
 import router.multi_fileupload as multi_fileupload
+import router.epic_init as epic_init
 
 
 # 各種マネージャー格納用
@@ -26,7 +27,8 @@ class AppMiddleware(BaseHTTPMiddleware):
         # manager 処理の実行
         print(f"app midele ware request header: {request.headers}")
         content_type = dict(request.headers)['content-type']
-        if (content_type == 'application/x-www-form-urlencoded' or
+        if (
+              content_type == 'application/x-www-form-urlencoded' or
               content_type.startswith('multipart/form-data')):
             form_data = await request.form()
 
@@ -118,6 +120,7 @@ class AppServer():
         self.app.include_router(file_upload.router)
         self.app.include_router(issue_operation_id.router)
         self.app.include_router(multi_fileupload.router)
+        self.app.include_router(epic_init.router)
 
     def start(self):
         import uvicorn

@@ -3,13 +3,13 @@ from app_manager import Manager, ManagerException
 from dataclasses import dataclass
 from enum import IntEnum
 import uuid as uu
-import json
+
 
 class Status(IntEnum):
     START = 0
     DOING = 1
     END = 2
-    
+
     @classmethod
     def str_to_status(cls, mess):
         ret = None
@@ -19,10 +19,10 @@ class Status(IntEnum):
         elif mess == "doing":
             ret = Status.DOING
         elif mess == "end":
-            ret = Status.END 
+            ret = Status.END
         print(f"str_to_status ret: {ret}")
         return ret
-    
+
     @classmethod
     def status_to_str(cls, status):
         ret = None
@@ -41,7 +41,7 @@ class AppStatus:
     epic: str
     operation: str
     operation_id: str
-    status: Status 
+    status: Status
     APP_STATUS_SESSION_KEY = "APP_STATUS_SESSION_KEY"
     APP_STATUS_USER = "user"
     APP_STATUS_EPIC = "epic"
@@ -67,7 +67,7 @@ class AppStatus:
                 status.operation,
                 ret_id,
                 status.status
-        ) 
+        )
         status_dic[ret.get_hash_key()] = ret
         return ret
 
@@ -78,7 +78,6 @@ class AppStatus:
             ret = body[key]
         return ret
 
-
     @classmethod
     def create_from_request(cls, body):
         return AppStatus(
@@ -86,9 +85,10 @@ class AppStatus:
                 cls._get_req_status(body, cls.APP_STATUS_EPIC),
                 cls._get_req_status(body, cls.APP_STATUS_OPE),
                 cls._get_req_status(body, cls.APP_STATUS_OPE_ID),
-                Status.str_to_status(cls._get_req_status(body, cls.APP_STATUS_STATUS))
+                Status.str_to_status(
+                    cls._get_req_status(body, cls.APP_STATUS_STATUS))
         )
-    
+
     @classmethod
     def create_from_state(cls, state):
         return AppStatus(
@@ -98,6 +98,7 @@ class AppStatus:
                 state.operation_id,
                 Status.str_to_status(state.status)
         )
+
     @classmethod
     def get_session_status(cls, status, app_session):
         if cls.APP_STATUS_SESSION_KEY not in app_session:
@@ -109,7 +110,7 @@ class AppStatus:
         elif status.get_hash_key() not in status_dic:
             ret = None
         else:
-            ret = status_dic[status.get_hash_key()]  
+            ret = status_dic[status.get_hash_key()]
         return ret
 
     @classmethod
@@ -119,7 +120,8 @@ class AppStatus:
         status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
         update_status = None
         for key in status_dic.keys():
-            print(f"update key checck session:{key}/request:{status.get_hash_key()}")
+            print(f"update key checck session:{key}")
+            print(f"update request:{status.get_hash_key()}")
             if key == status.get_hash_key():
                 update_key = key
                 update_status = status
@@ -128,11 +130,9 @@ class AppStatus:
             print("upadte app session status!!")
             status_dic[update_key] = update_status
 
-
     @classmethod
     def _is_none_and_black(cls, val):
         return (val is None) or len(val.strip()) == 0
-
 
     def is_not_none(self):
         return all([
@@ -140,7 +140,6 @@ class AppStatus:
                 not self._is_none_and_black(self.epic),
                 not self._is_none_and_black(self.operation)]
         )
-
 
     def equals(self, status):
         return all([
@@ -157,6 +156,7 @@ class AppStatus:
             self.operation,
             self.operation_id
         ])
+
 
 class AppStatusManager(Manager):
 
@@ -178,9 +178,11 @@ class AppStatusManager(Manager):
 
         session_status = AppStatus.get_session_status(req_status, app_session)
         if session_status is not None:
-            print(f"req status: {req_status.status}: session_status:{session_status.status}") # FOR DEBUG
-            if ((req_status.status < session_status.status) 
-                or (req_status.status - session_status.status > 1)):
+            print(f"req status: {req_status.status}")
+            print(f"session_status:{session_status.status}")
+            if (
+                    (req_status.status < session_status.status) or
+                    (req_status.status - session_status.status > 1)):
                 raise ManagerException(self.INVALID_STATUS_ERROR)
 
     def get_except_responce(
@@ -201,5 +203,5 @@ class AppStatusManager(Manager):
             error_log['message'] = "some error app status"
 
         return JSONResponse(
-                    content=error_log, 
+                    content=error_log,
                     status_code=http_status)
