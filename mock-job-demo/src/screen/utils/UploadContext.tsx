@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { uploadApi } from '../../sever_demo_api/uploadApi';
 import { issueOperationId } from '../../ustils/issueOperationId';
@@ -143,7 +143,7 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             epic: metaPayload.epic,
             operation: metaPayload.operation,
             operation_id: newOperationId,
-            status: 'doing',
+            status: 'doing' as const,
             number,
             files: pair,
             file_field_keys: chosenEpic === 'label-create' ? ['bf_file_csv', 'bf_file'] : undefined,

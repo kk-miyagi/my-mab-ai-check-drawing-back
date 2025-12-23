@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { UploadProvider } from './screen/utils/UploadContext';
 import { StartScreen } from './screen/cheking-drawings/StartScreen';
 import { ProcessingScreen } from './screen/utils/ProcessingScreen';
@@ -11,7 +11,7 @@ import { HubScreen } from './screen/HubScreen';
 
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
+    <MemoryRouter initialEntries={["/"]}>
       <UploadProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/hub" replace />} />
@@ -23,7 +23,7 @@ export const App: React.FC = () => {
           <Route path="*" element={<Navigate to="/hub" replace />} />
         </Routes>
       </UploadProvider>
-    </BrowserRouter>
+    </MemoryRouter>
   );
 };
 

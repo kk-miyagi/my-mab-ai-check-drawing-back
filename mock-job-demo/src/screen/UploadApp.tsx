@@ -1,11 +1,11 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { UploadProvider } from './utils/UploadContext';
 import { StartScreen, ProcessingScreen, ResultScreen, CsvImageUploadScreen, HubScreen } from './Screens';
 
 const UploadApp: React.FC = () => {
   return (
-    <BrowserRouter>
+    <MemoryRouter initialEntries={["/"]}>
       <UploadProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/hub" replace />} />
@@ -17,7 +17,7 @@ const UploadApp: React.FC = () => {
           <Route path="*" element={<Navigate to="/hub" replace />} />
         </Routes>
       </UploadProvider>
-    </BrowserRouter>
+    </MemoryRouter>
   );
 };
 
