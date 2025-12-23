@@ -22,6 +22,7 @@ export interface UploadPairRequest {
   status: 'doing';
   number: number; // upload sequence (1-based)
   files: File[]; // up to 2 files per request
+  file_field_keys?: string[]; // optional custom field names per file (e.g., ['bf_file_csv','bf_file'])
 }
 
 export interface UploadCompleteRequest {

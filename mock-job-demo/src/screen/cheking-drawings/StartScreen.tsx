@@ -1,6 +1,7 @@
 import React from 'react';
-import { useUpload } from './UploadContext';
-import { issueOperationId } from '../ustils/issueOperationId';
+import { Link } from 'react-router-dom';
+import { useUpload } from '../utils/UploadContext.tsx';
+import { issueOperationId } from '../../ustils/issueOperationId';
 
 const DEFAULT_EPIC = (import.meta.env?.VITE_UPLOAD_EPIC as string | undefined) ?? 'drawing-comparison';
 const DEFAULT_OPERATION = (import.meta.env?.VITE_UPLOAD_OPERATION as string | undefined) ?? 'multi-file-upload';
@@ -56,7 +57,10 @@ export const StartScreen: React.FC = () => {
 
   return (
     <div className="page">
-      <h1>画像アップロード開始</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>画像アップロード開始</h1>
+        <Link to="/hub">ハブへ戻る</Link>
+      </div>
       <p>ID発行 → 並列アップロード → 最終確認の流れで送信します。</p>
       <ul>
         <li>想定: 1MB程度の画像を60枚、2枚1組で送信</li>
@@ -67,6 +71,7 @@ export const StartScreen: React.FC = () => {
         <div><strong>epic:</strong> {DEFAULT_EPIC}</div>
         <div><strong>operation:</strong> {DEFAULT_OPERATION}</div>
       </div>
+
       <div
         onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
         onDrop={handleDrop}
