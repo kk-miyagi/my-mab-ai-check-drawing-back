@@ -4,22 +4,36 @@ import requests
 
 def main(req_url):
     datas = []
-    files = [] 
+    files = []
     if req_url == 'issue/operation_id':
         datas = [
-           {"user": None, "epic": "TEST", "operation": "TEST", "operation_id": None, "status": "start"},
-           {"user": "foo", "epic": None, "operation": "TEST", "operation_id": None, "status": "start"},
-           {"user": "foo", "epic": "TEST", "operation": None, "operation_id": None, "status": "start"},
-           {"user": "foo", "epic": "TEST", "operation": "TEST", "operation_id": None, "status": "start"},
-           {"user": "foo", "epic": "TEST", "operation": "TEST", "operation_id": "", "status": "start"},
-           {"user": "foo", "epic": "TEST", "operation": "TEST", "operation_id": "AAA", "status": "start"},
-        ] 
+           {
+               "user": None, "epic": "TEST",
+               "operation": "TEST", "operation_id": None, "status": "start"},
+           {
+               "user": "foo", "epic": None,
+               "operation": "TEST", "operation_id": None, "status": "start"},
+           {
+               "user": "foo", "epic": "TEST",
+               "operation": None, "operation_id": None, "status": "start"},
+           {
+               "user": "foo", "epic": "TEST",
+               "operation": "TEST", "operation_id": None, "status": "start"},
+           {
+               "user": "foo", "epic": "TEST",
+               "operation": "TEST", "operation_id": "", "status": "start"},
+           {
+               "user": "foo", "epic": "TEST",
+               "operation": "TEST", "operation_id": "AAA", "status": "start"},
+        ]
     elif req_url == 'multi_fileupload':
         datas = [
-           {"user": "XXXX", "epic": "TEST", "operation": "TEST", "operation_id": "AAA", "status": "doing"},
+           {
+               "user": "XXXX", "epic": "TEST",
+               "operation": "TEST", "operation_id": "AAA", "status": "doing"},
         ]
-        files.append({'file_1': open('test_client.py', 'rb')})
-        files.append({'file_2': open('test_app.py', 'rb')})
+        files.append({'bf_file': open('test_client.py', 'rb')})
+        files.append({'af_file': open('test_app.py', 'rb')})
     elif req_url == "test-boot-another-process":
         datas = [
            {"user": "foo", "epic": "TEST", "operation": "TEST", "operation_id": "AAA", "status": "start"},
@@ -32,7 +46,8 @@ def main(req_url):
     for i, data in enumerate(datas):
         if len(files) > 0:
             print("data and files send!")
-            response = requests.post(url, files=files[0], data=data)  # JSON形式で送信
+            # JSON形式で送信
+            response = requests.post(url, files=files[0], data=data)
         else:
             print("json send!")
             response = requests.post(url, json=data)  # JSON形式で送信
@@ -43,7 +58,3 @@ def main(req_url):
 
 if __name__ == '__main__':
     main(sys.argv[1])
-
-
-
-

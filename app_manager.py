@@ -5,8 +5,10 @@ class ManagerException(Exception):
         self.message = message
         super().__init__(self.message)
 
+
 class Manager:
     NOT_OVERRIDE_ERROR = "NOT_OVERRIDE_ERROR"
+
     def __init__(self, app, logger):
         self.app = app
         self.logger = logger
@@ -21,10 +23,11 @@ class Manager:
             self, exp, request, app_session):
         raise ManagerException(self.NOT_OVERRIDE_ERROR)
 
+
 class Managers:
 
     def __init__(self):
-        self.managers= []
+        self.managers = []
 
     def add_manager(self, manager: Manager):
         self.managers.append(manager)
@@ -32,7 +35,6 @@ class Managers:
     def setup_managers(self):
         for m in self.managers:
             m.setup()
-
 
     def start_managers(self, request, body, app_session):
         ret = None
@@ -45,4 +47,3 @@ class Managers:
                 continue
 
         return ret
-
