@@ -131,7 +131,7 @@ async def multi_fileupload(request: Request):
                         router.app_session
                 )
                 print("DOING upload file save!")
-                file_info = MultiFileUploader.save_multi_files(
+                file_info = await MultiFileUploader.save_multi_files(
                         req_status,
                         state
                 )
