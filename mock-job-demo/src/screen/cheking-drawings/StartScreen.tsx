@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useUpload } from '../utils/UploadContext.tsx';
+import { useEpicInit } from '../utils/useEpicInit';
 import { issueOperationId } from '../../ustils/issueOperationId';
 
 const DEFAULT_EPIC = (import.meta.env?.VITE_UPLOAD_EPIC as string | undefined) ?? 'drawing-comparison';
@@ -9,6 +10,8 @@ const DEFAULT_OPERATION = (import.meta.env?.VITE_UPLOAD_OPERATION as string | un
 export const StartScreen: React.FC = () => {
   const { startUpload } = useUpload();
   const [stagedFiles, setStagedFiles] = React.useState<File[]>([]);
+  const navigate = useNavigate();
+  const { sendEnd, error: initError } = useEpicInit(DEFAULT_EPIC);
 
   const addFiles = (incoming: File[]) => {
     if (incoming.length === 0) return;
@@ -59,8 +62,18 @@ export const StartScreen: React.FC = () => {
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>画像アップロード開始</h1>
-        <Link to="/hub">ハブへ戻る</Link>
+        <Link
+          to="/hub"
+          onClick={async (e) => {
+            e.preventDefault();
+            await sendEnd();
+            navigate('/hub');
+          }}
+        >
+          ハブへ戻る
+        </Link>
       </div>
+      {initError && <p style={{ color: 'red' }}>初期化エラー: {initError}</p>}
       <p>ID発行 → 並列アップロード → 最終確認の流れで送信します。</p>
       <ul>
         <li>想定: 1MB程度の画像を60枚、2枚1組で送信</li>

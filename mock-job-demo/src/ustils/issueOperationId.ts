@@ -3,9 +3,10 @@
 
 import type { OperationIssueRequest, OperationIssueResponse } from '../types/uploadServer';
 import { http } from './http';
+import { ENDPOINTS } from './endpoints';
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
-const ISSUE_OPERATION_ENDPOINT = '/issue/operation_id/';
+const ISSUE_OPERATION_ENDPOINT = ENDPOINTS.issueOperation;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
