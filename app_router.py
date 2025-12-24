@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from manager.app_status_manager import Status
 
+
 class AppRouter(APIRouter):
 
     @classmethod
@@ -15,4 +16,3 @@ class AppRouter(APIRouter):
             "operation_id": status.operation_id,
             "status": Status.status_to_str(status.status)
         }
-

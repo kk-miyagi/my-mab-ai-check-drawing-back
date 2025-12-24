@@ -1,11 +1,13 @@
 from app_router import AppRouter
-from fastapi import Request, Form, UploadFile, File 
+from fastapi import Request
 from manager.app_status_manager import AppStatus, Status
 from dataclasses import dataclass
 import os
 import time
 
 router = AppRouter()
+
+
 @dataclass
 class FileInfo:
     save_paths: list[str]
@@ -65,6 +67,42 @@ class MultiFileUploader:
                 loader.file_infos.append(file_info)
             loader.sum_number = sum_number
 
+    @classmethod
+    def save_multi_files(cls, req_status, state) -> FileInfo:
+        file_info = None
+        files_dic = {
+                'bf_file': state.bf_file,
+                'af_file': state.af_file,
+                'bf_file_csv': state.bf_file_csv,
+                'af_file_csv': state.af_file_csv,
+        }
+        save_paths = []
+        filenames = []
+        file_contents = []
+        print(f"DOING file keys:{files_dic.keys()}")
+        for file_key in files_dic.keys():
+            file = files_dic[file_key]
+            if file is not None:
+                content = await file.read()
+                save_path = f"{MultiFileUploader.MULTI_FILE_UPLOAD_SAVE_DIR}"
+                save_path += f"/{req_status.get_hash_key()}"
+                file_name = f"{save_path}/"
+                file_name += f"{state.number}_{file_key}_{file.filename}"
+
+                os.makedirs(save_path, exist_ok=True)
+                save_paths.append(save_path)
+                filenames.append(file_name)
+                file_contents.append(file.content_type)
+                with open(file_name, 'wb') as f:
+                    f.write(content)
+        if (
+                len(save_paths) > 0 and
+                (len(save_paths) == len(filenames))):
+            file_info = FileInfo(
+                    save_paths,
+                    filenames, file_contents, state.number)
+        return file_info
+
     def get_hash_key(self):
         return '_'.join([
             self.user,
@@ -93,34 +131,10 @@ async def multi_fileupload(request: Request):
                         router.app_session
                 )
                 print("DOING upload file save!")
-                file_info = None
-                files_dic = {
-                        'bf_file': state.bf_file,
-                        'af_file': state.af_file,
-                        'bf_file_csv': state.bf_file_csv,
-                        'af_file_csv': state.af_file_csv,
-                }
-                save_paths = []
-                filenames = []
-                file_contents = []
-                print(f"DOING file keys:{files_dic.keys()}")
-                for file_key in files_dic.keys():
-                    file = files_dic[file_key]
-                    if file is not None:
-                        content = await file.read()
-                        save_path = f"{MultiFileUploader.MULTI_FILE_UPLOAD_SAVE_DIR}/{req_status.get_hash_key()}" 
-                        file_name = f"{save_path}/{state.number}_{file_key}_{file.filename}" 
-                        os.makedirs(save_path, exist_ok=True)
-                        print(f"mkdir ok!")
-                        save_paths.append(save_path)
-                        filenames.append(file_name)
-                        file_contents.append(file.content_type)
-                        with open(file_name, 'wb') as f:
-                            f.write(content)
-                if len(save_paths) > 0 and len(save_paths) == len(filenames):
-                        file_info = FileInfo(
-                                save_paths,
-                                filenames, file_contents, state.number)
+                file_info = MultiFileUploader.save_multi_files(
+                        req_status,
+                        state
+                )
                 # mulit file upload session update
                 print("DOING multi upload session update!")
                 MultiFileUploader.upadte_muliti_fileuploder_session(
@@ -177,7 +191,7 @@ async def multi_fileupload(request: Request):
                                 router.app_session
                         )
                 else:
-                    #既にsum_numberが更新されている場合は何もしない
+                    # 既にsum_numberが更新されている場合は何もしない
                     # TODO logs
                     pass
                 ret = router.create_responce_from_status(

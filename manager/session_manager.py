@@ -17,7 +17,8 @@ class SessionManager(Manager):
             max_age=None,
             https_only=False
         )
-        self.__SESSION_LIFETIME = 60 # セッションの有効時間(秒)
+        # セッションの有効時間(秒)
+        self.__SESSION_LIFETIME = 60
 
     # overload
     def start(self, request, body, app_session):
@@ -32,10 +33,10 @@ class SessionManager(Manager):
             session["expire_time"] = now + self.__SESSION_LIFETIME
             session["count"] = 0
 
-        if now  > session["expire_time"]:
+        if now > session["expire_time"]:
             self.logger.debug("clear session")
             session.clear()
-            raise ManagerException(self.SESSION_EXPIRE_ERROR) 
+            raise ManagerException(self.SESSION_EXPIRE_ERROR)
         session["count"] += 1
 
     def get_except_responce(
@@ -47,14 +48,14 @@ class SessionManager(Manager):
         }
 
         http_status = 503
-        if exp.message == self.SESSION_EXPIRE_ERROR:  
-            error_log['message'] =  "session expire error"
+        if exp.message == self.SESSION_EXPIRE_ERROR:
+            error_log['message'] = "session expire error"
             http_status = 402
         else:
-            error_log['message'] =  "some session error"
+            error_log['message'] = "some session error"
 
         # TODO ERROR LOG
         self.logger.error(f"END: {error_log['message']}")
         return JSONResponse(
-                content=error_log, 
+                content=error_log,
                 status_code=http_status)
