@@ -36,7 +36,9 @@ def main(req_url):
         files.append({'af_file': open('test_app.py', 'rb')})
     elif req_url == "test-boot-another-process":
         datas = [
-           {"user": "foo", "epic": "TEST", "operation": "TEST", "operation_id": "AAA", "status": "start"},
+           {
+               "user": "foo", "epic": "TEST",
+               "operation": "TEST", "operation_id": "AAA", "status": "start"},
         ]
     else:
         print(f"URL UNMATCH: {req_url}")
