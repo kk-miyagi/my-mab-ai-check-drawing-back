@@ -21,7 +21,7 @@ class SessionManager(Manager):
         self.__SESSION_LIFETIME = 60
 
     # overload
-    def start(self, request, body, app_session):
+    def start(self, request, body):
 
         session = request.session
 
@@ -40,7 +40,7 @@ class SessionManager(Manager):
         session["count"] += 1
 
     def get_except_responce(
-            self, exp, request, app_session):
+            self, exp, request):
         error_log = {
             "status": "",
             "message": "",

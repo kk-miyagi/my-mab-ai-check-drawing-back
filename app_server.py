@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -12,12 +10,13 @@ import router.file_upload as file_upload
 import router.issue_operation_id as issue_operation_id
 import router.multi_fileupload as multi_fileupload
 import router.epic_init as epic_init
+import logging
 
 
 # 各種マネージャー格納用
 MANAGERS = Managers()
 # application session用
-APP_SESSION = {}
+# APP_SESSION = {}
 
 
 class AppMiddleware(BaseHTTPMiddleware):
@@ -70,7 +69,7 @@ class AppMiddleware(BaseHTTPMiddleware):
             request.state.body = body_json
         print(f"app middle ware request body:{body_json}")
 
-        res = MANAGERS.start_managers(request, body_json, APP_SESSION)
+        res = MANAGERS.start_managers(request, body_json)
         if res is not None:
             return res
         response = await call_next(request)
@@ -115,7 +114,7 @@ class AppServer():
         MANAGERS.setup_managers()
 
     def setup_routers(self):
-        AppRouter.set_app_session(APP_SESSION)
+        AppRouter.set_app_session(self.app.state)
         self.app.include_router(hello.router)
         self.app.include_router(file_upload.router)
         self.app.include_router(issue_operation_id.router)
