@@ -2,3 +2,5 @@ fastapi
 uvicorn[standard]
 itsdangerous
 python-multipart
+autopep8
+requests
