@@ -68,7 +68,7 @@ class MultiFileUploader:
             loader.sum_number = sum_number
 
     @classmethod
-    def save_multi_files(cls, req_status, state) -> FileInfo:
+    async def save_multi_files(cls, req_status, state) -> FileInfo:
         file_info = None
         files_dic = {
                 'bf_file': state.bf_file,
