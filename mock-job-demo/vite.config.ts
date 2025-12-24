@@ -15,7 +15,11 @@ export default defineConfig({
         changeOrigin: true,
       },
       // Route multi file upload to FastAPI while keeping same-origin from the browser's perspective
-      '/multi_fileupload': {
+      '/multi-fileupload': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/epic-init': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },

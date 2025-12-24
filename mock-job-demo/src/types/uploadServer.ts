@@ -34,6 +34,20 @@ export interface UploadCompleteRequest {
   sum_number: number; // total requests sent (pairs count)
 }
 
+export interface EpicInitRequest {
+  user: string;
+  epic: string;
+  operation: string; // typically 'init'
+  operation_id: string;
+  status: 'doing' | 'end';
+}
+
+export interface EpicInitResponse {
+  status: string;
+  message?: string;
+  operation_id?: string;
+}
+
 export interface UploadResponse {
   status: 'doing' | 'end' | 'error';
   operation_id?: string;

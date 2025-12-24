@@ -53,10 +53,10 @@ class AppStatus:
     def create_app_session(cls, status, app_session):
         if status.status != Status.START:
             raise ValueError()
-        if cls.APP_STATUS_SESSION_KEY not in app_session:
-            app_session[cls.APP_STATUS_SESSION_KEY] = {}
+        if not hasattr(app_session, 'APP_STATUS_SESSION_KEY'):
+            app_session.SESSION_KEY = {}
 
-        status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
+        status_dic = app_session.APP_STATUS_SESSION_KEY
         ret_id = status.operation_id
         if cls._is_none_and_black(ret_id):
             ret_id = str(uu.uuid4())
@@ -101,10 +101,9 @@ class AppStatus:
 
     @classmethod
     def get_session_status(cls, status, app_session):
-        if cls.APP_STATUS_SESSION_KEY not in app_session:
+        if not hasattr(app_session, 'APP_STATUS_SESSION_KEY'):
             raise ValueError()
-        status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
-        print(status.operation_id)
+        status_dic = app_session.APP_STATUS_SESSION_KEY
         if cls._is_none_and_black(status.operation_id):
             ret = None
         elif status.get_hash_key() not in status_dic:
@@ -115,9 +114,9 @@ class AppStatus:
 
     @classmethod
     def update_session_status(cls, status, app_session):
-        if cls.APP_STATUS_SESSION_KEY not in app_session:
+        if not hasattr(app_session, 'APP_STATUS_SESSION_KEY'):
             raise ValueError()
-        status_dic = app_session[cls.APP_STATUS_SESSION_KEY]
+        status_dic = app_session.APP_STATUS_SESSION_KEY
         update_status = None
         for key in status_dic.keys():
             print(f"update key checck session:{key}")
@@ -129,6 +128,23 @@ class AppStatus:
         if update_status is not None:
             print("upadte app session status!!")
             status_dic[update_key] = update_status
+
+    @classmethod
+    def delete_session_status(cls, status, app_session):
+        if not hasattr(app_session, 'APP_STATUS_SESSION_KEY'):
+            raise ValueError()
+        status_dic = app_session.APP_STATUS_SESSION_KEY
+        delete_status = None
+        for key in status_dic.keys():
+            print(f"delete key checck session:{key}")
+            print(f"delete request:{status.get_hash_key()}")
+            if key == status.get_hash_key():
+                delete_key = key
+                delete_status = status
+                continue
+        if delete_status is not None:
+            status_dic.pop(delete_key)
+            print(f"delete app session status!!:{delete_key}")
 
     @classmethod
     def _is_none_and_black(cls, val):
@@ -166,17 +182,19 @@ class AppStatusManager(Manager):
     def setup(self):
         pass
 
-    def start(self, request, body, app_session):
+    def start(self, request, body):
 
         # app_session init
-        if AppStatus.APP_STATUS_SESSION_KEY not in app_session:
-            app_session[AppStatus.APP_STATUS_SESSION_KEY] = {}
+        state = self.app.state
+        if not hasattr(state, 'APP_STATUS_SESSION_KEY'):
+            state.APP_STATUS_SESSION_KEY = {}
         # status check
         req_status = AppStatus.create_from_request(body)
         if not req_status.is_not_none():
             raise ManagerException(self.NO_VALUE_ERROR)
-
-        session_status = AppStatus.get_session_status(req_status, app_session)
+        session_status = AppStatus.get_session_status(
+                req_status,
+                state)
         if session_status is not None:
             print(f"req status: {req_status.status}")
             print(f"session_status:{session_status.status}")
@@ -186,7 +204,7 @@ class AppStatusManager(Manager):
                 raise ManagerException(self.INVALID_STATUS_ERROR)
 
     def get_except_responce(
-            self, exp, request, app_session):
+            self, exp, request):
         error_log = {
             "status": "",
             "message": "",

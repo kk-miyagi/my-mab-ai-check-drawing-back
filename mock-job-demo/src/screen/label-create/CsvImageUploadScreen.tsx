@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useUpload } from '../utils/UploadContext.tsx';
+import { useEpicInit } from '../utils/useEpicInit';
 
 type Pair = {
   id: string;
@@ -16,6 +17,8 @@ const createEmptyPair = (): Pair => ({ id: `${Date.now()}_${Math.random().toStri
 export const CsvImageUploadScreen: React.FC = () => {
   const { startUpload } = useUpload();
   const [pairs, setPairs] = React.useState<Pair[]>([createEmptyPair()]);
+  const navigate = useNavigate();
+  const { sendEnd, error: initError } = useEpicInit(EPIC);
 
   const setFile = (id: string, kind: 'csv' | 'image', file?: File) => {
     setPairs((prev) => prev.map((p) => (p.id === id ? { ...p, [kind]: file } : p)));
@@ -54,9 +57,19 @@ export const CsvImageUploadScreen: React.FC = () => {
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <h1 style={{ margin: 0 }}>CSV + 画像 アップロード</h1>
-        <Link to="/hub">ハブへ戻る</Link>
+        <Link
+          to="/hub"
+          onClick={async (e) => {
+            e.preventDefault();
+            await sendEnd();
+            navigate('/hub');
+          }}
+        >
+          ハブへ戻る
+        </Link>
       </div>
       <p>CSVと画像を1:1で複数組まとめて送信します（順序はCSV→画像）。</p>
+      {initError && <p style={{ color: 'red' }}>初期化エラー: {initError}</p>}
 
       <div style={{ display: 'grid', gap: 6, maxWidth: 520, marginBottom: 12 }}>
         <div><strong>epic:</strong> {EPIC}</div>

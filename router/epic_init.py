@@ -8,13 +8,20 @@ router = AppRouter()
 @router.post('/epic-init/')
 async def issue_operation_id(request: Request):
     req_status = AppStatus.create_from_request(request.state.body)
+    session_status = None
     if req_status.status == Status.START:
         session_status = AppStatus.create_app_session(
                 req_status,
                 AppRouter.app_session
         )
     else:
+        # update session status
         AppStatus.update_session_status(
+                req_status,
+                AppRouter.app_session
+        )
+        # get session status
+        session_status = AppStatus.get_session_status(
                 req_status,
                 AppRouter.app_session
         )

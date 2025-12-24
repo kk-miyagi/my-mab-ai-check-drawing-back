@@ -3,17 +3,21 @@
 
 import { issueOperationId } from '../ustils/issueOperationId';
 import { http } from '../ustils/http';
+import { ENDPOINTS } from '../ustils/endpoints';
 import type {
   OperationIssueRequest,
   OperationIssueResponse,
   UploadPairRequest,
   UploadCompleteRequest,
   UploadResponse,
+  EpicInitRequest,
+  EpicInitResponse,
 } from '../types/uploadServer';
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 
-const FILE_UPLOAD_ENDPOINT = '/multi_fileupload/';
+const FILE_UPLOAD_ENDPOINT = ENDPOINTS.fileUpload;
+const EPIC_INIT_ENDPOINT = ENDPOINTS.epicInit;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -62,6 +66,15 @@ export const uploadApi = {
 
     const { data } = await http.post<UploadResponse>(FILE_UPLOAD_ENDPOINT, payload);
     return data;
+  },
+
+  async epicInit(payload: EpicInitRequest): Promise<EpicInitResponse> {
+    if (USE_MOCK_API) {
+      await wait(200);
+      return { status: payload.status, operation_id: payload.operation_id };
+    }
+
+    return postJson(EPIC_INIT_ENDPOINT, payload);
   },
 };
 

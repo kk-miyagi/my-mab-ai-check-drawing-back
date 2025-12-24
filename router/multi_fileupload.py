@@ -30,23 +30,23 @@ class MultiFileUploader:
     sum_number: int
 
     @classmethod
-    def get_multi_fileuploader(cls, req_status, session_app):
-        if cls.MULTI_FILE_UPLOAD_SESSION_KEY not in session_app:
-            session_app[cls.MULTI_FILE_UPLOAD_SESSION_KEY] = {}
+    def get_multi_fileuploader(cls, req_status, app_session):
+        if not hasattr(app_session, 'MULTI_FILE_UPLOAD_SESSION_KEY'):
+            app_session.MULTI_FILE_UPLOAD_SESSION_KEY = {}
 
-        return session_app[cls.MULTI_FILE_UPLOAD_SESSION_KEY][
+        return app_session.MULTI_FILE_UPLOAD_SESSION_KEY[
                 req_status.get_hash_key()
         ]
 
     @classmethod
-    def create_multi_fileuploder_session(cls, session_app):
-        if cls.MULTI_FILE_UPLOAD_SESSION_KEY not in session_app:
-            session_app[cls.MULTI_FILE_UPLOAD_SESSION_KEY] = {}
+    def create_multi_fileuploder_session(cls, app_session):
+        if not hasattr(app_session, 'MULTI_FILE_UPLOAD_SESSION_KEY'):
+            app_session.MULTI_FILE_UPLOAD_SESSION_KEY = {}
 
     @classmethod
-    def upadte_muliti_fileuploder_session(
-            cls, status, file_info, session_app, sum_number=None):
-        session_dic = session_app[cls.MULTI_FILE_UPLOAD_SESSION_KEY]
+    def update_muliti_fileuploder_session(
+            cls, status, file_info, app_session, sum_number=None):
+        session_dic = app_session.MULTI_FILE_UPLOAD_SESSION_KEY
         if status.get_hash_key() not in session_dic:
             file_infos = None
             if file_info is not None:
@@ -68,7 +68,7 @@ class MultiFileUploader:
             loader.sum_number = sum_number
 
     @classmethod
-    def save_multi_files(cls, req_status, state) -> FileInfo:
+    async def save_multi_files(cls, req_status, state) -> FileInfo:
         file_info = None
         files_dic = {
                 'bf_file': state.bf_file,
@@ -118,6 +118,7 @@ async def multi_fileupload(request: Request):
     state = request.state
     req_status = AppStatus.create_from_state(state)
     print(f"req_status: {req_status}")
+    # TODO operation_idがない場合はエラーにするか？
     match req_status.status:
         case Status.START:
             # TODO 一応想定外だがどうするか？
@@ -131,13 +132,13 @@ async def multi_fileupload(request: Request):
                         router.app_session
                 )
                 print("DOING upload file save!")
-                file_info = MultiFileUploader.save_multi_files(
+                file_info = await MultiFileUploader.save_multi_files(
                         req_status,
                         state
                 )
                 # mulit file upload session update
                 print("DOING multi upload session update!")
-                MultiFileUploader.upadte_muliti_fileuploder_session(
+                MultiFileUploader.update_muliti_fileuploder_session(
                     req_status,
                     file_info,
                     router.app_session
@@ -190,6 +191,7 @@ async def multi_fileupload(request: Request):
                                 req_status,
                                 router.app_session
                         )
+                        # TODO app status session 削除(削除タイミングは考える必要があるかも）
                 else:
                     # 既にsum_numberが更新されている場合は何もしない
                     # TODO logs
