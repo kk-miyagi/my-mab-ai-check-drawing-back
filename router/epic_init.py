@@ -1,6 +1,6 @@
 from app_router import AppRouter
 from fastapi import Request
-from manager.app_status_manager import Status, AppStatus
+from state.app_status import Status, AppStatus
 
 router = AppRouter()
 

@@ -2,6 +2,7 @@
 __pycache__/
 *.swp
 node_modules/
+multi-fileupload/
 dist/
 *.jpg
 *.jpeg

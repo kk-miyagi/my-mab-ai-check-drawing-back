@@ -1,6 +1,6 @@
 from app_router import AppRouter
 from fastapi import Request
-from manager.app_status_manager import AppStatus
+from state.app_status import AppStatus
 
 router = AppRouter()
 
@@ -8,10 +8,9 @@ router = AppRouter()
 @router.post('/issue/operation-id/')
 async def issue_operation_id(request: Request):
     req_status = AppStatus.create_from_request(request.state.body)
-    session_status = AppStatus.create_app_session(
+    state_status = router.app_state.create_new_app_status(
             req_status,
-            AppRouter.app_session
     )
     return router.create_responce_from_status(
-            session_status
+            state_status
     )
