@@ -100,3 +100,9 @@ export const MyProcessing: React.FC = () => {
 
 結果画面を変えたい場合も同様に、`useUpload` で `resultData` / `failedUploads` / `operationId` を取得してコンポーネントを作り、ルートを差し替えます。
 
+### 状態をローカルストレージに保存する設定
+- デフォルトでローカルストレージへ進捗/ステータスを保存・復元します（リロードしても継続）。
+- 環境変数で切替: `VITE_UPLOAD_PERSIST_STATE=true` / `false`
+   - `.env.local` などに書いておけば別端末でも設定を共有しやすくなります（コードのデフォルトは `true`）。
+   - `false` にすると保存/復元を行いません。
+

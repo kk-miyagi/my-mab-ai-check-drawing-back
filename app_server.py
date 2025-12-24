@@ -1,8 +1,6 @@
-import os
 import logging
 
-from dotenv import load_dotenv
-from fastapi import FastAPI, Body
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from app_manager import Managers
@@ -10,9 +8,10 @@ from manager.session_manager import SessionManager
 from manager.app_status_manager import AppStatusManager
 from app_router import AppRouter
 import router.hello as hello
-import router.file_upload as file_upload 
-import router.issue_operation_id as issue_operation_id 
+import router.file_upload as file_upload
+import router.issue_operation_id as issue_operation_id
 import router.multi_fileupload as multi_fileupload
+import router.epic_init as epic_init
 
 
 # 各種マネージャー格納用
@@ -20,16 +19,19 @@ MANAGERS = Managers()
 # application session用
 APP_SESSION = {}
 
+
 class AppMiddleware(BaseHTTPMiddleware):
-    
+
+    # router側ではリクエスト内容を基本stateオブジェクトから取得する
     async def dispatch(self, request, call_next):
         # manager 処理の実行
         print(f"app midele ware request header: {request.headers}")
-        content_type = dict(request.headers)['content-type'] 
-        if (content_type == 'application/x-www-form-urlencoded' or
-            content_type.startswith('multipart/form-data')):
+        content_type = dict(request.headers)['content-type']
+        if (
+              content_type == 'application/x-www-form-urlencoded' or
+              content_type.startswith('multipart/form-data')):
             form_data = await request.form()
-            
+
             request.state.user = form_data.get('user')
             request.state.epic = form_data.get('epic')
             request.state.operation = form_data.get('operation')
@@ -42,7 +44,7 @@ class AppMiddleware(BaseHTTPMiddleware):
             request.state.number = form_data.get('number')
             request.state.sum_number = form_data.get('sum_number')
 
-            body_json = { 
+            body_json = {
                          'user': request.state.user,
                          'epic': request.state.epic,
                          'operation': request.state.operation,
@@ -65,7 +67,7 @@ class AppMiddleware(BaseHTTPMiddleware):
                 request.state.number = body_json['number']
             if 'sum_number' in body_json:
                 request.state.sum_number = body_json['sum_number']
-            request.state.body = body_json 
+            request.state.body = body_json
         print(f"app middle ware request body:{body_json}")
 
         res = MANAGERS.start_managers(request, body_json, APP_SESSION)
@@ -92,19 +94,20 @@ class AppServer():
             CORSMiddleware,
             allow_origins=origins,
             allow_credentials=True,
-            allow_methods=["*"], # TODO
-            allow_headers=["*"], # TODO
+            # TODO
+            allow_methods=["*"],
+            # TODO
+            allow_headers=["*"],
         )
 
         # https dsipatvh
         self.app.add_middleware(AppMiddleware)
 
-        # manager setup 
+        # manager setup
         self.setup_managers()
 
         # routing setup
         self.setup_routers()
-
 
     def setup_managers(self):
         MANAGERS.add_manager(SessionManager(self.app, self.logger))
@@ -117,8 +120,8 @@ class AppServer():
         self.app.include_router(file_upload.router)
         self.app.include_router(issue_operation_id.router)
         self.app.include_router(multi_fileupload.router)
- 
+        self.app.include_router(epic_init.router)
+
     def start(self):
         import uvicorn
         uvicorn.run(self.app, host=self.host, port=self.port)
-

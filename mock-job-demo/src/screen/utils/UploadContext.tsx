@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { uploadApi } from '../../sever_demo_api/uploadApi';
 import { issueOperationId } from '../../ustils/issueOperationId';
@@ -28,6 +28,9 @@ interface UploadContextType {
 
 const UploadContext = createContext<UploadContextType | undefined>(undefined);
 
+const PERSIST_KEY = 'upload_state_v1';
+const USE_PERSIST = ((import.meta.env?.VITE_UPLOAD_PERSIST_STATE as string | undefined) ?? 'true') === 'true';
+
 const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?? 'demo-user';
 const DEFAULT_EPIC = (import.meta.env?.VITE_UPLOAD_EPIC as string | undefined) ?? 'drawing-comparison';
 const DEFAULT_OPERATION = (import.meta.env?.VITE_UPLOAD_OPERATION as string | undefined) ?? 'multi-file-upload';
@@ -40,6 +43,26 @@ const chunkArray = <T,>(array: T[], size: number): T[][] => {
   return result;
 };
 
+type PersistedFailedUpload = {
+  number: number;
+  fileNames: string[];
+  reason?: string;
+};
+
+type PersistedState = {
+  phase: UploadPhase;
+  progress: number;
+  completedRequests: number;
+  totalRequests: number;
+  failedUploads: PersistedFailedUpload[];
+  logs: string[];
+  operationId: string | null;
+  resultData: UploadResult | null;
+  lastEpic: string | null;
+  lastOperation: string | null;
+  status: 'start' | 'doing' | 'end' | 'error';
+};
+
 export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<UploadPhase>('idle');
@@ -50,9 +73,87 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [logs, setLogs] = useState<string[]>([]);
   const [operationId, setOperationId] = useState<string | null>(null);
   const [lastEpic, setLastEpic] = useState<string | null>(null);
+  const [lastOperation, setLastOperation] = useState<string | null>(null);
   const [resultData, setResultData] = useState<UploadResult | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [status, setStatus] = useState<'start' | 'doing' | 'end' | 'error'>('start');
+
+  const statusToPhase = (s: 'start' | 'doing' | 'end' | 'error'): UploadPhase => {
+    if (s === 'start') return 'issuing_id';
+    if (s === 'doing') return 'uploading';
+    if (s === 'end') return 'complete';
+    return 'error';
+  };
+
+  const hydrateFromStorage = () => {
+    if (!USE_PERSIST) {
+      setIsHydrated(true);
+      return;
+    }
+    if (typeof window === 'undefined') {
+      setIsHydrated(true);
+      return;
+    }
+    const raw = window.localStorage.getItem(PERSIST_KEY);
+    if (!raw) {
+      setIsHydrated(true);
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw) as PersistedState;
+      setPhase(parsed.phase ?? statusToPhase(parsed.status ?? 'start'));
+      setProgress(parsed.progress);
+      setCompletedRequests(parsed.completedRequests);
+      setTotalRequests(parsed.totalRequests);
+      setFailedUploads(parsed.failedUploads as FailedUpload[]);
+      setLogs(parsed.logs ?? []);
+      setOperationId(parsed.operationId ?? null);
+      setLastEpic(parsed.lastEpic ?? null);
+      setResultData(parsed.resultData ?? null);
+      setLastOperation(parsed.lastOperation ?? null);
+      setStatus(parsed.status ?? 'start');
+
+      const nextPhase = parsed.phase ?? statusToPhase(parsed.status ?? 'start');
+      if (nextPhase === 'issuing_id' || nextPhase === 'uploading' || nextPhase === 'verifying') {
+        navigate('/processing', { replace: true });
+      } else if (nextPhase === 'complete' || nextPhase === 'error') {
+        navigate('/result', { replace: true });
+      } else {
+        navigate('/hub', { replace: true });
+      }
+    } catch (e) {
+      console.warn('[upload] failed to parse persisted state', e);
+      window.localStorage.removeItem(PERSIST_KEY);
+    } finally {
+      setIsHydrated(true);
+    }
+  };
+
+  useEffect(() => {
+    hydrateFromStorage();
+  }, []);
 
   const addLog = (msg: string) => setLogs((prev) => [...prev, msg]);
+
+  useEffect(() => {
+    if (!USE_PERSIST) return;
+    if (typeof window === 'undefined') return;
+    if (!isHydrated) return;
+    const toPersist: PersistedState = {
+      phase,
+      progress,
+      completedRequests,
+      totalRequests,
+      failedUploads: (failedUploads ?? []).map((f) => ({ number: f.number, fileNames: f.fileNames, reason: f.reason })),
+      logs,
+      operationId,
+      resultData,
+      lastEpic,
+      lastOperation,
+      status,
+    };
+    window.localStorage.setItem(PERSIST_KEY, JSON.stringify(toPersist));
+  }, [phase, progress, completedRequests, totalRequests, failedUploads, logs, operationId, resultData, lastEpic, lastOperation, isHydrated, status]);
 
   const startUpload = async (files: File[], options?: StartOptions) => {
     if (!files.length) return;
@@ -70,9 +171,10 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     try {
       const chosenEpic = options?.epic?.trim() || DEFAULT_EPIC;
       const chosenOperation = options?.operation?.trim() || DEFAULT_OPERATION;
-      const reuseExisting = !!(options?.isRetry && operationId && lastEpic === chosenEpic);
+      const reuseExisting = !!(options?.isRetry && operationId && lastEpic === chosenEpic && lastOperation === chosenOperation);
 
       setPhase('issuing_id');
+      setStatus('start');
       setLogs([]);
       setProgress(0);
       setCompletedRequests(0);
@@ -107,11 +209,13 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         newOperationId = issueResult.operation_id ?? `op_${Date.now()}`;
         setOperationId(newOperationId);
         setLastEpic(chosenEpic);
+        setLastOperation(chosenOperation);
         console.info('[upload] issue operation id response', issueResult);
         addLog(`✅ ID発行: ${newOperationId}`);
       }
 
       setPhase('uploading');
+      setStatus('doing');
       let completed = 0;
       const failureMap = new Map<number, FailedUpload>();
 
@@ -222,12 +326,15 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       const hasFailures = aggregatedFailures.length > 0 || completion.status === 'error';
 
       setResultData(finalResult);
+      const finalStatus = completion.status === 'end' ? 'end' : 'error';
+      setStatus(finalStatus);
       setPhase(hasFailures ? 'error' : 'complete');
       setProgress(100);
       navigate('/result');
     } catch (error: any) {
       console.error(error);
       setPhase('error');
+      setStatus('error');
       addLog(`❌ Error: ${error?.message ?? 'unknown error'}`);
       if (operationId) setResultData({ status: 'error', operationId });
       navigate('/result');
@@ -242,6 +349,9 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setTotalRequests(0);
     setOperationId(null);
     setResultData(null);
+    setLastEpic(null);
+    setStatus('start');
+    if (USE_PERSIST && typeof window !== 'undefined') window.localStorage.removeItem(PERSIST_KEY);
     navigate('/');
   };
 

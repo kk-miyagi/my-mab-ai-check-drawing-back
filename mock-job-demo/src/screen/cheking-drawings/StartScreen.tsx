@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useUpload } from '../utils/UploadContext';
+import { useUpload } from '../utils/UploadContext.tsx';
 import { issueOperationId } from '../../ustils/issueOperationId';
 
 const DEFAULT_EPIC = (import.meta.env?.VITE_UPLOAD_EPIC as string | undefined) ?? 'drawing-comparison';

@@ -30,19 +30,21 @@ class MultiFileUploader:
     @classmethod
     def get_multi_fileuploader(cls, req_status, session_app):
         if cls.MULTI_FILE_UPLOAD_SESSION_KEY not in session_app:
-            session_app[cls.MULTI_FILE_UPLOAD_SESSION_KEY] = {} 
-            
+            session_app[cls.MULTI_FILE_UPLOAD_SESSION_KEY] = {}
+
         return session_app[cls.MULTI_FILE_UPLOAD_SESSION_KEY][
                 req_status.get_hash_key()
         ]
+
     @classmethod
     def create_multi_fileuploder_session(cls, session_app):
         if cls.MULTI_FILE_UPLOAD_SESSION_KEY not in session_app:
-            session_app[cls.MULTI_FILE_UPLOAD_SESSION_KEY] = {} 
+            session_app[cls.MULTI_FILE_UPLOAD_SESSION_KEY] = {}
 
     @classmethod
-    def upadte_muliti_fileuploder_session(cls, status, file_info, session_app, sum_number=None):
-        session_dic = session_app[cls.MULTI_FILE_UPLOAD_SESSION_KEY]  
+    def upadte_muliti_fileuploder_session(
+            cls, status, file_info, session_app, sum_number=None):
+        session_dic = session_app[cls.MULTI_FILE_UPLOAD_SESSION_KEY]
         if status.get_hash_key() not in session_dic:
             file_infos = None
             if file_info is not None:
@@ -71,7 +73,8 @@ class MultiFileUploader:
             self.operation_id
         ])
 
-@router.post('/multi_fileupload/')
+
+@router.post('/multi-fileupload/')
 async def multi_fileupload(request: Request):
     ret = None
     state = request.state
@@ -115,7 +118,9 @@ async def multi_fileupload(request: Request):
                         with open(file_name, 'wb') as f:
                             f.write(content)
                 if len(save_paths) > 0 and len(save_paths) == len(filenames):
-                        file_info = FileInfo(save_paths, filenames, file_contents, state.number)
+                        file_info = FileInfo(
+                                save_paths,
+                                filenames, file_contents, state.number)
                 # mulit file upload session update
                 print("DOING multi upload session update!")
                 MultiFileUploader.upadte_muliti_fileuploder_session(

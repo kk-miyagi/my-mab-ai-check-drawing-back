@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useUpload } from '../utils/UploadContext';
+import { useUpload } from '../utils/UploadContext.tsx';
 
 type Pair = {
   id: string;
