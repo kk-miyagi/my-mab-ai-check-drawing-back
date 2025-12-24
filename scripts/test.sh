@@ -1,2 +1,3 @@
-# python test.py $1 $2 $3
-echo "Hello"
+echo "30秒間待機します..."
+sleep 30
+echo "完了しました！"
