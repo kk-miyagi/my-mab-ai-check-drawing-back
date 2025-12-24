@@ -1,16 +1,13 @@
-import os
 import asyncio
-import sys
 import logging
+
 
 class BaseBootAnotherProcess:
 
-    def __init__(self, log_file_name):
+    def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self.log_file_name = log_file_name
-
         logging.basicConfig(
-            filename=self.log_file_name,
+            filename="base_boot_another_process.log",
             format="[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
             level=logging.INFO,
             encoding="utf-8",
@@ -18,9 +15,9 @@ class BaseBootAnotherProcess:
 
     def start(self, args):
         try:
-            print("sssss")
             self.logger.info("ok")
-            asyncio.run(self.do(args))
+            asyncio.run(self.do(args))  # TODO: マルチファイルアップロードを参考にしてみる
+
         except Exception as e:
             self.logger.info(f"{e}: エラーが発生しています。")
 
@@ -33,10 +30,15 @@ class BaseBootAnotherProcess:
                 stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await proc.communicate()
+            print(stdout.decode())
+            print(stderr)
+            # 渡された関数を呼ぶ
+            # xxxxxx(ここでステータスを更新する)
+            # バッチ処理のステータスと全体のステータスの両方を更新する
             print("end")
         except:
             raise Exception
-        
+
         print(proc.returncode)
         if proc.returncode == 0:
             return "ok!"
