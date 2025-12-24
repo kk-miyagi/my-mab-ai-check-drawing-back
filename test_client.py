@@ -35,7 +35,7 @@ def main(req_url):
         files.append({
             'bf_file': open('test_client.py', 'rb'),
             'af_file': open('test_app.py', 'rb')})
-    elif req_url == "test-boot-another-process":
+    elif req_url == "base-boot-another-process":
         datas = [
            {
                "user": "foo", "epic": "TEST",
