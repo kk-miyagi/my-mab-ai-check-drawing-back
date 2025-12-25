@@ -72,3 +72,21 @@ npm run dev
 ### 重要: hydrate 前の上書きを防ぐ
 - hydrate 完了前に初期 state（例: idle）で保存が走ると、送信中の状態が消えて復帰できなくなります。
 - `UploadContext` は `isHydrated` ガードで、hydrate 完了までは localStorage へ書き込みません。
+
+## 本番環境（デプロイ）メモ
+
+### 1) 本番ビルド
+```powershell
+cd mock-job-demo
+npm run build
+```
+- 出力先は `dist/` です（静的ファイル）。
+
+### 2) ローカルで本番相当の確認
+```powershell
+npm run preview
+```
+- `vite preview` が `dist/` を配信します。
+
+
+
