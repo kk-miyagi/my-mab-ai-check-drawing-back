@@ -14,6 +14,7 @@ class AppStatusManager(Manager):
     def start(self, request, body):
 
         state = self.app_state
+
         # app_session init
         state.create_app_status()
         # status check
