@@ -39,7 +39,19 @@ def main(req_url):
         datas = [
            {
                "user": "foo", "epic": "TEST",
-               "operation": "TEST", "operation_id": "AAA", "status": "start"},
+               "operation": "TEST", "operation_id": "AAA", "status": "doing"},
+           {
+               "user": "bar", "epic": "TEST",
+               "operation": "TEST", "operation_id": "AAA", "status": "doing"},
+        ]
+    elif req_url == "check-base-boot-another-process":
+        datas = [
+           {
+               "user": "foo", "epic": "TEST",
+               "operation": "TEST", "operation_id": "AAA", "status": "doing"},
+           {
+               "user": "bar", "epic": "TEST",
+               "operation": "TEST", "operation_id": "AAA", "status": "doing"},
         ]
     else:
         print(f"URL UNMATCH: {req_url}")

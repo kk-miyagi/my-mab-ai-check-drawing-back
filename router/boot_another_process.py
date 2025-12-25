@@ -13,58 +13,78 @@ router = AppRouter()
 @dataclass
 class BaseBootAnotherProcess:
 
-    BOOT_ANOTHER_PROCESS_SESSION_KEY = "BOOT_ANOTHER_PROCESS_SESSION_KEY"
-    user: str
     user: str
     epic: str
     operation: str
     operation_id: str
     status: str
+    
+    BOOT_ANOTHER_PROCESS_SESSION_KEY = "BOOT_ANOTHER_PROCESS_SESSION_KEY"
 
-    def __init__(self):
-        
-        LOG_FILENAME = "logs/base_boot_another_process.log"
-        LOG_FORMAT = "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
-        UTF_8 = "utf-8"
+    LOG_FILENAME = "logs/base_boot_another_process.log"
+    LOG_FORMAT = "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    UTF_8 = "utf-8"
 
-        self.logger = logging.getLogger(__name__)
-        logging.basicConfig(
-            filename = LOG_FILENAME,
-            format = LOG_FORMAT,
-            level = logging.INFO,
-            encoding = UTF_8,
-        )
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(
+        filename = LOG_FILENAME,
+        format = LOG_FORMAT,
+        level = logging.INFO,
+        encoding = UTF_8,
+    )
 
-    def start(self, req_status, cmd):
+    @classmethod
+    def create_boot_process_session(cls, app_session):
+        if not hasattr(app_session, cls.BOOT_ANOTHER_PROCESS_SESSION_KEY):
+            app_session.BOOT_ANOTHER_PROCESS_SESSION_KEY = {}
+
+    @classmethod
+    def update_boot_process_session(cls, status, app_session):
+        session_dic = app_session.BOOT_ANOTHER_PROCESS_SESSION_KEY
+        if status.get_hash_key() not in session_dic:
+            session_dic[status.get_hash_key()] = BaseBootAnotherProcess(
+                    status.user,
+                    status.epic,
+                    status.operation,
+                    status.operation_id,
+                    status.status
+            )
+        else:
+            loader = session_dic[status.get_hash_key()]
+            loader.status = status.status
+
+    @classmethod
+    def batch_start(cls, req_status, cmd):
         try:
-            asyncio.run(self.do(req_status, cmd))  # TODO: マルチファイルアップロードを参考にしてみる
-
+            asyncio.run(cls.batch_run(req_status, cmd))
         except Exception as e:
-            self.logger.error(f"error: {e}")
+            cls.logger.error(f"error: {e}")
             # TODO error handling
             raise e
 
-    async def do(self, req_status, cmd: str):
+    @classmethod
+    async def batch_run(cls, req_status, cmd: str):
         try:
-            self.logger.info(f"start batch: {req_status}")
+            cls.logger.info(f"start batch: {req_status}")
             proc = await asyncio.create_subprocess_shell(
                 cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await proc.communicate()
-            self.logger.info(f"stdout: {stdout.decode()}")
-            self.logger.info(f"stdout: {stderr.decode()}")
+            cls.logger.info(f"stdout: {stdout.decode()}")
+            cls.logger.info(f"stdout: {stderr.decode()}")
             if proc.returncode == 0:
                 req_status.status = Status.END
-
-            # 渡された関数を呼ぶ?
-            # xxxxxx(ここでステータスを更新する)
-            # バッチ処理のステータスと全体のステータスの両方を更新する
             
-            self.logger.info(f"end batch: {req_status}")
+            cls.update_boot_process_session(
+                req_status,
+                router.app_session
+            )
+            
+            cls.logger.info(f"end batch: {req_status}")
         except Exception as e:
-            self.logger.error(f"error: {e}")
+            cls.logger.error(f"error: {e}")
             # TODO error handling
             raise e
 
@@ -73,19 +93,37 @@ class BaseBootAnotherProcess:
 
 @router.post("/base-boot-another-process")
 async def boot_process(request: Request, background_tasks: BackgroundTasks):
-    proc = BaseBootAnotherProcess()
     state = request.state
-    # 初回呼び出しであれば実行？stateの中にあるステータスに応じて処理を変えたいが、stateの値はどうやって取得する？
     req_status = AppStatus.create_from_state(state)
     match req_status.status:
         case Status.START:
-            cmd = "bash ./scripts/test.sh"
-            background_tasks.add_task(proc.start, req_status, cmd)
-
-            return JSONResponse(content={"message": "start batch"})
-
+            # TODO: STARTの場合はどうするか？
+            return JSONResponse(content={"message": "error"})
         case Status.DOING:
+            BaseBootAnotherProcess.create_boot_process_session(
+                router.app_session
+            )
+            BaseBootAnotherProcess.update_boot_process_session(
+                req_status,
+                router.app_session
+            )
+            cmd = "bash ./scripts/test.sh"
+            background_tasks.add_task(BaseBootAnotherProcess.batch_start, req_status, cmd)
             return JSONResponse(content={"message": "doing batch"})
-        
+
         case Status.END:
+            # TODO: ENDの場合はどうするか？
             return JSONResponse(content={"message": "end batch"})
+
+@router.post("/check-base-boot-another-process")
+async def check_status(request: Request):
+    try:
+        session_dic = router.app_session.BOOT_ANOTHER_PROCESS_SESSION_KEY
+        state = request.state
+        key = AppStatus.create_from_state(state).get_hash_key()
+        if key in session_dic:
+            loader = session_dic[key]
+            return JSONResponse(content={"message": f"{Status.status_to_str(loader.status)}"})
+
+    except Exception as e:
+        raise e
