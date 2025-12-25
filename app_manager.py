@@ -9,8 +9,9 @@ class ManagerException(Exception):
 class Manager:
     NOT_OVERRIDE_ERROR = "NOT_OVERRIDE_ERROR"
 
-    def __init__(self, app, logger):
+    def __init__(self, app, app_state, logger):
         self.app = app
+        self.app_state = app_state
         self.logger = logger
 
     def setup(self):

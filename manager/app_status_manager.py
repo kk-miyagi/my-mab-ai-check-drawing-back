@@ -1,177 +1,6 @@
 from fastapi.responses import JSONResponse
 from app_manager import Manager, ManagerException
-from dataclasses import dataclass
-from enum import IntEnum
-import uuid as uu
-
-
-class Status(IntEnum):
-    START = 0
-    DOING = 1
-    END = 2
-
-    @classmethod
-    def str_to_status(cls, mess):
-        ret = None
-        print(f"str_to_status input: {mess}")
-        if mess == "start":
-            ret = Status.START
-        elif mess == "doing":
-            ret = Status.DOING
-        elif mess == "end":
-            ret = Status.END
-        print(f"str_to_status ret: {ret}")
-        return ret
-
-    @classmethod
-    def status_to_str(cls, status):
-        ret = None
-        if status == Status.START:
-            ret = "start"
-        elif status == Status.DOING:
-            ret = "doing"
-        elif status == Status.END:
-            ret = "end"
-        return ret
-
-
-@dataclass
-class AppStatus:
-    user: str
-    epic: str
-    operation: str
-    operation_id: str
-    status: Status
-    APP_STATUS_SESSION_KEY = "APP_STATUS_SESSION_KEY"
-    APP_STATUS_USER = "user"
-    APP_STATUS_EPIC = "epic"
-    APP_STATUS_OPE = "operation"
-    APP_STATUS_OPE_ID = "operation_id"
-    APP_STATUS_STATUS = "status"
-
-    @classmethod
-    def create_app_session(cls, status, app_session):
-        if status.status != Status.START:
-            raise ValueError()
-        if not hasattr(app_session, 'APP_STATUS_SESSION_KEY'):
-            app_session.SESSION_KEY = {}
-
-        status_dic = app_session.APP_STATUS_SESSION_KEY
-        ret_id = status.operation_id
-        if cls._is_none_and_black(ret_id):
-            ret_id = str(uu.uuid4())
-
-        ret = AppStatus(
-                status.user,
-                status.epic,
-                status.operation,
-                ret_id,
-                status.status
-        )
-        status_dic[ret.get_hash_key()] = ret
-        return ret
-
-    @classmethod
-    def _get_req_status(cls, body, key):
-        ret = None
-        if key in body:
-            ret = body[key]
-        return ret
-
-    @classmethod
-    def create_from_request(cls, body):
-        return AppStatus(
-                cls._get_req_status(body, cls.APP_STATUS_USER),
-                cls._get_req_status(body, cls.APP_STATUS_EPIC),
-                cls._get_req_status(body, cls.APP_STATUS_OPE),
-                cls._get_req_status(body, cls.APP_STATUS_OPE_ID),
-                Status.str_to_status(
-                    cls._get_req_status(body, cls.APP_STATUS_STATUS))
-        )
-
-    @classmethod
-    def create_from_state(cls, state):
-        return AppStatus(
-                state.user,
-                state.epic,
-                state.operation,
-                state.operation_id,
-                Status.str_to_status(state.status)
-        )
-
-    @classmethod
-    def get_session_status(cls, status, app_session):
-        if not hasattr(app_session, 'APP_STATUS_SESSION_KEY'):
-            raise ValueError()
-        status_dic = app_session.APP_STATUS_SESSION_KEY
-        if cls._is_none_and_black(status.operation_id):
-            ret = None
-        elif status.get_hash_key() not in status_dic:
-            ret = None
-        else:
-            ret = status_dic[status.get_hash_key()]
-        return ret
-
-    @classmethod
-    def update_session_status(cls, status, app_session):
-        if not hasattr(app_session, 'APP_STATUS_SESSION_KEY'):
-            raise ValueError()
-        status_dic = app_session.APP_STATUS_SESSION_KEY
-        update_status = None
-        for key in status_dic.keys():
-            print(f"update key checck session:{key}")
-            print(f"update request:{status.get_hash_key()}")
-            if key == status.get_hash_key():
-                update_key = key
-                update_status = status
-                continue
-        if update_status is not None:
-            print("upadte app session status!!")
-            status_dic[update_key] = update_status
-
-    @classmethod
-    def delete_session_status(cls, status, app_session):
-        if not hasattr(app_session, 'APP_STATUS_SESSION_KEY'):
-            raise ValueError()
-        status_dic = app_session.APP_STATUS_SESSION_KEY
-        delete_status = None
-        for key in status_dic.keys():
-            print(f"delete key checck session:{key}")
-            print(f"delete request:{status.get_hash_key()}")
-            if key == status.get_hash_key():
-                delete_key = key
-                delete_status = status
-                continue
-        if delete_status is not None:
-            status_dic.pop(delete_key)
-            print(f"delete app session status!!:{delete_key}")
-
-    @classmethod
-    def _is_none_and_black(cls, val):
-        return (val is None) or len(val.strip()) == 0
-
-    def is_not_none(self):
-        return all([
-                not self._is_none_and_black(self.user),
-                not self._is_none_and_black(self.epic),
-                not self._is_none_and_black(self.operation)]
-        )
-
-    def equals(self, status):
-        return all([
-                self.user == status.user,
-                self.epic == status.epic,
-                self.operation == status.operation,
-                self.operation_id == status.operation_id]
-        )
-
-    def get_hash_key(self):
-        return '_'.join([
-            self.user,
-            self.epic,
-            self.operation,
-            self.operation_id
-        ])
+from state.app_status import AppStatus
 
 
 class AppStatusManager(Manager):
@@ -184,17 +13,17 @@ class AppStatusManager(Manager):
 
     def start(self, request, body):
 
+        state = self.app_state
         # app_session init
-        state = self.app.state
-        if not hasattr(state, 'APP_STATUS_SESSION_KEY'):
-            state.APP_STATUS_SESSION_KEY = {}
+        state.create_app_status()
         # status check
         req_status = AppStatus.create_from_request(body)
         if not req_status.is_not_none():
             raise ManagerException(self.NO_VALUE_ERROR)
-        session_status = AppStatus.get_session_status(
-                req_status,
-                state)
+
+        session_status = state.get_app_status(
+                req_status
+        )
         if session_status is not None:
             print(f"req status: {req_status.status}")
             print(f"session_status:{session_status.status}")

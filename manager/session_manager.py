@@ -18,7 +18,7 @@ class SessionManager(Manager):
             https_only=False
         )
         # セッションの有効時間(秒)
-        self.__SESSION_LIFETIME = 60
+        self.__SESSION_LIFETIME = 60*60
 
     # overload
     def start(self, request, body):

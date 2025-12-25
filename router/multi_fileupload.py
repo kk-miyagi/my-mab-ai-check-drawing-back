@@ -1,71 +1,15 @@
 from app_router import AppRouter
 from fastapi import Request
-from manager.app_status_manager import AppStatus, Status
-from dataclasses import dataclass
+from state.app_status import AppStatus, Status
+from state.multi_file_upload_info import FileInfo
 import os
 import time
 
 router = AppRouter()
 
 
-@dataclass
-class FileInfo:
-    save_paths: list[str]
-    filenames: list[str]
-    file_contents: list[str]
-    number: str
-
-
-@dataclass
 class MultiFileUploader:
-
-    MULTI_FILE_UPLOAD_SESSION_KEY = "MULTI_FILE_UPLOAD_SESSION_KEY"
     MULTI_FILE_UPLOAD_SAVE_DIR = './multi-fileupload'
-    user: str
-    epic: str
-    operation: str
-    operation_id: str
-    status: str
-    file_infos: list[FileInfo]
-    sum_number: int
-
-    @classmethod
-    def get_multi_fileuploader(cls, req_status, app_session):
-        if not hasattr(app_session, 'MULTI_FILE_UPLOAD_SESSION_KEY'):
-            app_session.MULTI_FILE_UPLOAD_SESSION_KEY = {}
-
-        return app_session.MULTI_FILE_UPLOAD_SESSION_KEY[
-                req_status.get_hash_key()
-        ]
-
-    @classmethod
-    def create_multi_fileuploder_session(cls, app_session):
-        if not hasattr(app_session, 'MULTI_FILE_UPLOAD_SESSION_KEY'):
-            app_session.MULTI_FILE_UPLOAD_SESSION_KEY = {}
-
-    @classmethod
-    def update_muliti_fileuploder_session(
-            cls, status, file_info, app_session, sum_number=None):
-        session_dic = app_session.MULTI_FILE_UPLOAD_SESSION_KEY
-        if status.get_hash_key() not in session_dic:
-            file_infos = None
-            if file_info is not None:
-                file_infos = [file_info]
-            session_dic[status.get_hash_key()] = MultiFileUploader(
-                    status.user,
-                    status.epic,
-                    status.operation,
-                    status.operation_id,
-                    status.status,
-                    file_infos,
-                    sum_number
-            )
-        else:
-            loader = session_dic[status.get_hash_key()]
-            loader.status = status.status
-            if file_info is not None:
-                loader.file_infos.append(file_info)
-            loader.sum_number = sum_number
 
     @classmethod
     async def save_multi_files(cls, req_status, state) -> FileInfo:
@@ -126,11 +70,10 @@ async def multi_fileupload(request: Request):
         case Status.DOING:
             # ファイルの保存処理
             try:
+                app_state = router.app_state
                 print(f"DOING:{state}")
                 # multi file upload session init
-                MultiFileUploader.create_multi_fileuploder_session(
-                        router.app_session
-                )
+                app_state.create_multi_fileupload_info()
                 print("DOING upload file save!")
                 file_info = await MultiFileUploader.save_multi_files(
                         req_status,
@@ -138,17 +81,15 @@ async def multi_fileupload(request: Request):
                 )
                 # mulit file upload session update
                 print("DOING multi upload session update!")
-                MultiFileUploader.update_muliti_fileuploder_session(
+                app_state.update_multi_fileupload_info(
                     req_status,
-                    file_info,
-                    router.app_session
+                    file_info
                 )
                 print("DOING app status session update!")
-                AppStatus.update_session_status(
-                        req_status,
-                        router.app_session
+                app_state.update_app_status(
+                        req_status
                 )
-                print("DOING app session update!")
+                print("DOING create responce!")
                 ret = router.create_responce_from_status(
                     req_status
                 )
@@ -161,35 +102,33 @@ async def multi_fileupload(request: Request):
         case Status.END:
             try:
                 ret = None
-                print("END")
-                MultiFileUploader.create_multi_fileuploder_session(
-                        router.app_session
+                app_state = router.app_state
+                print(f"END:{state}")
+                # multi file upload session init
+                app_state.create_multi_fileupload_info()
+
+                upload_info = app_state.get_multi_fileupload_info(
+                        req_status
                 )
-                uploader_info = MultiFileUploader.get_multi_fileuploader(
-                        req_status,
-                        router.app_session
-                )
-                if uploader_info.sum_number is None:
+                if upload_info.sum_number is None:
                     # 20秒くらい待つ想定
                     WAIT_TIME = 20
                     start_time = time.time()
                     fileinfo_size = -1
                     while time.time() - start_time < WAIT_TIME:
-                        if state.sum_number == len(uploader_info.file_infos):
+                        if state.sum_number == len(upload_info.file_infos):
                             fileinfo_size = state.sum_number
                             break
                     if fileinfo_size > 0:
                         # multi file info update
-                        MultiFileUploader.upadte_muliti_fileuploder_session(
+                        app_state.update_multi_fileupload_info(
                             req_status,
                             None,
-                            router.app_session,
                             state.sum_number
                         )
                         # app status update
-                        AppStatus.update_session_status(
-                                req_status,
-                                router.app_session
+                        app_state.update_app_status(
+                                req_status
                         )
                         # TODO app status session 削除(削除タイミングは考える必要があるかも）
                 else:

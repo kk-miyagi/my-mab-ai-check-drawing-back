@@ -1,12 +1,12 @@
 from fastapi import APIRouter
-from manager.app_status_manager import Status
+from state.app_status import Status
 
 
 class AppRouter(APIRouter):
 
     @classmethod
-    def set_app_session(cls, app_session):
-        cls.app_session = app_session
+    def set_app_state(cls, app_state):
+        cls.app_state = app_state
 
     def create_responce_from_status(self, status):
         return {

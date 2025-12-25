@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from app_manager import Managers
+from app_state import AppState
 from manager.session_manager import SessionManager
 from manager.app_status_manager import AppStatusManager
 from app_router import AppRouter
@@ -12,12 +13,11 @@ import router.multi_fileupload as multi_fileupload
 import router.epic_init as epic_init
 import router.boot_another_process as boot_another_process
 import logging
+import threading
 
 
 # 各種マネージャー格納用
 MANAGERS = Managers()
-# application session用
-# APP_SESSION = {}
 
 
 class AppMiddleware(BaseHTTPMiddleware):
@@ -103,19 +103,27 @@ class AppServer():
         # https dsipatvh
         self.app.add_middleware(AppMiddleware)
 
+        app_state = AppState(
+                self.app.state,
+                threading.Lock()
+        )
         # manager setup
-        self.setup_managers()
+        self.setup_managers(app_state)
 
         # routing setup
-        self.setup_routers()
+        self.setup_routers(app_state)
 
-    def setup_managers(self):
-        MANAGERS.add_manager(SessionManager(self.app, self.logger))
-        MANAGERS.add_manager(AppStatusManager(self.app, self.logger))
+    def setup_managers(self, app_state: AppState):
+        MANAGERS.add_manager(
+                SessionManager(
+                    self.app, app_state, self.logger))
+        MANAGERS.add_manager(
+                AppStatusManager(
+                    self.app, app_state, self.logger))
         MANAGERS.setup_managers()
 
-    def setup_routers(self):
-        AppRouter.set_app_session(self.app.state)
+    def setup_routers(self, app_state: AppState):
+        AppRouter.set_app_state(app_state)
         self.app.include_router(hello.router)
         self.app.include_router(file_upload.router)
         self.app.include_router(issue_operation_id.router)
