@@ -15,15 +15,40 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// In-memory status store keyed by operation_id (dev only)
+const operationState = new Map();
+
 // 1) Operation ID issuance
-app.post('/issue/operation_id/', (req, res) => {
-  const operationId = `op_${Date.now()}`;
-  res.json({ operation_id: operationId, status: 'start' });
+// Support both /issue/operation-id/ (frontend) and /issue/operation_id/ (alt)
+['/issue/operation-id/', '/issue/operation_id/'].forEach((path) => {
+  app.post(path, (req, res) => {
+    const operationId = `op_${Date.now()}`;
+    operationState.set(operationId, { startedAt: Date.now(), status: 'start' });
+    res.json({ operation_id: operationId, status: 'start' });
+  });
+});
+
+// Epic init (JSON)
+// initEpic.ts calls POST /epic-init/ with { user, epic, operation, operation_id, status: 'doing'|'end' }
+['/epic-init/', '/epic_init/'].forEach((path) => {
+  app.post(path, (req, res) => {
+    const body = req.body ?? {};
+    const operationId = body.operation_id ?? body.operationId;
+    const status = body.status ?? 'doing';
+
+    if (!operationId || String(operationId).trim().length === 0) {
+      return res.status(400).json({ status: 'error', message: 'operation_id is required' });
+    }
+
+    const existing = operationState.get(operationId) ?? { startedAt: Date.now() };
+    operationState.set(operationId, { ...existing, status });
+    return res.json({ status, operation_id: operationId });
+  });
 });
 
 // 2) Upload pairs (multipart) and 3) completion (JSON)
-// Support both /upload/ (old) and /multi_fileupload/ (current frontend endpoint)
-['/upload/', '/multi_fileupload/'].forEach((path) => {
+// Support both /upload/ (old) and /multi-fileupload/ (frontend) and /multi_fileupload/ (alt)
+['/upload/', '/multi-fileupload/', '/multi_fileupload/'].forEach((path) => {
   app.post(path, upload.any(), (req, res) => {
     // JSON payload (completion)
     if (req.is('application/json')) {
@@ -58,6 +83,59 @@ app.post('/issue/operation_id/', (req, res) => {
       operation_id: operation_id ?? 'op_mock',
       number: Number(number ?? 1),
       file_name: receivedNames.join(', '),
+    });
+  });
+});
+
+// 4) Check status (JSON)
+// Support both /check-status/ (frontend) and /check_status/ (alt)
+['/check-status/', '/check_status/'].forEach((path) => {
+  app.post(path, (req, res) => {
+    const body = req.body ?? {};
+    const user = body.user;
+    const epic = body.epic;
+    const operation = body.operation;
+    const operationId = body.operation_id ?? body.operationId;
+    const requested = body.status;
+
+    if (!user || String(user).trim().length === 0) {
+      return res.status(400).json({ status: 'error', message: 'user is required' });
+    }
+    if (!epic || String(epic).trim().length === 0) {
+      return res.status(400).json({ status: 'error', message: 'epic is required' });
+    }
+    if (!operation || String(operation).trim().length === 0) {
+      return res.status(400).json({ status: 'error', message: 'operation is required' });
+    }
+    if (!operationId || String(operationId).trim().length === 0) {
+      return res.status(400).json({ status: 'error', message: 'operation_id is required' });
+    }
+
+    if (!operationState.has(operationId)) {
+      operationState.set(operationId, { startedAt: Date.now() });
+    }
+    const state = operationState.get(operationId);
+
+    // If the client asks with status=end (verification phase), respond end.
+    if (requested === 'end') {
+      return res.json({
+        user,
+        epic,
+        operation,
+        operation_id: operationId,
+        status: 'end',
+        message: 'end',
+      });
+    }
+
+    // Only report whether it's still running.
+    return res.json({
+      user,
+      epic,
+      operation,
+      operation_id: operationId,
+      status: 'doing',
+      message: 'doing',
     });
   });
 });

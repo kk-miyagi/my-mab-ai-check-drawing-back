@@ -48,6 +48,23 @@ export interface EpicInitResponse {
   operation_id?: string;
 }
 
+export interface CheckStatusRequest {
+  user: string;
+  epic: string;
+  operation: string;
+  operation_id: string;
+  status: 'doing' | 'end';
+}
+
+export interface CheckStatusResponse {
+  user: string;
+  epic: string;
+  operation: string;
+  operation_id: string;
+  status: 'start' | 'doing' | 'end' | 'error' | string;
+  message: string;
+}
+
 export interface UploadResponse {
   status: 'doing' | 'end' | 'error';
   operation_id?: string;

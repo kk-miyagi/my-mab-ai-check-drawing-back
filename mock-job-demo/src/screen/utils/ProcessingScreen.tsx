@@ -1,8 +1,11 @@
 import React from 'react';
 import { useUpload } from './UploadContext';
+import { useCheckStatusPolling } from './useCheckStatusPolling';
 
 export const ProcessingScreen: React.FC = () => {
-  const { phase, progress, logs, operationId, completedRequests, totalRequests } = useUpload();
+  const { phase, progress, logs, operationId, completedRequests, totalRequests, lastEpic, lastOperation } = useUpload();
+
+  useCheckStatusPolling({ operationId, phase, epic: lastEpic ?? undefined, operation: lastOperation ?? undefined });
 
   return (
     <div className="page center">

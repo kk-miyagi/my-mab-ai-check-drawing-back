@@ -21,6 +21,8 @@ interface UploadContextType {
   failedUploads: FailedUpload[];
   logs: string[];
   operationId: string | null;
+  lastEpic: string | null;
+  lastOperation: string | null;
   resultData: UploadResult | null;
   startUpload: (files: File[], options?: StartOptions) => Promise<void>;
   reset: () => void;
@@ -365,6 +367,8 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         failedUploads,
         logs,
         operationId,
+        lastEpic,
+        lastOperation,
         resultData,
         startUpload,
         reset,
