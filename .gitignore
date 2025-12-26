@@ -8,3 +8,5 @@ dist/
 *.jpeg
 *.csv
 
+logs/*
+!/logs/.gitkeep
