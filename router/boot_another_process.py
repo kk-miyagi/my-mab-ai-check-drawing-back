@@ -1,12 +1,12 @@
-from fastapi import BackgroundTasks, Request
+from fastapi import BackgroundTasks, Request, APIRouter
 from fastapi.responses import JSONResponse
 import asyncio
 import logging
 from state.app_status import AppStatus
-from app_router import AppRouter, Status
+from app_router import AppRoute, Status
 
 
-router = AppRouter()
+router = APIRouter(route_class=AppRoute)
 
 
 class BaseBootAnotherProcess:
@@ -46,7 +46,7 @@ class BaseBootAnotherProcess:
             if proc.returncode == 0:
                 req_status.status = Status.END
 
-            app_state = router.app_state
+            app_state = AppRoute.get_app_state()
             app_state.update_boot_process_info(
                 req_status
             )
@@ -71,7 +71,7 @@ async def boot_process(request: Request, background_tasks: BackgroundTasks):
             return JSONResponse(content={"message": "error"})
         case Status.DOING:
             try:
-                app_state = router.app_state
+                app_state = AppRoute.get_app_state()
                 app_state.create_boot_process_info()
                 app_state.update_boot_process_info(
                     req_status
@@ -90,14 +90,16 @@ async def boot_process(request: Request, background_tasks: BackgroundTasks):
 @router.post("/check-base-boot-another-process")
 async def check_status(request: Request):
     try:
-        app_state = router.app_state
+        app_state = AppRoute.get_app_state()
         session_dic = app_state.get_session_dict()
         print(f"------ {session_dic}")
         state = request.state
         key = AppStatus.create_from_state(state).get_hash_key()
         if key in session_dic:
             loader = session_dic[key]
-            return JSONResponse(content={"message": f"{Status.status_to_str(loader.status)}"})
+            return JSONResponse(
+                    content={
+                        "message": f"{Status.status_to_str(loader.status)}"})
 
     except Exception as e:
         raise e

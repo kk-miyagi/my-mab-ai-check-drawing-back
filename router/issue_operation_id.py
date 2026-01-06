@@ -1,16 +1,18 @@
-from app_router import AppRouter
+from app_router import AppRoute
 from fastapi import Request
+from fastapi import APIRouter
 from state.app_status import AppStatus
 
-router = AppRouter()
+router = APIRouter(route_class=AppRoute)
 
 
 @router.post('/issue/operation-id/')
 async def issue_operation_id(request: Request):
     req_status = AppStatus.create_from_request(request.state.body)
-    state_status = router.app_state.create_new_app_status(
+    app_state = AppRoute.get_app_state()
+    state_status = app_state.create_new_app_status(
             req_status,
     )
-    return router.create_responce_from_status(
+    return AppRoute.create_responce_from_status(
             state_status
     )

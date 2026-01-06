@@ -1,11 +1,11 @@
-from app_router import AppRouter
-from fastapi import Request
+from app_router import AppRoute
+from fastapi import Request, APIRouter
 from state.app_status import AppStatus, Status
 from state.multi_file_upload_info import FileInfo
 import os
 import time
 
-router = AppRouter()
+router = APIRouter(route_class=AppRoute)
 
 
 class MultiFileUploader:
@@ -70,7 +70,7 @@ async def multi_fileupload(request: Request):
         case Status.DOING:
             # ファイルの保存処理
             try:
-                app_state = router.app_state
+                app_state = AppRoute.get_app_state()
                 print(f"DOING:{state}")
                 # multi file upload session init
                 app_state.create_multi_fileupload_info()
@@ -90,7 +90,7 @@ async def multi_fileupload(request: Request):
                         req_status
                 )
                 print("DOING create responce!")
-                ret = router.create_responce_from_status(
+                ret = AppRoute.create_responce_from_status(
                     req_status
                 )
                 ret['number'] = request.state.number
@@ -102,7 +102,7 @@ async def multi_fileupload(request: Request):
         case Status.END:
             try:
                 ret = None
-                app_state = router.app_state
+                app_state = AppRoute.get_app_state()
                 print(f"END:{state}")
                 # multi file upload session init
                 app_state.create_multi_fileupload_info()
@@ -135,7 +135,7 @@ async def multi_fileupload(request: Request):
                     # 既にsum_numberが更新されている場合は何もしない
                     # TODO logs
                     pass
-                ret = router.create_responce_from_status(
+                ret = AppRoute.create_responce_from_status(
                     req_status
                 )
                 ret['sum_number'] = request.state.sum_number

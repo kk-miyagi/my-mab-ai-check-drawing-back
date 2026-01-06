@@ -1,0 +1,9 @@
+{
+    "LOGGER":{
+	"logger_name": "app_main",
+	"log_level": "INFO",
+	"log_rotation_size": 30,
+	"log_backup_count": 30,
+	"log_file_name": "./logs/app_main.log" 
+    }
+}

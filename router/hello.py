@@ -1,11 +1,10 @@
-from app_router import AppRouter
-from fastapi import Body
+from app_router import AppRoute
+from fastapi import Body, APIRouter
 
-router = AppRouter()
+router = APIRouter(route_class=AppRoute)
+
 
 @router.post('/hello/')
-async def Hello(body = Body(...)):
+async def Hello(body=Body(...)):
     print(f"In Hello body is :{body}")
-    print(f"In Hello app_session is: {AppRouter.app_session}")
     return {'Hello': 'World!'}
-

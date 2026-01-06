@@ -6,14 +6,14 @@ from app_manager import Managers
 from app_state import AppState
 from manager.session_manager import SessionManager
 from manager.app_status_manager import AppStatusManager
-from app_router import AppRouter
-import router.hello as hello
-import router.file_upload as file_upload
+from app_router import AppRoute
+from app_config import AppConfig
+from app_logger import AppLogger
+from state.app_status import AppStatus
 import router.issue_operation_id as issue_operation_id
 import router.multi_fileupload as multi_fileupload
 import router.epic_init as epic_init
 import router.boot_another_process as boot_another_process
-import logging
 import threading
 
 
@@ -85,16 +85,20 @@ class AppMiddleware(BaseHTTPMiddleware):
 
 class AppServer():
 
-    def __init__(self, host="127.0.0.1", port=8000):
-
-        self.logger = logging.getLogger(__name__)
+    def __init__(self, run_env, host="127.0.0.1", port=8000):
 
         # FastAPI アプリケーションの作成
         self.app = FastAPI()
         self.host = host
         self.port = port
-        origins = [f"http://{self.host}:{self.port}",]
+        # config setting
+        conf_path = './conf/conf_dev.json'
+        if run_env == 'PROD':
+            conf_path = './conf/conf_prod.json'
 
+        self.conf = AppConfig(conf_path)
+        self.logger = AppLogger(self.conf)
+        origins = [f"http://{self.host}:{self.port}",]
         self.app.add_middleware(
             CORSMiddleware,
             allow_origins=origins,
@@ -110,8 +114,11 @@ class AppServer():
 
         app_state = AppState(
                 self.app.state,
-                threading.Lock()
+                threading.Lock(),
+                self.conf,
+                self.logger
         )
+        self.app_state = app_state
         # manager setup
         self.setup_managers(app_state)
 
@@ -128,9 +135,7 @@ class AppServer():
         MANAGERS.setup_managers()
 
     def setup_routers(self, app_state: AppState):
-        AppRouter.set_app_state(app_state)
-        self.app.include_router(hello.router)
-        self.app.include_router(file_upload.router)
+        AppRoute.set_app_state(app_state)
         self.app.include_router(issue_operation_id.router)
         self.app.include_router(multi_fileupload.router)
         self.app.include_router(epic_init.router)
@@ -138,4 +143,13 @@ class AppServer():
 
     def start(self):
         import uvicorn
+
+        self.logger.log(
+                AppStatus.get_dummy_status(),
+                AppLogger.INFO,
+                'APP SERVER START')
         uvicorn.run(self.app, host=self.host, port=self.port)
+        self.logger.log(
+                AppStatus.get_dummy_status(),
+                AppLogger.INFO,
+                'APP SERVER END')

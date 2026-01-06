@@ -3,13 +3,17 @@ from types import MethodType
 import state_func.app_status_func as app_status_func
 import state_func.multi_fileupload_func as multi_fileupload_func
 import state_func.boot_another_process_func as boot_another_process_func
+from app_config import AppConfig
+from app_logger import AppLogger
 
 
 class AppState:
 
-    def __init__(self, app_state, lock):
+    def __init__(self, app_state, lock, conf: AppConfig, logger: AppLogger):
         self.app_state = app_state
         self.lock = lock
+        self.conf = conf
+        self.logger = logger
         self.add_state_methods()
 
     def get_members(self):
@@ -24,5 +28,10 @@ class AppState:
         for mems in self.get_members():
             for name, obj in mems:
                 if inspect.isfunction(obj):
-                    print(f"AppState init add method:{obj}")
                     setattr(self, name, MethodType(obj, self))
+
+    def getConf(self):
+        return self.conf
+
+    def getLogger(self):
+        return self.logger

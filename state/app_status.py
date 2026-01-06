@@ -75,6 +75,16 @@ class AppStatus:
         )
 
     @classmethod
+    def get_dummy_status(self):
+        return AppStatus(
+            'SYSTEM',
+            'SYSTEM',
+            'SYSTEM',
+            'SYSTEM',
+            'START',
+        )
+
+    @classmethod
     def delete_session_status(cls, status, app_session):
         if not hasattr(app_session, 'APP_STATUS_SESSION_KEY'):
             raise ValueError()
