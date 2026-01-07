@@ -45,12 +45,9 @@ def update_app_status(self, status):
         status_dic = self.app_state.APP_STATUS_SESSION_KEY
         update_status = None
         for key in status_dic.keys():
-            print(f"update key checck session:{key}")
-            print(f"update request:{status.get_hash_key()}")
             if key == status.get_hash_key():
                 update_key = key
                 update_status = status
                 continue
         if update_status is not None:
-            print("upadte app session status!!")
             status_dic[update_key] = update_status

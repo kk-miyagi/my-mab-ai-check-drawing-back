@@ -1,7 +1,8 @@
-from app_router import AppRoute
 from fastapi import Request, APIRouter
 from state.app_status import AppStatus, Status
 from state.multi_file_upload_info import FileInfo
+from app_router import AppRoute
+from app_logger import AppLogger
 import os
 import time
 
@@ -60,50 +61,82 @@ class MultiFileUploader:
 async def multi_fileupload(request: Request):
     ret = None
     state = request.state
+    app_state = AppRoute.get_app_state()
+    logger = app_state.getLogger()
     req_status = AppStatus.create_from_state(state)
-    print(f"req_status: {req_status}")
     # TODO operation_idがない場合はエラーにするか？
     match req_status.status:
         case Status.START:
             # TODO 一応想定外だがどうするか？
-            print("START")
+            logger.log(
+                    req_status,
+                    AppLogger.DEBUG,
+                    "MULTI-FILE-UPLOAD START STATUS ??"
+            )
         case Status.DOING:
             # ファイルの保存処理
             try:
-                app_state = AppRoute.get_app_state()
-                print(f"DOING:{state}")
+                logger.log(
+                    req_status,
+                    AppLogger.DEBUG,
+                    "MULTI-FILE-UPLOAD DOING STATUS START"
+                )
                 # multi file upload session init
                 app_state.create_multi_fileupload_info()
-                print("DOING upload file save!")
+                logger.log(
+                    req_status,
+                    AppLogger.DEBUG,
+                    "MULTI-FILE-UPLOAD DOING STATUS file session create!"
+                )
                 file_info = await MultiFileUploader.save_multi_files(
                         req_status,
                         state
                 )
                 # mulit file upload session update
-                print("DOING multi upload session update!")
+                logger.log(
+                    req_status,
+                    AppLogger.DEBUG,
+                    "MULTI-FILE-UPLOAD DOING STATUS file session update!"
+                )
                 app_state.update_multi_fileupload_info(
                     req_status,
                     file_info
                 )
-                print("DOING app status session update!")
+                logger.log(
+                    req_status,
+                    AppLogger.DEBUG,
+                    "MULTI-FILE-UPLOAD DOING STATUS app status session update!"
+                )
                 app_state.update_app_status(
                         req_status
                 )
-                print("DOING create responce!")
+                logger.log(
+                    req_status,
+                    AppLogger.DEBUG,
+                    "MULTI-FILE-UPLOAD DOING STATUS responce create!"
+                )
                 ret = AppRoute.create_responce_from_status(
                     req_status
                 )
                 ret['number'] = request.state.number
 
             except Exception as e:
-                # TODO error handoling
+                logger.log(
+                    req_status,
+                    AppLogger.ERROR,
+                    f"MULTI-FILE-UPLOAD DOING STATUS error !:{e}"
+                )
                 raise e
 
         case Status.END:
             try:
+                logger.log(
+                    req_status,
+                    AppLogger.DEBUG,
+                    "MULTI-FILE-UPLOAD END STATUS start!"
+                )
                 ret = None
                 app_state = AppRoute.get_app_state()
-                print(f"END:{state}")
                 # multi file upload session init
                 app_state.create_multi_fileupload_info()
 
@@ -133,14 +166,22 @@ async def multi_fileupload(request: Request):
                         # TODO app status session 削除(削除タイミングは考える必要があるかも）
                 else:
                     # 既にsum_numberが更新されている場合は何もしない
-                    # TODO logs
+                    logger.log(
+                        req_status,
+                        AppLogger.INFO,
+                        "MULTI-FILE-UPLOAD END STATUS allready sum number done"
+                    )
                     pass
                 ret = AppRoute.create_responce_from_status(
                     req_status
                 )
                 ret['sum_number'] = request.state.sum_number
             except Exception as e:
-                # TODO error handling
+                logger.log(
+                    req_status,
+                    AppLogger.ERROR,
+                    f"MULTI-FILE-UPLOAD END STATUS error !:{e}"
+                )
                 raise e
 
     return ret

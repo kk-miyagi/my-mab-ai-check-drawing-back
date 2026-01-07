@@ -92,7 +92,6 @@ async def check_status(request: Request):
     try:
         app_state = AppRoute.get_app_state()
         session_dic = app_state.get_session_dict()
-        print(f"------ {session_dic}")
         state = request.state
         key = AppStatus.create_from_state(state).get_hash_key()
         if key in session_dic:

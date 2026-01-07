@@ -26,7 +26,6 @@ class AppMiddleware(BaseHTTPMiddleware):
     # router側ではリクエスト内容を基本stateオブジェクトから取得する
     async def dispatch(self, request, call_next):
         # manager 処理の実行
-        print(f"app midele ware request header: {request.headers}")
         content_type = dict(request.headers)['content-type']
         if (
               content_type == 'application/x-www-form-urlencoded' or
@@ -73,7 +72,6 @@ class AppMiddleware(BaseHTTPMiddleware):
             if 'sum_number' in body_json:
                 request.state.sum_number = body_json['sum_number']
             request.state.body = body_json
-        print(f"app middle ware request body:{body_json}")
 
         res = MANAGERS.start_managers(request, body_json)
         if res is not None:

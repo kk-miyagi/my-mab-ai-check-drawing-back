@@ -10,14 +10,12 @@ class Status(IntEnum):
     @classmethod
     def str_to_status(cls, mess):
         ret = None
-        print(f"str_to_status input: {mess}")
         if mess == "start":
             ret = Status.START
         elif mess == "doing":
             ret = Status.DOING
         elif mess == "end":
             ret = Status.END
-        print(f"str_to_status ret: {ret}")
         return ret
 
     @classmethod
@@ -91,15 +89,12 @@ class AppStatus:
         status_dic = app_session.APP_STATUS_SESSION_KEY
         delete_status = None
         for key in status_dic.keys():
-            print(f"delete key checck session:{key}")
-            print(f"delete request:{status.get_hash_key()}")
             if key == status.get_hash_key():
                 delete_key = key
                 delete_status = status
                 continue
         if delete_status is not None:
             status_dic.pop(delete_key)
-            print(f"delete app session status!!:{delete_key}")
 
     @classmethod
     def _is_none_and_black(cls, val):

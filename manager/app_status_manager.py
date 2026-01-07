@@ -1,6 +1,7 @@
 from fastapi.responses import JSONResponse
 from app_manager import Manager, ManagerException
 from state.app_status import AppStatus
+from app_logger import AppLogger
 
 
 class AppStatusManager(Manager):
@@ -26,8 +27,15 @@ class AppStatusManager(Manager):
                 req_status
         )
         if session_status is not None:
-            print(f"req status: {req_status.status}")
-            print(f"session_status:{session_status.status}")
+            self.logger.log(
+                req_status,
+                AppLogger.DEBUG,
+                f"STATUS MANAGER request status: {req_status.status}"
+            )
+            self.logger.log(
+                req_status,
+                AppLogger.DEBUG,
+                f"STATUS MANAGWE app session status:{session_status.status}")
             if (
                     (req_status.status < session_status.status) or
                     (req_status.status - session_status.status > 1)):
