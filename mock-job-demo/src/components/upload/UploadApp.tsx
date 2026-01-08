@@ -1,8 +1,12 @@
 import React from 'react';
 import { MemoryRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { UploadProvider } from './utils/UploadContext';
-import { derivePhase } from './utils/persist';
-import { StartScreen, ProcessingScreen, ResultScreen, CsvImageUploadScreen, HubScreen } from './Screens';
+import { UploadProvider } from './UploadContext';
+import { derivePhase } from '../../utils/persist';
+import { StartScreen } from '../../features/cheking_drawings/StartScreen'
+import { CsvImageUploadScreen } from '../../features/label_create/CsvImageUploadScreen'
+import { ProcessingScreen } from './ProcessingScreen';
+import { ResultScreen } from './ResultScreen';
+import { HubScreen } from '../../pages/HubScreen';
 
 const PersistNavigator: React.FC = () => {
   const navigate = useNavigate();

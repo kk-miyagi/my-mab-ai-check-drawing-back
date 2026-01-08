@@ -1,9 +1,9 @@
 // Helper for uploading file pairs. ID issuance is handled in issueOperationId.ts.
 // Uses VITE_USE_MOCK_API (default true) to toggle between mock and real calls.
 
-import { issueOperationId } from '../ustils/issueOperationId';
-import { http } from '../ustils/http';
-import { ENDPOINTS } from '../ustils/endpoints';
+import { issueOperationId } from '../utils/issueOperationId';
+import { http } from '../utils/http';
+import { ENDPOINTS } from '../utils/endpoints';
 import type {
   OperationIssueRequest,
   OperationIssueResponse,

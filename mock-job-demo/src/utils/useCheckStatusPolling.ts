@@ -1,7 +1,7 @@
 import React from 'react';
-import { uploadApi } from '../../sever_demo_api/uploadApi';
-import type { CheckStatusRequest } from '../../types/uploadServer';
-import type { UploadPhase } from '../../types/uploadClient';
+import { uploadApi } from '../api/uploadApi';
+import type { CheckStatusRequest } from '../types/uploadServer';
+import type { UploadPhase } from '../types/uploadClient';
 
 const USE_POLL = ((import.meta.env?.VITE_ENABLE_CHECK_STATUS_POLL as string | undefined) ?? 'true') === 'true';
 const POLL_INTERVAL_MS = Number((import.meta.env?.VITE_CHECK_STATUS_POLL_INTERVAL_MS as string | undefined) ?? 2000);

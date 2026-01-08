@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useUpload } from '../utils/UploadContext.tsx';
-import { useEpicInit } from '../utils/useEpicInit';
+import { useUpload } from '../../components/upload/UploadContext.tsx';
+import { useEpicInit } from '../../utils/useEpicInit';
 
 type Pair = {
   id: string;

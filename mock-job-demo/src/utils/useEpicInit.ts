@@ -1,6 +1,6 @@
 import React from 'react';
-import { initEpicSession, endEpicSession } from '../../ustils/initEpic';
-import type { EpicInitResponse } from '../../types/uploadServer';
+import { initEpicSession, endEpicSession } from '../utils/initEpic';
+import type { EpicInitResponse } from '../types/uploadServer';
 
 export const useEpicInit = (epic: string) => {
   const [operationId, setOperationId] = React.useState<string | null>(null);
