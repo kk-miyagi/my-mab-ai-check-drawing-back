@@ -1,4 +1,4 @@
-import { uploadApi } from '../sever_demo_api/uploadApi';
+import { uploadApi } from '../api/uploadApi';
 import { OperationIssueResponse, EpicInitResponse } from '../types/uploadServer';
 
 const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?? 'demo-user';

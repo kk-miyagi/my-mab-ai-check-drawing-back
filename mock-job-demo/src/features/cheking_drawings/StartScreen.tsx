@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useUpload } from '../utils/UploadContext.tsx';
-import { useEpicInit } from '../utils/useEpicInit';
-import { issueOperationId } from '../../ustils/issueOperationId';
+import { useUpload } from '../../components/upload/UploadContext.tsx';
+import { useEpicInit } from '../../utils/useEpicInit';
+import { issueOperationId } from '../../utils/issueOperationId';
 
 const DEFAULT_EPIC = (import.meta.env?.VITE_UPLOAD_EPIC as string | undefined) ?? 'drawing-comparison';
 const DEFAULT_OPERATION = (import.meta.env?.VITE_UPLOAD_OPERATION as string | undefined) ?? 'multi-file-upload';

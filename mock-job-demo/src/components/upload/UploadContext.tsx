@@ -1,32 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { uploadApi } from '../../sever_demo_api/uploadApi';
-import { issueOperationId } from '../../ustils/issueOperationId';
-import { runWithLimit } from '../../ustils/runWithLimit';
-import type { UploadResponse, OperationIssueRequest } from '../../types/uploadServer';
+import { uploadApi } from '../../api/uploadApi';
+import { issueOperationId } from '../../utils/issueOperationId';
+import { runWithLimit } from '../../utils/runWithLimit';
+
+// type関連
 import type { UploadPhase, UploadResult, FailedUpload } from '../../types/uploadClient';
-
-interface StartOptions {
-  epic?: string;
-  operation?: string;
-  allowedFileNames?: string[];
-  isRetry?: boolean;
-}
-
-interface UploadContextType {
-  phase: UploadPhase;
-  progress: number;
-  completedRequests: number;
-  totalRequests: number;
-  failedUploads: FailedUpload[];
-  logs: string[];
-  operationId: string | null;
-  lastEpic: string | null;
-  lastOperation: string | null;
-  resultData: UploadResult | null;
-  startUpload: (files: File[], options?: StartOptions) => Promise<void>;
-  reset: () => void;
-}
+import type { UploadResponse, OperationIssueRequest } from '../../types/uploadServer';
+import type { StartOptions, UploadContextType, PersistedState } from '../../types/uploadContext';
 
 const UploadContext = createContext<UploadContextType | undefined>(undefined);
 
@@ -45,25 +26,6 @@ const chunkArray = <T,>(array: T[], size: number): T[][] => {
   return result;
 };
 
-type PersistedFailedUpload = {
-  number: number;
-  fileNames: string[];
-  reason?: string;
-};
-
-type PersistedState = {
-  phase: UploadPhase;
-  progress: number;
-  completedRequests: number;
-  totalRequests: number;
-  failedUploads: PersistedFailedUpload[];
-  logs: string[];
-  operationId: string | null;
-  resultData: UploadResult | null;
-  lastEpic: string | null;
-  lastOperation: string | null;
-  status: 'start' | 'doing' | 'end' | 'error';
-};
 
 export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
