@@ -1,3 +1,6 @@
+from state.app_status import AppStatus
+from app_logger import AppLogger
+
 
 class ManagerException(Exception):
 
@@ -18,16 +21,33 @@ class Manager:
         raise ManagerException(self.NOT_OVERRIDE_ERROR)
 
     def start(self, request, body):
+
+        logger = self.get_manager_logger(body)
+        logger.log(AppLogger.INFO, "START")
         self.child_start(request, body)
+        logger.log(AppLogger.INFO, "END")
 
     def child_start(self, request, body):
         raise ManagerException(self.NOT_OVERRIDE_ERROR)
 
-    def manager_log(app_status, log_level, mess):
-        # TODO
-        pass
+    def get_manager_logger(self, body):
+        req_status = AppStatus.create_from_request(body)
+        logger = self.logger
+        class_name = self.__class__.__name__
+
+        class manager_logger:
+            def log(self, log_level, mess):
+                logger.log(req_status, log_level, f"{class_name} - {mess}")
+        return manager_logger()
 
     def get_except_responce(
+            self, exp, request):
+        logger = self.get_manager_logger(request.state.body)
+        logger.log(AppLogger.INFO, "except responce START")
+        self.get_child_except_responce(exp, request)
+        logger.log(AppLogger.INFO, "except responce END")
+
+    def get_child_except_responce(
             self, exp, request):
         raise ManagerException(self.NOT_OVERRIDE_ERROR)
 

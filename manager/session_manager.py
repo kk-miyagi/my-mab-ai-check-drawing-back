@@ -4,7 +4,6 @@ from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse
 from app_manager import Manager, ManagerException
 from app_logger import AppLogger
-from state.app_status import AppStatus
 
 
 class SessionManager(Manager):
@@ -23,14 +22,9 @@ class SessionManager(Manager):
         self.__SESSION_LIFETIME = 60*60
 
     # overload
-    def start(self, request, body):
+    def child_start(self, request, body):
 
-        req_status = AppStatus.create_from_request(body)
-        self.logger.log(
-                req_status,
-                AppLogger.INFO,
-                "SESSION MANAGER start"
-        )
+        logger = self.get_manager_logger(body)
         session = request.session
 
         now = time.time()
@@ -42,15 +36,11 @@ class SessionManager(Manager):
 
         if now > session["expire_time"]:
             session.clear()
+            logger.log(AppLogger.ERROR, f"{self.SESSION_EXPIRE_ERROR}")
             raise ManagerException(self.SESSION_EXPIRE_ERROR)
         session["count"] += 1
-        self.logger.log(
-                req_status,
-                AppLogger.INFO,
-                "SESSION MANAGER end"
-        )
 
-    def get_except_responce(
+    def get_child_except_responce(
             self, exp, request):
         error_log = {
             "status": "",

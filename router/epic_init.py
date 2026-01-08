@@ -18,7 +18,7 @@ async def issue_operation_id(request: Request):
         logger.log(
             req_status,
             AppLogger.DEBUG,
-            "iSSUE OPERATION-ID START STATUS"
+            "epic-init START STATUS do"
         )
         state_status = app_state.create_new_app_state(
                 req_status,
@@ -27,7 +27,7 @@ async def issue_operation_id(request: Request):
         logger.log(
             req_status,
             AppLogger.DEBUG,
-            f"iSSUE OPERATION-ID NOT START STATUS:{req_status.status}"
+            f"epic-init NOT START STATUS:{req_status.status}"
         )
         # update session status
         app_state.update_app_status(
@@ -37,7 +37,9 @@ async def issue_operation_id(request: Request):
         state_status = app_state.get_app_status(
                 req_status
         )
-        # TODO END session delete
-    return AppRoute.create_responce_from_status(
+    ret = None
+    if state_status is not None:
+        ret = AppRoute.create_responce_from_status(
             state_status
-    )
+        )
+    return ret

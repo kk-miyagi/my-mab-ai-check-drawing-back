@@ -12,7 +12,7 @@ class AppStatusManager(Manager):
     def setup(self):
         pass
 
-    def start(self, request, body):
+    def child_start(self, request, body):
 
         state = self.app_state
 
@@ -26,24 +26,22 @@ class AppStatusManager(Manager):
         session_status = state.get_app_status(
                 req_status
         )
+        logger = self.get_manager_logger(body)
         if session_status is not None:
-            self.logger.log(
-                req_status,
+            logger.log(
                 AppLogger.DEBUG,
-                f"STATUS MANAGER request status: {req_status.status}"
+                f"request status: {req_status.status}"
             )
-            self.logger.log(
-                req_status,
+            logger.log(
                 AppLogger.DEBUG,
-                f"STATUS MANAGER app session status:{session_status.status}")
+                f"app session status:{session_status.status}")
             if (
                     (req_status.status < session_status.status) or
                     (req_status.status - session_status.status > 1)):
                 raise ManagerException(self.INVALID_STATUS_ERROR)
 
-    def get_except_responce(
+    def get_child_except_responce(
             self, exp, request):
-        # TODO logger
         error_log = {
             "status": "",
             "message": "",
