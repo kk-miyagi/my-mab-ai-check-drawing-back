@@ -32,17 +32,31 @@ class AppRoute(APIRoute):
 
         async def custom_route_handler(request: Request) -> Response:
             logger = self.app_state.getLogger()
+            state = request.state
+            req_str = "custom route hander doing"
+            req_str += " request state hasattr chek"
+            req_str += f"\nuser : {hasattr(state, 'user')}"
+            req_str += f"\nepic: {hasattr(state, 'epic')}"
+            req_str += f"\noperation: {hasattr(state, 'operation')}"
+            req_str += f"\noperation_id: {hasattr(state, 'operation_id')}"
+            req_str += f"\nstatus: {hasattr(state, 'status')}"
+            # RODO other attr
+            logger.log(
+                AppStatus.get_dummy_status(),
+                AppLogger.DEBUG,
+                req_str
+            )
             req_status = AppStatus.create_from_state(request.state)
             url = '/'.join(str(request.url).split('/')[3:])
             logger.log(
-                    req_status,
-                    AppLogger.INFO,
-                    f"routing [{url}] START")
+                req_status,
+                AppLogger.INFO,
+                f"routing [{url}] START")
             response = await original_route_handler(request)
             logger.log(
-                    req_status,
-                    AppLogger.INFO,
-                    f"routing [{url}] END")
+                req_status,
+                AppLogger.INFO,
+                f"routing [{url}] END")
             return response
 
         return custom_route_handler

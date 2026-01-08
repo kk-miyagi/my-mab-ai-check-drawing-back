@@ -24,7 +24,6 @@ class MultiFileUploader:
         save_paths = []
         filenames = []
         file_contents = []
-        print(f"DOING file keys:{files_dic.keys()}")
         for file_key in files_dic.keys():
             file = files_dic[file_key]
             if file is not None:

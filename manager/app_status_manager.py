@@ -35,7 +35,7 @@ class AppStatusManager(Manager):
             self.logger.log(
                 req_status,
                 AppLogger.DEBUG,
-                f"STATUS MANAGWE app session status:{session_status.status}")
+                f"STATUS MANAGER app session status:{session_status.status}")
             if (
                     (req_status.status < session_status.status) or
                     (req_status.status - session_status.status > 1)):
