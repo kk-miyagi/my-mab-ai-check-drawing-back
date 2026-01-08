@@ -35,11 +35,11 @@ class AppRoute(APIRoute):
             state = request.state
             req_str = "custom route hander doing"
             req_str += " request state hasattr chek"
-            req_str += f"\nuser : {hasattr(state, 'user')}"
-            req_str += f"\nepic: {hasattr(state, 'epic')}"
-            req_str += f"\noperation: {hasattr(state, 'operation')}"
-            req_str += f"\noperation_id: {hasattr(state, 'operation_id')}"
-            req_str += f"\nstatus: {hasattr(state, 'status')}"
+            req_str += f"\nuser:{hasattr(state, 'user')}"
+            req_str += f"\nepic:{hasattr(state, 'epic')}"
+            req_str += f"\noperation:{hasattr(state, 'operation')}"
+            req_str += f"\noperation_id:{hasattr(state, 'operation_id')}"
+            req_str += f"\nstatus:{hasattr(state, 'status')}"
             # RODO other attr
             logger.log(
                 AppStatus.get_dummy_status(),

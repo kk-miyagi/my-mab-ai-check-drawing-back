@@ -139,14 +139,24 @@ class AppServer():
         self.app.include_router(epic_init.router)
         self.app.include_router(boot_another_process.router)
 
-    def start(self):
+    def start(self, env_str):
         import uvicorn
+
+        LOGGING_CONFIG = None
+        if env_str == 'DEV':
+            from conf.uvicorn_log_dev import LOGGING_CONFIG
+        elif env_str == 'PROD':
+            from conf.uvicorn_log_prod import LOGGING_CONFIG
 
         self.logger.log(
                 AppStatus.get_dummy_status(),
                 AppLogger.INFO,
                 'APP SERVER START')
-        uvicorn.run(self.app, host=self.host, port=self.port)
+        uvicorn.run(
+                self.app,
+                host=self.host,
+                port=self.port,
+                log_config=LOGGING_CONFIG)
         self.logger.log(
                 AppStatus.get_dummy_status(),
                 AppLogger.INFO,
