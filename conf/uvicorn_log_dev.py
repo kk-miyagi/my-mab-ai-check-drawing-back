@@ -14,7 +14,7 @@ LOGGING_CONFIG: dict[str, any] = {
         "default": {
             "()": "uvicorn.logging.DefaultFormatter",
             "fmt": "%(levelprefix)s %(message)s",
-            "use_colors": True,  # ANSI カラー出力 (ターミナルによって自動調整)
+            "use_colors": False,  # ANSI カラー出力 (ターミナルによって自動調整)
         },
         # アクセスログのフォーマット (HTTP リクエスト情報を含む)
         "access": {
@@ -33,10 +33,11 @@ LOGGING_CONFIG: dict[str, any] = {
         },
         "rotating_file": {
             "formatter": "default",
-            "class": "logging.handlers.RotatingFileHandler",
+            "class": "logging.handlers.TimedRotatingFileHandler",
             "filename": os.path.join("./logs/", "uvicorn.log"),
-            "maxBytes": 50 * 1024,  # 1MB 超えたらローテーション
-            "backupCount": 30,
+            "when": "D",
+            "interval": 1,
+            "backupCount": 60,
         },
         # アクセスログの出力先 (uvicorn.access 用)
         "access": {
@@ -46,9 +47,10 @@ LOGGING_CONFIG: dict[str, any] = {
         },
         "access_rotating_file": {
             "formatter": "access",
-            "class": "logging.handlers.RotatingFileHandler",
+            "class": "logging.handlers.TimedRotatingFileHandler",
             "filename": os.path.join("./logs/", "uvicorn.log"),
-            "maxBytes": 50 * 1024,  # 1MB 超えたらローテーション
+            "when": "D",
+            "interval": 1,
             "backupCount": 30,
         },
     },

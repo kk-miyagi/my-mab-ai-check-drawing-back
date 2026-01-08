@@ -3,6 +3,8 @@ import uuid
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse
 from app_manager import Manager, ManagerException
+from app_logger import AppLogger
+from state.app_status import AppStatus
 
 
 class SessionManager(Manager):
@@ -23,6 +25,12 @@ class SessionManager(Manager):
     # overload
     def start(self, request, body):
 
+        req_status = AppStatus.create_from_request(body)
+        self.logger.log(
+                req_status,
+                AppLogger.INFO,
+                "SESSION MANAGER start"
+        )
         session = request.session
 
         now = time.time()
@@ -36,6 +44,11 @@ class SessionManager(Manager):
             session.clear()
             raise ManagerException(self.SESSION_EXPIRE_ERROR)
         session["count"] += 1
+        self.logger.log(
+                req_status,
+                AppLogger.INFO,
+                "SESSION MANAGER end"
+        )
 
     def get_except_responce(
             self, exp, request):

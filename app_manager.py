@@ -18,7 +18,14 @@ class Manager:
         raise ManagerException(self.NOT_OVERRIDE_ERROR)
 
     def start(self, request, body):
+        self.child_start(request, body)
+
+    def child_start(self, request, body):
         raise ManagerException(self.NOT_OVERRIDE_ERROR)
+
+    def manager_log(app_status, log_level, mess):
+        # TODO
+        pass
 
     def get_except_responce(
             self, exp, request):

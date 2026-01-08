@@ -7,7 +7,8 @@ class AppConfig:
         '_LOGGER_CONF_KEY',
         '_logger_name',
         '_log_level',
-        '_log_rotation_size',
+        '_log_when',
+        '_log_interval',
         '_log_backup_count',
         '_log_file_name',
         '_initialized'
@@ -27,7 +28,9 @@ class AppConfig:
         self.__setattr__(
                 '_log_level', logger_conf['log_level'])
         self.__setattr__(
-                '_log_rotation_size', logger_conf['log_rotation_size'])
+                '_log_when', logger_conf['log_when'])
+        self.__setattr__(
+                '_log_interval', logger_conf['log_interval'])
         self.__setattr__(
                 '_log_backup_count', logger_conf['log_backup_count'])
         self.__setattr__(
@@ -42,8 +45,12 @@ class AppConfig:
         return self._log_level
 
     @property
-    def log_rotation_size(self):
-        return self._log_rotation_size
+    def log_when(self):
+        return self._log_when
+
+    @property
+    def log_interval(self):
+        return self._log_interval
 
     @property
     def log_backup_count(self):

@@ -43,6 +43,7 @@ class AppStatusManager(Manager):
 
     def get_except_responce(
             self, exp, request):
+        # TODO logger
         error_log = {
             "status": "",
             "message": "",

@@ -1,5 +1,5 @@
 from app_config import AppConfig
-from logging.handlers import RotatingFileHandler
+from logging.handlers import TimedRotatingFileHandler
 import logging
 
 
@@ -23,9 +23,10 @@ class AppLogger:
         )
 
         # for file outpu
-        file_handler = RotatingFileHandler(
+        file_handler = TimedRotatingFileHandler(
                 self.conf.log_file_name,
-                maxBytes=self.conf.log_rotation_size*1024,
+                self.conf.log_when,
+                self.conf.log_interval,
                 backupCount=self.conf.log_backup_count)
 
         file_handler.setFormatter(formatter)
