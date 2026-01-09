@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { UploadProvider } from './components/upload/UploadContext';
-import { derivePhase } from './utils/persist';
+import { derivePhase } from './routers/persist';
 import { AppRouter } from './routers/Router';
 
 const PersistNavigator: React.FC = () => {
