@@ -5,7 +5,7 @@ import { useCheckStatusPolling } from '../../utils/useCheckStatusPolling';
 export const ProcessingScreen: React.FC = () => {
   const { phase, progress, logs, operationId, completedRequests, totalRequests, lastEpic, lastOperation } = useUpload();
 
-  useCheckStatusPolling({ operationId, phase, epic: lastEpic ?? undefined, operation: lastOperation ?? undefined });
+  useCheckStatusPolling({ operationId: operationId, phase: phase, epic: lastEpic, operation: lastOperation });
 
   return (
     <div className="page center">

@@ -34,7 +34,7 @@ function getSafeIntervalMs(): number {
   return Math.max(500, POLL_INTERVAL_MS);
 }
 
-export function useCheckStatusPolling(params: { operationId: string | null; phase: UploadPhase }): void {
+export function useCheckStatusPolling(params: { operationId: string | null; phase: UploadPhase; epic: string | null; operation: string | null }): void {
   const { operationId, phase } = params;
 
   React.useEffect(() => {
