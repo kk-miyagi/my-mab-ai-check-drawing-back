@@ -1,14 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import { MemoryRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { StartScreen } from './features/cheking_drawings/StartScreen';
-import { ProcessingScreen } from './components/upload/ProcessingScreen';
-import { ResultScreen } from './components/upload/ResultScreen';
-import { CsvImageUploadScreen } from './features/label_create/CsvImageUploadScreen';
-import { HubScreen } from './pages/HubScreen';
+import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { UploadProvider } from './components/upload/UploadContext';
 import { derivePhase } from './utils/persist';
+import { AppRouter } from './routers/Router';
 
 const PersistNavigator: React.FC = () => {
   const navigate = useNavigate();
@@ -37,15 +33,7 @@ export const App: React.FC = () => {
     <MemoryRouter initialEntries={[initialEntry]}>
       <UploadProvider>
         <PersistNavigator />
-        <Routes>
-          <Route path="/" element={<Navigate to="/hub" replace />} />
-          <Route path="/hub" element={<HubScreen />} />
-          <Route path="/cheking-drawings" element={<StartScreen />} />
-          <Route path="/processing" element={<ProcessingScreen />} />
-          <Route path="/result" element={<ResultScreen />} />
-          <Route path="/label-create" element={<CsvImageUploadScreen />} />
-          <Route path="*" element={<Navigate to="/hub" replace />} />
-        </Routes>
+        <AppRouter />
       </UploadProvider>
     </MemoryRouter>
   );
