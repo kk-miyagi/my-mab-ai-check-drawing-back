@@ -3,6 +3,7 @@ export type PersistedUploadState = {
   status?: 'start' | 'doing' | 'end' | 'error';
 };
 
+// 画面復帰に関する関数
 export const derivePhase = (raw: string | null): string | undefined => {
   if (!raw) return undefined;
   try {

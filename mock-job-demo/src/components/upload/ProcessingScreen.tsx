@@ -1,6 +1,6 @@
 import React from 'react';
 import { useUpload } from './UploadContext';
-import { useCheckStatusPolling } from '../../utils/useCheckStatusPolling';
+import { useCheckStatusPolling } from '../../hooks/useCheckStatusPolling';
 
 export const ProcessingScreen: React.FC = () => {
   const { phase, progress, logs, operationId, completedRequests, totalRequests, lastEpic, lastOperation } = useUpload();

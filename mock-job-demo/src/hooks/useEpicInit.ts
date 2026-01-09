@@ -1,5 +1,5 @@
 import React from 'react';
-import { initEpicSession, endEpicSession } from '../utils/initEpic';
+import { initEpicSession, endEpicSession } from '../hooks/initEpic';
 import type { EpicInitResponse } from '../types/uploadServer';
 
 export const useEpicInit = (epic: string) => {

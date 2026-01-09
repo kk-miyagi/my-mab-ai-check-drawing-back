@@ -1,9 +1,9 @@
 // Common helper for issuing operation IDs (status: start)
 // Uses VITE_USE_MOCK_API (default true) to return a mock response unless explicitly disabled.
 
-import type { OperationIssueRequest, OperationIssueResponse } from '../types/uploadServer';
-import { http } from './http';
-import { ENDPOINTS } from './endpoints';
+import type { OperationIssueRequest, OperationIssueResponse } from '../../types/uploadServer';
+import { http } from '../../api/http';
+import { ENDPOINTS } from '../../api/endpoints';
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 const ISSUE_OPERATION_ENDPOINT = ENDPOINTS.issueOperation;
