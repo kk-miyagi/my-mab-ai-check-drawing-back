@@ -21,6 +21,10 @@ class AppStatusManager(Manager):
         # status check
         req_status = AppStatus.create_from_request(body)
         if not req_status.is_not_none():
+            logger.log(
+                AppLogger.ERROR,
+                f"app status request no value:{self.NO_VALUE_ERROR}"
+            )
             raise ManagerException(self.NO_VALUE_ERROR)
 
         session_status = state.get_app_status(
@@ -38,6 +42,10 @@ class AppStatusManager(Manager):
             if (
                     (req_status.status < session_status.status) or
                     (req_status.status - session_status.status > 1)):
+                logger.log(
+                    AppLogger.ERROR,
+                    f"app status error :{self.INVALID_STATUS_ERROR}"
+                )
                 raise ManagerException(self.INVALID_STATUS_ERROR)
 
     def get_child_except_responce(
