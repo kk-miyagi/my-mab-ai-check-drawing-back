@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { uploadApi } from '../../api/uploadApi';
-import { issueOperationId } from '../../utils/issueOperationId';
-import { runWithLimit } from '../../utils/runWithLimit';
+import { issueOperationId } from './issueOperationId';
+import { runWithLimit } from './runWithLimit';
 
 // type関連
 import type { UploadPhase, UploadResult, FailedUpload } from '../../types/uploadClient';
