@@ -3,6 +3,7 @@ import { StartScreen } from '../features/cheking_drawings/StartScreen';
 import { ProcessingScreen } from '../components/upload/ProcessingScreen';
 import { ResultScreen } from '../components/upload/ResultScreen';
 import { CsvImageUploadScreen } from '../features/label_create/CsvImageUploadScreen';
+import { ImageUploadScreen } from '../features/label_create/ImageUploadScreen';
 import { HubScreen } from '../pages/HubScreen';
 
 export const AppRouter = () => {
@@ -14,6 +15,7 @@ export const AppRouter = () => {
       <Route path="/processing" element={<ProcessingScreen />} />
       <Route path="/result" element={<ResultScreen />} />
       <Route path="/label-create" element={<CsvImageUploadScreen />} />
+      <Route path="/label-create-step1" element={<ImageUploadScreen />} />
       <Route path="*" element={<Navigate to="/hub" replace />} />
     </Routes>
   )
