@@ -34,7 +34,7 @@ async def issue_operation_id(request: Request):
                 req_status
         )
         # get session status
-        state_status = app_state.get_app_status(
+        state_status = app_state.get_eq_app_status(
                 req_status
         )
     ret = None

@@ -20,6 +20,8 @@ class AppStatusManager(Manager):
         state.create_app_status()
         # status check
         req_status = AppStatus.create_from_request(body)
+        logger = self.get_manager_logger(body)
+
         if not req_status.is_not_none():
             logger.log(
                 AppLogger.ERROR,
@@ -27,10 +29,9 @@ class AppStatusManager(Manager):
             )
             raise ManagerException(self.NO_VALUE_ERROR)
 
-        session_status = state.get_app_status(
+        session_status = state.get_eq_app_status(
                 req_status
         )
-        logger = self.get_manager_logger(body)
         if session_status is not None:
             logger.log(
                 AppLogger.DEBUG,

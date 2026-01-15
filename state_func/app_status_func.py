@@ -10,7 +10,7 @@ def create_app_status(self):
             self.app_state.APP_STATUS_SESSION_KEY = {}
 
 
-def get_app_status(self, req_status):
+def get_eq_app_status(self, req_status):
     with self.lock:
         status_dic = self.app_state.APP_STATUS_SESSION_KEY
         if AppStatus._is_none_and_black(

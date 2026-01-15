@@ -6,5 +6,11 @@
 	"log_file_name": "./logs/app_main.log", 
 	"log_interval": 1,
 	"log_when": "D"
+    },
+    "ROUTING": {
+	"epic-init": [],
+	"issue/operation-id": [],
+	"multi-fileupload": [],
+	"check-status": []
     }
 }
