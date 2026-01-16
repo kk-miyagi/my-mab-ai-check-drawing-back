@@ -3,5 +3,5 @@ export const ENDPOINTS = {
   epicInit: '/epic-init/',
   fileUpload: '/multi-fileupload/',
   checkStatus: '/check-status/',
-  labeling: '/labeling/',
+  createLabel: '/create-label/',
 };
