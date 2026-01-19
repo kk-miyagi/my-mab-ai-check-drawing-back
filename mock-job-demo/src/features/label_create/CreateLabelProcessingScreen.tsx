@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCheckStatusPolling } from './useCheckStatusPolling';
+import { localStorageKey } from '../../constants/localStorageKey';
 
 export const CreateLabelProcessingScreen: React.FC = () => {
-  // const PERSIST_KEY = 'upload_state_v1';
-  // const raw = window.localStorage.getItem(PERSIST_KEY);
+  // const raw = window.localStorage.getItem(localStorageKey.default);
   // const parsed = JSON.parse(raw);
   // console.log("!![処理中画面] ローカルストレージ: ", raw)
 
@@ -19,7 +19,7 @@ export const CreateLabelProcessingScreen: React.FC = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate("/label-create-result/")
+      navigate("/create-label-result")
     }, 60000);
     return () => clearTimeout(timer);
   }, [navigate]);

@@ -1,6 +1,6 @@
 import { http } from './http';
 import { ENDPOINTS } from './endpoints';
-import type { CreateLabelCompleteRequest, CreateLabelResponse, CheckStatusRequest, CheckStatusResponse } from '../types/createLabel';
+import type { CreateLabelRequest, CreateLabelResponse, CheckStatusRequest, CheckStatusResponse } from '../types/createLabel';
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 
@@ -14,11 +14,10 @@ async function postJson<TBody extends object, TResponse>(path: string, body: TBo
 }
 
 export const createLabelApi = {
-  async createLabelStart(payload: CreateLabelCompleteRequest): Promise<CreateLabelResponse> {
-    // 検証用で!USE_MOCK_APIとしているが、本来はUSE_MOCK_API
-    if (!USE_MOCK_API) {
+  async createLabelStart(payload: CreateLabelRequest): Promise<CreateLabelResponse> {
+    if (USE_MOCK_API) {
       await wait(400);
-      return { status: 'doing', operation_id: payload.operation_id };
+      return { status: 'end', operation_id: payload.operation_id };
     }
     const { data } = await http.post<CreateLabelResponse>(CREATELABEL_ENDPOINT, payload);
     return data;
