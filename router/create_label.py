@@ -10,6 +10,7 @@ router = APIRouter(route_class=AppRoute)
 
 
 class BaseBootAnotherProcess:
+    # TODO log 
     LOG_FILENAME = "logs/base_boot_another_process.log"
     LOG_FORMAT = "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
     UTF_8 = "utf-8"
@@ -57,17 +58,18 @@ class BaseBootAnotherProcess:
 
 # TODO no logic
 @router.post("/create-label")
-async def boot_process(request: Request, background_tasks: BackgroundTasks):
+async def create_label(request: Request, background_tasks: BackgroundTasks):
     state = request.state
     req_status = AppStatus.create_from_state(state)
     # TODO batch用のログもapp_server側から提供されるものを使うように変更する
 
     match req_status.status:
         case Status.START:
-            # TODO
+            # TODO main
             # 1) 該当するoperation_idのfaileuploadのステータスのセッションを確認
             pass
         case Status.DOING:
+            # TODO なにもない処理ステータスだけ返すか？
             try:
                 app_state = AppRoute.get_app_state()
                 app_state.create_boot_process_info()
@@ -81,22 +83,5 @@ async def boot_process(request: Request, background_tasks: BackgroundTasks):
             except Exception as e:
                 raise e
         case Status.END:
-            # TODO: ENDの場合はどうするか？
+            # TODO: 終了している該当ファイルをダウンロードさせる
             return JSONResponse(content={"message": "end batch"})
-
-
-@router.post("/check")
-async def check_status(request: Request):
-    try:
-        app_state = AppRoute.get_app_state()
-        session_dic = app_state.get_session_dict()
-        state = request.state
-        key = AppStatus.create_from_state(state).get_hash_key()
-        if key in session_dic:
-            loader = session_dic[key]
-            return JSONResponse(
-                    content={
-                        "message": f"{Status.status_to_str(loader.status)}"})
-
-    except Exception as e:
-        raise e

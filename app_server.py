@@ -14,6 +14,7 @@ import router.issue_operation_id as issue_operation_id
 import router.multi_fileupload as multi_fileupload
 import router.epic_init as epic_init
 import router.check_status as check_status
+import router.demo_create_label as demo_create_label
 import threading
 
 
@@ -138,6 +139,7 @@ class AppServer():
         self.app.include_router(multi_fileupload.router)
         self.app.include_router(epic_init.router)
         self.app.include_router(check_status.router)
+        self.app.include_router(demo_create_label.router)
 
     def start(self, env_str):
         import uvicorn
