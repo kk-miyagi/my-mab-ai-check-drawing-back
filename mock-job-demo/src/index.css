@@ -91,3 +91,14 @@ button.primary {
   font-family: monospace;
   margin-top: 16px;
 }
+
+table {
+border-collapse: collapse; /* 二重線を一本線にする */
+width: 50%;
+}
+
+th, td {
+border: 1px solid black; /* 枠線の色と太さ */
+padding: 8px;
+text-align: center;
+}
