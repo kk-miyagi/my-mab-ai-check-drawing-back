@@ -22,7 +22,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
 
     req_user = req_status.user
     req_opid = req_status.operation_id
-    upload_dir = f"./multi/{req_user}_{up_epic}_{up_ope}_{req_opid}"
+    upload_dir = f"./mlti-fileupload/{req_user}_{up_epic}_{up_ope}_{req_opid}"
 
     match req_status.status:
         case Status.START:
