@@ -1,5 +1,6 @@
 import React from 'react';
 import { uploadApi } from '../api/uploadApi';
+import { localStorageKey } from '../constants/localStorageKey';
 import type { CheckStatusRequest } from '../types/uploadServer';
 import type { UploadPhase } from '../types/uploadClient';
 
@@ -10,14 +11,13 @@ const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?
 const DEFAULT_EPIC = (import.meta.env?.VITE_UPLOAD_EPIC as string | undefined) ?? 'drawing-comparison';
 const DEFAULT_OPERATION = (import.meta.env?.VITE_UPLOAD_OPERATION as string | undefined) ?? 'multi-file-upload';
 
-const PERSIST_KEY = 'upload_state_v1';
 
 type PersistedMeta = { lastEpic?: string | null; lastOperation?: string | null };
 
 function getLastMetaFromPersist(): { epic?: string; operation?: string } {
   if (typeof window === 'undefined') return {};
   try {
-    const raw = window.localStorage.getItem(PERSIST_KEY);
+    const raw = window.localStorage.getItem(localStorageKey.default);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as PersistedMeta;
     return {

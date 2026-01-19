@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { localStorageKey } from '../constants/localStorageKey';
 
 export const HubScreen: React.FC = () => {
-  const PERSIST_KEY = 'upload_state_v1';
-  const raw = window.localStorage.getItem(PERSIST_KEY);
+  const raw = window.localStorage.getItem(localStorageKey.default);
   console.log("[画面スタート]", "ローカルストレージ：", raw)
 
   return (

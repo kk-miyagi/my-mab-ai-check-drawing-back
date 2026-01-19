@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Papa, { ParseResult } from 'papaparse';
-
+import { localStorageKey } from '../../constants/localStorageKey';
 import sampleCsvUrl from './test.csv?url'
 import sampleImageUrl from './3Tm_TKE-171433_03_DRAFT2_page_1.jpg?url'
 
@@ -26,16 +26,16 @@ const fetchAsBlob = async (url: string): Promise<Blob> => {
 };
 
 export const CreateLabelResultScreen: React.FC = () => {
-  const PERSIST_KEY = 'upload_state_v1';
+
 
   // 削除ボタン用
   const handleRemoveItem = () => {
-    window.localStorage.removeItem(PERSIST_KEY);
+    window.localStorage.removeItem(localStorageKey.default);
     console.log('削除しました。');
   };
 
   // ローカルストレージからid取得して画面に表示
-  const raw = window.localStorage.getItem(PERSIST_KEY);
+  const raw = window.localStorage.getItem(localStorageKey.default);
   const parsed = JSON.parse(raw);
   console.log("[結果画面] ローカルストレージ: ", parsed);
 

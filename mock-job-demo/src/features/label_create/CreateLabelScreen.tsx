@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 // import { useUpload } from '../../components/upload/UploadContext.tsx';
 import { useEpicInit } from '../../hooks/useEpicInit';
 import { createLabelApi } from '../../api/createLabelApi.ts';
-
+import { localStorageKey } from '../../constants/localStorageKey.ts';
 import type { UploadResponse, OperationIssueRequest } from '../../types/uploadServer.ts';
 // import type { PersistedState } from '../../types/uploadContext.ts';
 // import type { UploadPhase, UploadResult, FailedUpload } from '../../types/uploadClient';
@@ -36,7 +36,6 @@ export const CreateLabelScreen: React.FC = () => {
     console.log("[ファイルアップロード]")
 
     // ローカルストレージの初期化
-    const PERSIST_KEY = 'upload_state_v1';
     const toPersist: PersistedState = {
       phase: 'idle',
       progress: 0,
@@ -50,14 +49,14 @@ export const CreateLabelScreen: React.FC = () => {
       lastOperation: null,
       status: 'start'
     }
-    window.localStorage.setItem(PERSIST_KEY, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
     // ローカルストレージのステータスをdoingに変更
     toPersist.phase = 'issuing_id'
     toPersist.status = 'doing'
     toPersist.lastEpic = DEFAULT_EPIC
     toPersist.lastOperation = DEFAULT_OPERATION
-    window.localStorage.setItem(PERSIST_KEY, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
     // オペレーションIDの発行
     const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?? 'demo-user';
@@ -70,7 +69,7 @@ export const CreateLabelScreen: React.FC = () => {
     };
     const issueResult = await issueOperationId(metaPayload);
     toPersist.operationId = issueResult.operation_id
-    window.localStorage.setItem(PERSIST_KEY, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
     // 画像のアップロード
     const requestPayload = {
@@ -86,7 +85,7 @@ export const CreateLabelScreen: React.FC = () => {
     console.log("画像アップロード: ", response);
 
 
-    const raw = window.localStorage.getItem(PERSIST_KEY);
+    const raw = window.localStorage.getItem(localStorageKey.default);
     console.log("画像アップロード後のローカルストレージ: ", raw);
 
     // 実行中画面に切り替え
