@@ -1,9 +1,9 @@
-export interface CreateLabelCompleteRequest {
+export interface CreateLabelRequest {
   user: string;
   epic: string;
   operation: string;
   operation_id: string;
-  status: 'end';
+  status: 'start' | 'doing' | 'end' | string;
 }
 
 export interface CreateLabelResponse {

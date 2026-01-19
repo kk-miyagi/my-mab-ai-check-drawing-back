@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 // import { useUpload } from '../../components/upload/UploadContext.tsx';
 import { useEpicInit } from '../../hooks/useEpicInit';
 import { createLabelApi } from '../../api/createLabelApi.ts';
-
+import { localStorageKey } from '../../constants/localStorageKey.ts';
 import type { UploadResponse, OperationIssueRequest } from '../../types/uploadServer.ts';
 // import type { PersistedState } from '../../types/uploadContext.ts';
 // import type { UploadPhase, UploadResult, FailedUpload } from '../../types/uploadClient';
@@ -12,7 +12,7 @@ import { issueOperationId } from '../../components/upload/issueOperationId.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
 
-const DEFAULT_EPIC = 'label-create';
+const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'image-upload-and-create-label';
 
 export const CreateLabelScreen: React.FC = () => {
@@ -36,7 +36,6 @@ export const CreateLabelScreen: React.FC = () => {
     console.log("[ファイルアップロード]")
 
     // ローカルストレージの初期化
-    const PERSIST_KEY = 'upload_state_v1';
     const toPersist: PersistedState = {
       phase: 'idle',
       progress: 0,
@@ -50,14 +49,14 @@ export const CreateLabelScreen: React.FC = () => {
       lastOperation: null,
       status: 'start'
     }
-    window.localStorage.setItem(PERSIST_KEY, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
     // ローカルストレージのステータスをdoingに変更
     toPersist.phase = 'issuing_id'
     toPersist.status = 'doing'
     toPersist.lastEpic = DEFAULT_EPIC
     toPersist.lastOperation = DEFAULT_OPERATION
-    window.localStorage.setItem(PERSIST_KEY, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
     // オペレーションIDの発行
     const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?? 'demo-user';
@@ -70,7 +69,7 @@ export const CreateLabelScreen: React.FC = () => {
     };
     const issueResult = await issueOperationId(metaPayload);
     toPersist.operationId = issueResult.operation_id
-    window.localStorage.setItem(PERSIST_KEY, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
     // 画像のアップロード
     const requestPayload = {
@@ -86,14 +85,11 @@ export const CreateLabelScreen: React.FC = () => {
     console.log("画像アップロード: ", response);
 
 
-    const raw = window.localStorage.getItem(PERSIST_KEY);
+    const raw = window.localStorage.getItem(localStorageKey.default);
     console.log("画像アップロード後のローカルストレージ: ", raw);
 
     // 実行中画面に切り替え
-    navigate('/label-create-processing');
-
-    // 最終的にローカルストレージをクリア(本来必要ないが、ここに入れている)
-    // window.localStorage.removeItem(PERSIST_KEY);
+    navigate('/create-label-processing');
 
     // バッチ処理実行
     toPersist.lastOperation = 'create-label-start'
@@ -133,16 +129,10 @@ export const CreateLabelScreen: React.FC = () => {
         <Link to="/hub" onClick={async (e) => {e.preventDefault();await sendEnd();navigate('/hub');}}>前に戻る</Link>
       </div>
       {initError && <p style={{ color: 'red' }}>初期化エラー: {initError}</p>}
-      <p>ID発行 → アップロード → 最終確認の流れで送信します。</p>
       <ul>
+        <li>ラベル付与を行いたい図面をアップロードしてください。</li>
         <li>想定: 1MB程度の画像を1枚送信</li>
-        <li>毎リクエストに user / epic / operation / operation_id / status を付与</li>
-        <li>ステータス: start (ID発行), doing (送信中), end (完了 or 再送指示)</li>
       </ul>
-      <div style={{ display: 'grid', gap: 4, margin: '12px 0' }}>
-        <div><strong>epic:</strong> {DEFAULT_EPIC}</div>
-        <div><strong>operation:</strong> {DEFAULT_OPERATION}</div>
-      </div>
 
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>

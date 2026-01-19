@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { uploadApi } from '../../api/uploadApi';
 import { issueOperationId } from './issueOperationId';
 import { runWithLimit } from './runWithLimit';
+import { localStorageKey } from '../../constants/localStorageKey';
 
 // type関連
 import type { UploadPhase, UploadResult, FailedUpload } from '../../types/uploadClient';
@@ -11,7 +12,6 @@ import type { StartOptions, UploadContextType, PersistedState } from '../../type
 
 const UploadContext = createContext<UploadContextType | undefined>(undefined);
 
-const PERSIST_KEY = 'upload_state_v1';
 const USE_PERSIST = ((import.meta.env?.VITE_UPLOAD_PERSIST_STATE as string | undefined) ?? 'true') === 'true';
 
 const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?? 'demo-user';
@@ -58,7 +58,7 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       setIsHydrated(true);
       return;
     }
-    const raw = window.localStorage.getItem(PERSIST_KEY);
+    const raw = window.localStorage.getItem(localStorageKey.default);
     if (!raw) {
       setIsHydrated(true);
       return;
@@ -87,7 +87,7 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       }
     } catch (e) {
       console.warn('[upload] failed to parse persisted state', e);
-      window.localStorage.removeItem(PERSIST_KEY);
+      window.localStorage.removeItem(localStorageKey.default);
     } finally {
       setIsHydrated(true);
     }
@@ -116,7 +116,7 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       lastOperation,
       status,
     };
-    window.localStorage.setItem(PERSIST_KEY, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
   }, [phase, progress, completedRequests, totalRequests, failedUploads, logs, operationId, resultData, lastEpic, lastOperation, isHydrated, status]);
 
   const startUpload = async (files: File[], options?: StartOptions) => {
@@ -315,7 +315,7 @@ export const UploadProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setResultData(null);
     setLastEpic(null);
     setStatus('start');
-    if (USE_PERSIST && typeof window !== 'undefined') window.localStorage.removeItem(PERSIST_KEY);
+    if (USE_PERSIST && typeof window !== 'undefined') window.localStorage.removeItem(localStorageKey.default);
     navigate('/');
   };
 

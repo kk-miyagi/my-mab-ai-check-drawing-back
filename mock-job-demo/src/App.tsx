@@ -1,16 +1,16 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import { MemoryRouter, useNavigate } from 'react-router-dom';
-import { derivePhase } from './routers/persist';
+import { createRoot } from 'react-dom/client';
+import { MemoryRouter } from 'react-router-dom';
+import { getRedirectUrl } from './routers/getRedirectUrl';
 import { AppRouter } from './routers/Router';
+import { localStorageKey } from './constants/localStorageKey';
+import './index.css';
 
 export const App: React.FC = () => {
   const initialEntry = (() => {
     if (typeof window === 'undefined') return '/hub';
-    // const nextPhase = derivePhase(window.localStorage.getItem('upload_state_v1'));
-    // if (nextPhase === 'issuing_id' || nextPhase === 'uploading' || nextPhase === 'verifying') return '/processing';
-    // if (nextPhase === 'complete' || nextPhase === 'error') return '/result';
+    const return_screen = getRedirectUrl(window.localStorage.getItem(localStorageKey.default));
+    if (return_screen) return return_screen;
     return '/hub';
   })();
 
@@ -28,7 +28,7 @@ if (!rootElement) {
   throw new Error('Root element #root not found');
 }
 
-ReactDOM.createRoot(rootElement).render(
+createRoot(rootElement).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
