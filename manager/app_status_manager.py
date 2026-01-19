@@ -41,6 +41,7 @@ class AppStatusManager(Manager):
                 AppLogger.DEBUG,
                 f"app session status:{session_status.status}")
             if (
+                    (req_status.status) < 0 or
                     (req_status.status < session_status.status) or
                     (req_status.status - session_status.status > 1)):
                 logger.log(

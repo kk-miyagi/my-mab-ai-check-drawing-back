@@ -13,7 +13,6 @@ from state.app_status import AppStatus
 import router.issue_operation_id as issue_operation_id
 import router.multi_fileupload as multi_fileupload
 import router.epic_init as epic_init
-import router.boot_another_process as boot_another_process
 import router.check_status as check_status
 import threading
 
@@ -138,7 +137,6 @@ class AppServer():
         self.app.include_router(issue_operation_id.router)
         self.app.include_router(multi_fileupload.router)
         self.app.include_router(epic_init.router)
-        self.app.include_router(boot_another_process.router)
         self.app.include_router(check_status.router)
 
     def start(self, env_str):

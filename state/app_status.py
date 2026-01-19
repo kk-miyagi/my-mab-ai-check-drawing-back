@@ -6,6 +6,7 @@ class Status(IntEnum):
     START = 0
     DOING = 1
     END = 2
+    ERROR = -1
 
     @classmethod
     def str_to_status(cls, mess):
@@ -16,6 +17,8 @@ class Status(IntEnum):
             ret = Status.DOING
         elif mess == "end":
             ret = Status.END
+        elif mess == "error":
+            ret = Status.ERROR
         return ret
 
     @classmethod
@@ -27,6 +30,8 @@ class Status(IntEnum):
             ret = "doing"
         elif status == Status.END:
             ret = "end"
+        elif status == Status.ERROR:
+            ret = "error"
         return ret
 
 
