@@ -19,7 +19,7 @@ export const CreateLabelProcessingScreen: React.FC = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate("/label-create-result/")
+      navigate("/create-label-result")
     }, 60000);
     return () => clearTimeout(timer);
   }, [navigate]);

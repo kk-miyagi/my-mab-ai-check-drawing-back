@@ -12,7 +12,7 @@ import { issueOperationId } from '../../components/upload/issueOperationId.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
 
-const DEFAULT_EPIC = 'label-create';
+const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'image-upload-and-create-label';
 
 export const CreateLabelScreen: React.FC = () => {
@@ -90,10 +90,7 @@ export const CreateLabelScreen: React.FC = () => {
     console.log("画像アップロード後のローカルストレージ: ", raw);
 
     // 実行中画面に切り替え
-    navigate('/label-create-processing');
-
-    // 最終的にローカルストレージをクリア(本来必要ないが、ここに入れている)
-    // window.localStorage.removeItem(PERSIST_KEY);
+    navigate('/create-label-processing');
 
     // バッチ処理実行
     toPersist.lastOperation = 'create-label-start'
@@ -133,16 +130,10 @@ export const CreateLabelScreen: React.FC = () => {
         <Link to="/hub" onClick={async (e) => {e.preventDefault();await sendEnd();navigate('/hub');}}>前に戻る</Link>
       </div>
       {initError && <p style={{ color: 'red' }}>初期化エラー: {initError}</p>}
-      <p>ID発行 → アップロード → 最終確認の流れで送信します。</p>
       <ul>
+        <li>ラベル付与を行いたい図面をアップロードしてください。</li>
         <li>想定: 1MB程度の画像を1枚送信</li>
-        <li>毎リクエストに user / epic / operation / operation_id / status を付与</li>
-        <li>ステータス: start (ID発行), doing (送信中), end (完了 or 再送指示)</li>
       </ul>
-      <div style={{ display: 'grid', gap: 4, margin: '12px 0' }}>
-        <div><strong>epic:</strong> {DEFAULT_EPIC}</div>
-        <div><strong>operation:</strong> {DEFAULT_OPERATION}</div>
-      </div>
 
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
