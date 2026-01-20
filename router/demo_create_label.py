@@ -37,7 +37,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     req_status
                 )
                 # app_status 更新
-                req_status = Status.END
+                req_status.status = Status.END
                 app_state.update_app_status(
                     req_status
                 )
