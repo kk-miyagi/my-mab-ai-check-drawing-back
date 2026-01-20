@@ -17,12 +17,12 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
 
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
-    up_epic = 'create_label'
+    up_epic = 'create-label'
     up_ope = 'multi-file-upload'
 
     req_user = req_status.user
     req_opid = req_status.operation_id
-    upload_dir = f"./mlti-fileupload/{req_user}_{up_epic}_{up_ope}_{req_opid}"
+    upload_dir = f"./multi-fileupload/{req_user}_{up_epic}_{up_ope}_{req_opid}"
 
     match req_status.status:
         case Status.START:
@@ -38,7 +38,9 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 )
                 # app_status 更新
                 req_status = Status.END
-                app_state.update_app_status()
+                app_state.update_app_status(
+                    req_status
+                )
             else:
                 req_status.status = Status.ERROR
                 logger.log(
