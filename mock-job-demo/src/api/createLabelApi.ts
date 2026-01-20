@@ -8,8 +8,16 @@ const CREATELABEL_ENDPOINT = ENDPOINTS.createLabel;
 const CHECK_STATUS_ENDPOINT = ENDPOINTS.checkStatus;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 async function postJson<TBody extends object, TResponse>(path: string, body: TBody): Promise<TResponse> {
   const { data } = await http.post<TResponse>(path, body);
+  return data;
+}
+
+async function postForm<TResponse>(path: string, formData: FormData): Promise<TResponse> {
+  const { data } = await http.post<TResponse>(path, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return data;
 }
 
@@ -17,10 +25,15 @@ export const createLabelApi = {
   async createLabelStart(payload: CreateLabelRequest): Promise<CreateLabelResponse> {
     if (USE_MOCK_API) {
       await wait(400);
-      return { status: 'end', operation_id: payload.operation_id };
+      return { user: "demo-user", epic: "test", operation: "test", operation_id: payload.operation_id, status: 'end', message: 'test' };
     }
-    const { data } = await http.post<CreateLabelResponse>(CREATELABEL_ENDPOINT, payload);
-    return data;
+    const form = new FormData();
+    form.append('user', payload.user);
+    form.append('epic', payload.epic);
+    form.append('operation', payload.operation);
+    form.append('operation_id', payload.operation_id);
+    form.append('status', payload.status);
+    return postForm(CREATELABEL_ENDPOINT, form);
   },
   async checkStatus(payload: CheckStatusRequest): Promise<CheckStatusResponse> {
     const normalize = (raw: any): CheckStatusResponse => {
