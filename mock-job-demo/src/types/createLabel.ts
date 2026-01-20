@@ -7,10 +7,12 @@ export interface CreateLabelRequest {
 }
 
 export interface CreateLabelResponse {
-  status: 'doing' | 'end' | 'error';
-  operation_id?: string;
-  file_name?: string;
-  message?: string;
+  user: string;
+  epic: string;
+  operation: string;
+  operation_id: string;
+  status: 'start' | 'doing' | 'end' | 'error' | string;
+  message: string;
 }
 
 export interface CheckStatusRequest {

@@ -14,20 +14,27 @@ export const CreateLabelProcessingScreen: React.FC = () => {
   //   epic: parsed.lastEpic,
   //   operation: parsed.lastOperation,
   // });
+  const handleRemoveItem = () => {
+      window.localStorage.removeItem(localStorageKey.default);
+      console.log('削除しました。');
+    };
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigate("/create-label-result")
-    }, 60000);
-    return () => clearTimeout(timer);
-  }, [navigate]);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     navigate("/create-label-result")
+  //   }, 60000);
+  //   return () => clearTimeout(timer);
+  // }, [navigate]);
 
   return (
     <div className="page">
       <h2>ラベル付与の処理中</h2>
       <p>現在ラベルを付与中です。<br />30分から1時間ほどかかりますのでしばらくお待ちください。</p>
+      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+        <button className="primary" onClick={handleRemoveItem}>ローカルストレージの削除</button>
+      </div>
     </div>
 
   );

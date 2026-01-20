@@ -89,21 +89,22 @@ export const CreateLabelScreen: React.FC = () => {
     console.log("画像アップロード後のローカルストレージ: ", raw);
 
     // 実行中画面に切り替え
-    navigate('/create-label-processing');
+    // navigate('/create-label-processing');
 
     // バッチ処理実行
-    toPersist.lastOperation = 'create-label-start'
+    // toPersist.lastOperation = 'create-label-start'
 
     let res: CreateLabelResponse;
     res = await createLabelApi.createLabelStart({
       user: 'demo-user',
       epic: DEFAULT_EPIC,
       operation: 'create-label',
-      operation_id: issueResult.operation_id,
-      status: 'end',
+      operation_id: DEFAULT_OPERATION,
+      status: 'start',
     });
+    console.log("ここは？", res);
 
-    console.log("バッチ処理: ", res)
+    // console.log("バッチ処理: ", res)
 
     // const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
     // await wait(60);
