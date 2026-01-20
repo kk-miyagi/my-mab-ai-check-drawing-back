@@ -2,11 +2,11 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCheckStatusPolling } from './useCheckStatusPolling';
 import { localStorageKey } from '../../constants/localStorageKey';
-
+import { createLabelApi } from '../../api/createLabelApi.ts';
 export const CreateLabelProcessingScreen: React.FC = () => {
-  // const raw = window.localStorage.getItem(localStorageKey.default);
-  // const parsed = JSON.parse(raw);
-  // console.log("!![処理中画面] ローカルストレージ: ", raw)
+  const raw = window.localStorage.getItem(localStorageKey.default);
+  const parsed = JSON.parse(raw);
+  console.log("[処理中画面] ローカルストレージ: ", raw)
 
   // useCheckStatusPolling({
   //   operationId: parsed.operationId,
@@ -14,6 +14,17 @@ export const CreateLabelProcessingScreen: React.FC = () => {
   //   epic: parsed.lastEpic,
   //   operation: parsed.lastOperation,
   // });
+
+  // const handleEnd
+
+  // res = createLabelApi.createLabelStart({
+  //     user: 'demo-user',
+  //     epic: parsed.lastEpic,
+  //     operation: parsed.lastOperation,
+  //     operation_id: parsed.operationId,
+  //     status: 'end'
+  //   });
+
   const handleRemoveItem = () => {
       window.localStorage.removeItem(localStorageKey.default);
       console.log('削除しました。');

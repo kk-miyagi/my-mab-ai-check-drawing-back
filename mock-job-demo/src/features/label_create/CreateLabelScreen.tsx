@@ -13,7 +13,8 @@ import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
 
 const DEFAULT_EPIC = 'create-label';
-const DEFAULT_OPERATION = 'image-upload-and-create-label';
+// const DEFAULT_OPERATION = 'image-upload-and-create-label';
+const DEFAULT_OPERATION = 'multi-file-upload';
 
 export const CreateLabelScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -82,27 +83,35 @@ export const CreateLabelScreen: React.FC = () => {
       files: file,
     };
     const response = await uploadApi.uploadPair(requestPayload);
-    console.log("画像アップロード: ", response);
+    toPersist.status = 'end'
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+    console.log("[ラベル付与]画像アップロード_レスポンス ", response)
+    console.log("[ラベル付与]画像アップロード_ローカルストレージ更新 ", JSON.parse(window.localStorage.getItem(localStorageKey.default)));
 
 
-    const raw = window.localStorage.getItem(localStorageKey.default);
-    console.log("画像アップロード後のローカルストレージ: ", raw);
+    toPersist.status = 'start'
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+    console.log("[ラベル付与]バッチ処理_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default)));
 
     // 実行中画面に切り替え
-    // navigate('/create-label-processing');
+    navigate('/create-label-processing');
 
     // バッチ処理実行
-    // toPersist.lastOperation = 'create-label-start'
-
     let res: CreateLabelResponse;
     res = await createLabelApi.createLabelStart({
       user: 'demo-user',
       epic: DEFAULT_EPIC,
-      operation: 'create-label',
-      operation_id: DEFAULT_OPERATION,
-      status: 'start',
+      operation: 'image-upload-and-create-label',
+      operation_id: issueResult.operation_id,
+      // status: toPersist.status,
+      status: 'start'
     });
-    console.log("ここは？", res);
+    console.log(res)
+    if (res) {
+      toPersist.status = 'doing'
+      window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+    }
+    console.log("[ラベル付与]バッチ処理実行中_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default)));
 
     // console.log("バッチ処理: ", res)
 
