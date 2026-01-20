@@ -10,7 +10,7 @@ import os
 router = APIRouter(route_class=AppRoute)
 
 
-@router.post("/demo-create-label")
+@router.post("/demo-create-label/")
 async def create_label(request: Request, background_tasks: BackgroundTasks):
     state = request.state
     req_status = AppStatus.create_from_state(state)
@@ -31,7 +31,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 AppLogger.DEBUG,
                 "DEMO-CREATE-LABEL START STATUS START"
             )
-            if os.path.exsist(upload_dir):
+            if os.path.exists(upload_dir):
                 # app_status 作成
                 app_state.create_new_app_status(
                     req_status
@@ -46,7 +46,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     AppLogger.ERROR,
                     f"DEMO-CREATE-LABEL UPLOAD DIR NOT FOUND:{upload_dir}"
                 )
-            return app_state.create_responce_from_status(
+            return AppRoute.create_responce_from_status(
                     req_status
             )
         case Status.DOING:
@@ -70,7 +70,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     f"DEMO-CREATE-LABEL REQUEST IS NOT END:{req_status.status}"
                 )
                 req_status.staus = Status.ERROR
-                return app_state.create_responce_from_status(
+                return AppRoute.create_responce_from_status(
                         req_status
                 )
             # 2)ダウンロード先ディレクトリから図面ファイル、CSVファイル読み込み
