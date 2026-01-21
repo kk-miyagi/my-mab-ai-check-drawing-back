@@ -21,6 +21,14 @@ async function postForm<TResponse>(path: string, formData: FormData): Promise<TR
   return data;
 }
 
+async function postForm_2<TResponse>(path: string, formData: FormData): Promise<TResponse> {
+  const { data } = await http.post<TResponse>(path, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    responseType: 'blob'
+  });
+  return data;
+}
+
 export const createLabelApi = {
   async createLabelStart(payload: CreateLabelRequest): Promise<CreateLabelResponse> {
     if (USE_MOCK_API) {
@@ -35,6 +43,17 @@ export const createLabelApi = {
     form.append('status', payload.status);
     return postForm(CREATELABEL_ENDPOINT, form);
   },
+
+  async createLabelEnd(payload: CreateLabelRequest) {
+    const form = new FormData();
+    form.append('user', payload.user);
+    form.append('epic', payload.epic);
+    form.append('operation', payload.operation);
+    form.append('operation_id', payload.operation_id);
+    form.append('status', payload.status);
+    return postForm_2(CREATELABEL_ENDPOINT, form);
+  },
+
   async checkStatus(payload: CheckStatusRequest): Promise<CheckStatusResponse> {
     const normalize = (raw: any): CheckStatusResponse => {
       const base = {

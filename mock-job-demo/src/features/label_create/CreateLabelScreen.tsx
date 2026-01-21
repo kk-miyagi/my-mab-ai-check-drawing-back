@@ -90,6 +90,7 @@ export const CreateLabelScreen: React.FC = () => {
 
 
     toPersist.status = 'start'
+    toPersist.lastOperation = 'batch-create-label'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
     console.log("[ラベル付与]バッチ処理_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default)));
 
@@ -101,13 +102,11 @@ export const CreateLabelScreen: React.FC = () => {
     res = await createLabelApi.createLabelStart({
       user: 'demo-user',
       epic: DEFAULT_EPIC,
-      operation: 'image-upload-and-create-label',
+      operation: toPersist.lastOperation,
       operation_id: issueResult.operation_id,
-      // status: toPersist.status,
-      status: 'start'
+      status: toPersist.status,
     });
-    console.log(res)
-    if (res) {
+    if (res.status === 'end') {
       toPersist.status = 'doing'
       window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
     }

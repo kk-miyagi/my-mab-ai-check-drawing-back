@@ -3,7 +3,8 @@ import Papa, { ParseResult } from 'papaparse';
 import { localStorageKey } from '../../constants/localStorageKey';
 import sampleCsvUrl from './test.csv?url'
 import sampleImageUrl from './3Tm_TKE-171433_03_DRAFT2_page_1.jpg?url'
-
+import { createLabelApi } from '../../api/createLabelApi.ts';
+import JSZip from 'jszip';
 type Row = Record<string, string | number | boolean | null>;
 
 const downloadBlob = (blob: Blob, filename: string) => {
@@ -26,6 +27,8 @@ const fetchAsBlob = async (url: string): Promise<Blob> => {
 };
 
 export const CreateLabelResultScreen: React.FC = () => {
+  const [csvText, setCsvText] = useState<string>();
+  const [imageUrl, setImageUrl] = useState<string>();
 
 
   // 削除ボタン用
@@ -63,18 +66,44 @@ export const CreateLabelResultScreen: React.FC = () => {
   };
 
   useEffect(() => {
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
     (async () => {
-      const res = await fetch(sampleCsvUrl);
-      const text = await res.text();
-      console.log(text)
-      const result = Papa.parse<Row>(text, {
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: true,
-      });
-      const data = result.data ?? [];
-      setRows(data);
-      setColumns(data.length ? Object.keys(data[0]) : []);
+      try {
+        const res = await createLabelApi.createLabelEnd({
+          user: 'demo-user',
+          epic: parsed.lastEpic,
+          operation: parsed.lastOperation,
+          operation_id: parsed.operationId,
+          status: 'end'
+        });
+        const data = await res
+        console.log("result画面: ", data)
+        const zip = await JSZip.loadAsync(data);
+        const imgFile = zip.file("demo-create-label-responce/demo-user_create-label_image-upload-and-create-label_demo-ope-id/MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_annotated_dims_llm_final.jpg")
+        if (imgFile) {
+          const imgBlob = await imgFile.async('blob');
+          const url = URL.createObjectURL(imgBlob);
+          setImageUrl(url)
+
+        }
+        const csvFile = zip.file("demo-create-label-responce/demo-user_create-label_image-upload-and-create-label_demo-ope-id/MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_matched_dimensions_llm_final.csv")
+        if (csvFile) {
+          const text = await csvFile.async("string");
+          const result = Papa.parse<Row>(text, {
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true,
+          });
+          console.log("見れるか？", result);
+          const csvData = result.data ?? [];
+          setRows(csvData);
+          setColumns(csvData.length ? Object.keys(csvData[0]) : []);
+        }
+        
+
+      } catch (e) {
+        console.log("エラー")
+      }
     })();
   }, []);
 
@@ -83,9 +112,9 @@ export const CreateLabelResultScreen: React.FC = () => {
       <h1>ラベル付与の完了</h1>
       <p>ラベル付与を行った図面の確認画面です。</p>
       <h2>図面の結果</h2>
-      <img src={sampleImageUrl} alt="ラベル付与後の図面" style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
+      <img src={imageUrl} alt="ラベル付与後の図面" style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
 
-      <h2>一覧の結果</h2>
+      <h2>CSVの結果</h2>
       <table>
         <thead>
           <tr>{columns.map((c) => <th key={c}>{c}</th>)}</tr>
