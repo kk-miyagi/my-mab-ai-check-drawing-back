@@ -1,43 +1,32 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCheckStatusPolling } from './useCheckStatusPolling';
 import { localStorageKey } from '../../constants/localStorageKey';
 import { createLabelApi } from '../../api/createLabelApi.ts';
+import { usePolling } from '../../hooks/usePolling.ts';
+import { CheckStatusRequest } from '../../types/uploadServer.ts';
 export const CreateLabelProcessingScreen: React.FC = () => {
   const raw = window.localStorage.getItem(localStorageKey.default);
   const parsed = JSON.parse(raw);
-  console.log("[処理中画面] ローカルストレージ: ", raw)
-
-  useCheckStatusPolling({operationId: parsed.operationId, phase: parsed.phase, epic: parsed.lastEpic, operation: parsed.lastOperation,});
 
   const navigate = useNavigate();
+  const payload: CheckStatusRequest = {
+    user: 'demo-user',
+    epic: parsed.lastEpic,
+    operation: parsed.lastOperation,
+    operation_id: parsed.operationId,
+    status: 'doing',
+  };
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-    parsed.status = 'end'
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
-    (async () => {
-      try {
-        const res = await createLabelApi.createLabelEnd({
-          user: 'demo-user',
-          epic: parsed.lastEpic,
-          operation: parsed.lastOperation,
-          operation_id: parsed.operationId,
-          status: 'end'
-        });
-        if (res) {
-          navigate("/create-label-result")
-        }
-        // const data = await res
-        // console.log(data)
-      } catch (e) {
-        console.log("エラー")
-      }})();
-    }, 10000);
-    return () => clearTimeout(timer);
-  });
-
-
+  usePolling(
+    async () => {
+      const res = await createLabelApi.checkStatus(payload);
+      return res;
+    },
+    (r) => r.status === 'end',
+    () => navigate('/create-label-result'),
+    3000,
+    10000
+  );
 
   return (
     <div className="page">
