@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Papa, { ParseResult } from 'papaparse';
 import { localStorageKey } from '../../constants/localStorageKey';
-import sampleCsvUrl from './test.csv?url'
-import sampleImageUrl from './3Tm_TKE-171433_03_DRAFT2_page_1.jpg?url'
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import JSZip from 'jszip';
+import { useNavigate } from 'react-router-dom';
+
 type Row = Record<string, string | number | boolean | null>;
 
 const downloadBlob = (blob: Blob, filename: string) => {
@@ -26,15 +26,19 @@ const fetchAsBlob = async (url: string): Promise<Blob> => {
   return await res.blob();
 };
 
+
 export const CreateLabelResultScreen: React.FC = () => {
   const [csvText, setCsvText] = useState<string>();
   const [imageUrl, setImageUrl] = useState<string>();
+  const [csvUrl, setCsvUrl] = useState<string>();
 
+  const navigate = useNavigate();
 
   // 削除ボタン用
   const handleRemoveItem = () => {
     window.localStorage.removeItem(localStorageKey.default);
     console.log('削除しました。');
+    navigate('/hub')
   };
 
   // ローカルストレージからid取得して画面に表示
@@ -52,13 +56,13 @@ export const CreateLabelResultScreen: React.FC = () => {
 
       // 画像とCSVを同時に取得（ユーザー操作内）
       const [imageBlob, csvBlob] = await Promise.all([
-        fetchAsBlob(sampleImageUrl),
-        fetchAsBlob(sampleCsvUrl),
+        fetchAsBlob(imageUrl),
+        fetchAsBlob(csvUrl),
       ]);
 
       // それぞれダウンロードを発火
-      downloadBlob(imageBlob, "sample.jpg");
-      downloadBlob(csvBlob, "data.csv");
+      downloadBlob(imageBlob, "MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_annotated_dims_llm_final.jpg");
+      downloadBlob(csvBlob, "MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_matched_dimensions_llm_final.csv");
     } catch (err) {
       console.error(err);
       alert("ダウンロードに失敗しました。ネットワークやパスを確認してください。");
@@ -79,16 +83,18 @@ export const CreateLabelResultScreen: React.FC = () => {
         const data = await res
         console.log("result画面: ", data)
         const zip = await JSZip.loadAsync(data);
-        const imgFile = zip.file("demo-create-label-responce/demo-user_create-label_image-upload-and-create-label_demo-ope-id/MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_annotated_dims_llm_final.jpg")
+        const imgFile = zip.file("demo-create-label-responce/MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_annotated_dims_llm_final.jpg")
         if (imgFile) {
           const imgBlob = await imgFile.async('blob');
           const url = URL.createObjectURL(imgBlob);
           setImageUrl(url)
 
         }
-        const csvFile = zip.file("demo-create-label-responce/demo-user_create-label_image-upload-and-create-label_demo-ope-id/MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_matched_dimensions_llm_final.csv")
+        const csvFile = zip.file("demo-create-label-responce/MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_matched_dimensions_llm_final.csv")
         if (csvFile) {
           const text = await csvFile.async("string");
+          const csvBlob = await csvFile.async('blob');
+          setCsvUrl(URL.createObjectURL(csvBlob));
           const result = Papa.parse<Row>(text, {
             header: true,
             skipEmptyLines: true,
@@ -96,8 +102,17 @@ export const CreateLabelResultScreen: React.FC = () => {
           });
           console.log("見れるか？", result);
           const csvData = result.data ?? [];
-          setRows(csvData);
-          setColumns(csvData.length ? Object.keys(csvData[0]) : []);
+          const columnsToShow = ['No', '項目','寸法値または品質指定等の記載内容', '備考']
+          const projected = csvData.map((row) => {
+            const picked: Row = {};
+            for (const key of columnsToShow) {
+              picked[key] = row[key] ?? "";
+            }
+            return picked;
+          });
+
+          setRows(projected);
+          setColumns(projected.length ? Object.keys(projected[0]) : []);
         }
         
 
@@ -115,21 +130,23 @@ export const CreateLabelResultScreen: React.FC = () => {
       <img src={imageUrl} alt="ラベル付与後の図面" style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
 
       <h2>CSVの結果</h2>
-      <table>
-        <thead>
-          <tr>{columns.map((c) => <th key={c}>{c}</th>)}</tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i}>
-              {columns.map((c) => <td key={c}>{String(r[c] ?? '')}</td>)}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className='table-wrapper'>
+        <table>
+          <thead>
+            <tr>{columns.map((c) => <th key={c}>{c}</th>)}</tr>
+          </thead>
+          <tbody className='table-row'>
+            {rows.map((r, i) => (
+              <tr key={i}>
+                {columns.map((c) => <td key={c}>{String(r[c] ?? '')}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleRemoveItem}>ローカルストレージの削除</button>
+        <button className="primary" onClick={handleRemoveItem}>最初からやり直す</button>
         <button className="primary" onClick={handleDownload}>画像とCSVを同時にダウンロード</button>
       </div>
     </div>
