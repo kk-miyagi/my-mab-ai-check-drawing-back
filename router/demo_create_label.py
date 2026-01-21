@@ -77,7 +77,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     req_status
                 )
             # 2)ダウンロード先ディレクトリから図面ファイル、CSVファイル読み込み
-            res_dir = "./create-label-responce/"
+            res_dir = "./demo-create-label-responce/"
             fname_list = os.listdir(res_dir)
             file_list = [
                 res_dir + fname for fname in fname_list if fname != ".gitkeep"
