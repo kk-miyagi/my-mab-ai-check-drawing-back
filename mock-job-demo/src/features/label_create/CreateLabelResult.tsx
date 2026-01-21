@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import Papa, { ParseResult } from 'papaparse';
+import React, { useEffect, useState } from 'react';
+import Papa from 'papaparse';
 import { localStorageKey } from '../../constants/localStorageKey';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import JSZip from 'jszip';
@@ -12,11 +12,9 @@ const downloadBlob = (blob: Blob, filename: string) => {
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
-  // Firefox対応：DOMに追加してからclick
   document.body.appendChild(a);
   a.click();
   a.remove();
-  // すぐrevokeするとSafariで稀に失敗するためsetTimeoutが安全
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
@@ -28,36 +26,27 @@ const fetchAsBlob = async (url: string): Promise<Blob> => {
 
 
 export const CreateLabelResultScreen: React.FC = () => {
-  const [csvText, setCsvText] = useState<string>();
+  const [csvRows, setCsvRows] = useState<Row[]>([]);
+  const [csvColumns, setCsvColumns] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState<string>();
   const [csvUrl, setCsvUrl] = useState<string>();
-
   const navigate = useNavigate();
 
-  // 削除ボタン用
+  const raw = window.localStorage.getItem(localStorageKey.default) as string;
+  const parsed = JSON.parse(raw);
+
+  // ローカルストレージの削除ボタン用
   const handleRemoveItem = () => {
     window.localStorage.removeItem(localStorageKey.default);
-    console.log('削除しました。');
+    console.log('ローカルストレージを削除しました。');
     navigate('/hub')
   };
 
-  // ローカルストレージからid取得して画面に表示
-  const raw = window.localStorage.getItem(localStorageKey.default);
-  const parsed = JSON.parse(raw);
-  console.log("[結果画面] ローカルストレージ: ", parsed);
-
-  // ここからCSV
-  const [rows, setRows] = useState<Row[]>([]);
-  const [columns, setColumns] = useState<string[]>([]);
-
   const handleDownload = async () => {
     try {
-      // public配下のパスは / から始める
-
-      // 画像とCSVを同時に取得（ユーザー操作内）
       const [imageBlob, csvBlob] = await Promise.all([
-        fetchAsBlob(imageUrl),
-        fetchAsBlob(csvUrl),
+        fetchAsBlob(imageUrl as string),
+        fetchAsBlob(csvUrl as string),
       ]);
 
       // それぞれダウンロードを発火
@@ -78,10 +67,9 @@ export const CreateLabelResultScreen: React.FC = () => {
           epic: parsed.lastEpic,
           operation: parsed.lastOperation,
           operation_id: parsed.operationId,
-          status: 'end'
+          status: parsed.status
         });
-        const data = await res
-        console.log("result画面: ", data)
+        const data = await res as Blob
         const zip = await JSZip.loadAsync(data);
         const imgFile = zip.file("demo-create-label-responce/MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_annotated_dims_llm_final.jpg")
         if (imgFile) {
@@ -100,7 +88,6 @@ export const CreateLabelResultScreen: React.FC = () => {
             skipEmptyLines: true,
             dynamicTyping: true,
           });
-          console.log("見れるか？", result);
           const csvData = result.data ?? [];
           const columnsToShow = ['No', '項目','寸法値または品質指定等の記載内容', '備考']
           const projected = csvData.map((row) => {
@@ -111,8 +98,8 @@ export const CreateLabelResultScreen: React.FC = () => {
             return picked;
           });
 
-          setRows(projected);
-          setColumns(projected.length ? Object.keys(projected[0]) : []);
+          setCsvRows(projected);
+          setCsvColumns(projected.length ? Object.keys(projected[0]) : []);
         }
         
 
@@ -133,12 +120,12 @@ export const CreateLabelResultScreen: React.FC = () => {
       <div className='table-wrapper'>
         <table>
           <thead>
-            <tr>{columns.map((c) => <th key={c}>{c}</th>)}</tr>
+            <tr>{csvColumns.map((c) => <th key={c}>{c}</th>)}</tr>
           </thead>
           <tbody className='table-row'>
-            {rows.map((r, i) => (
+            {csvRows.map((r, i) => (
               <tr key={i}>
-                {columns.map((c) => <td key={c}>{String(r[c] ?? '')}</td>)}
+                {csvColumns.map((c) => <td key={c}>{String(r[c] ?? '')}</td>)}
               </tr>
             ))}
           </tbody>

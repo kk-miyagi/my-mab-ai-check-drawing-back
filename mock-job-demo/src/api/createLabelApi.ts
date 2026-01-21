@@ -1,6 +1,7 @@
 import { http } from './http';
 import { ENDPOINTS } from './endpoints';
 import type { CreateLabelRequest, CreateLabelResponse, CheckStatusRequest, CheckStatusResponse } from '../types/createLabel';
+import { AxiosRequestConfig } from "axios";
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 
@@ -14,17 +15,10 @@ async function postJson<TBody extends object, TResponse>(path: string, body: TBo
   return data;
 }
 
-async function postForm<TResponse>(path: string, formData: FormData): Promise<TResponse> {
+async function postForm<TResponse>(path: string, formData: FormData, responseType:  AxiosRequestConfig["responseType"] = 'json'): Promise<TResponse> {
   const { data } = await http.post<TResponse>(path, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return data;
-}
-
-async function postForm_2<TResponse>(path: string, formData: FormData): Promise<TResponse> {
-  const { data } = await http.post<TResponse>(path, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    responseType: 'blob'
+    responseType: responseType
   });
   return data;
 }
@@ -51,7 +45,7 @@ export const createLabelApi = {
     form.append('operation', payload.operation);
     form.append('operation_id', payload.operation_id);
     form.append('status', payload.status);
-    return postForm_2(CREATELABEL_ENDPOINT, form);
+    return postForm(CREATELABEL_ENDPOINT, form, 'blob');
   },
 
   async checkStatus(payload: CheckStatusRequest): Promise<CheckStatusResponse> {
