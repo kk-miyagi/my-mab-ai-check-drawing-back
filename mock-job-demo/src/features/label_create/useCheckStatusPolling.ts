@@ -40,8 +40,6 @@ export function useCheckStatusPolling(params: { operationId: string | null; phas
     if (!operationId) return;
     if (phase === 'verifying') return;
 
-    console.log("test")
-
     const meta = getLastMetaFromPersist();
     const epic = (params as any)?.epic ?? meta.epic ?? DEFAULT_EPIC;
     const operation = (params as any)?.operation ?? meta.operation ?? DEFAULT_OPERATION;
@@ -60,6 +58,7 @@ export function useCheckStatusPolling(params: { operationId: string | null; phas
     const tick = async () => {
       try {
         const res = await createLabelApi.checkStatus(payload);
+        console.log("これがres: ", res)
         if (isCancelled) return;
 
         if (res.status === 'end' || res.status === 'error') {
