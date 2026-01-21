@@ -1,27 +1,24 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { useEffect, useState, ChangeEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// import { useUpload } from '../../components/upload/UploadContext.tsx';
 import { useEpicInit } from '../../hooks/useEpicInit';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
-import type { UploadResponse, OperationIssueRequest } from '../../types/uploadServer.ts';
-// import type { PersistedState } from '../../types/uploadContext.ts';
-// import type { UploadPhase, UploadResult, FailedUpload } from '../../types/uploadClient';
+import type { OperationIssueRequest } from '../../types/uploadServer.ts';
 import type { PersistedState } from '../../types/uploadContext.ts';
 import { issueOperationId } from '../../components/upload/issueOperationId.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
 
 const DEFAULT_EPIC = 'create-label';
-// const DEFAULT_OPERATION = 'image-upload-and-create-label';
 const DEFAULT_OPERATION = 'multi-file-upload';
 
 export const CreateLabelScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [file, setFile] = React.useState<File[]>([]);
-  const [preview, setPreview] = React.useState<string | null>(null);
+  const [file, setFile] = useState<File[]>([]);
+  const [preview, setPreview] = useState<string | null>(null);
+  const { sendEnd, error: initError } = useEpicInit(DEFAULT_EPIC);
 
-  const handleSetFile = (e:React.ChangeEvent<HTMLInputElement>) => {
+  const handleSetFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const selectedFile = files[0];
@@ -86,13 +83,13 @@ export const CreateLabelScreen: React.FC = () => {
     toPersist.status = 'end'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
     console.log("[ラベル付与]画像アップロード_レスポンス ", response)
-    console.log("[ラベル付与]画像アップロード_ローカルストレージ更新 ", JSON.parse(window.localStorage.getItem(localStorageKey.default)));
+    console.log("[ラベル付与]画像アップロード_ローカルストレージ更新 ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
 
 
     toPersist.status = 'start'
     toPersist.lastOperation = 'batch-create-label'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-    console.log("[ラベル付与]バッチ処理_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default)));
+    console.log("[ラベル付与]バッチ処理_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
 
     // 実行中画面に切り替え
     navigate('/create-label-processing');
@@ -107,23 +104,13 @@ export const CreateLabelScreen: React.FC = () => {
       status: toPersist.status,
     });
     if (res.status === 'end') {
-      toPersist.status = 'doing'
+      toPersist.status = res.status
       window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
     }
-    console.log("[ラベル付与]バッチ処理実行中_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default)));
-
-    // console.log("バッチ処理: ", res)
-
-    // const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-    // await wait(60);
-
-    // navigate('/');
+    console.log("[ラベル付与]バッチ処理実行中_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
   }
 
-  
-  const { sendEnd, error: initError } = useEpicInit(DEFAULT_EPIC);
-
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (preview) {
         URL.revokeObjectURL(preview);

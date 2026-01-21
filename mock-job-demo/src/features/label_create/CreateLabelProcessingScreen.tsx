@@ -5,7 +5,7 @@ import { createLabelApi } from '../../api/createLabelApi.ts';
 import { usePolling } from '../../hooks/usePolling.ts';
 import { CheckStatusRequest } from '../../types/uploadServer.ts';
 export const CreateLabelProcessingScreen: React.FC = () => {
-  const raw = window.localStorage.getItem(localStorageKey.default);
+  const raw = window.localStorage.getItem(localStorageKey.default) as string;
   const parsed = JSON.parse(raw);
 
   const navigate = useNavigate();
