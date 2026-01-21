@@ -25,7 +25,7 @@ const fetchAsBlob = async (url: string): Promise<Blob> => {
 };
 
 
-export const CreateLabelResultScreen: React.FC = () => {
+export const DemoCreateLabelResultScreen: React.FC = () => {
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState<string>();
@@ -62,7 +62,7 @@ export const CreateLabelResultScreen: React.FC = () => {
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
     (async () => {
       try {
-        const res = await createLabelApi.createLabelEnd({
+        const res = await createLabelApi.demoCreateLabelEnd({
           user: 'demo-user',
           epic: parsed.lastEpic,
           operation: parsed.lastOperation,
@@ -111,7 +111,7 @@ export const CreateLabelResultScreen: React.FC = () => {
 
   return (
     <div className="page">
-      <h1>ラベル付与</h1>
+      <h1>(デモ)ラベル付与</h1>
       <p>ラベル付与を行った図面の確認画面です。</p>
       <h2>図面の結果</h2>
       <img src={imageUrl} alt="ラベル付与後の図面" style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
