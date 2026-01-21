@@ -9,7 +9,8 @@ export const getRedirectUrl = (raw: string | null): string | undefined => {
   try {
     const parsed = JSON.parse(raw) as PersistedState;
     if (parsed.lastEpic === 'create-label' && parsed.lastOperation === 'multi-file-upload' && parsed.status === 'doing') return '/create-label-processing'
-    if (parsed.lastEpic === 'create-label' && parsed.lastOperation === 'multi-file-upload' && parsed.status === 'end') return '/create-label-result'
+    if (parsed.lastEpic === 'create-label' && parsed.lastOperation === 'batch-create-label' && parsed.status === 'doing') return '/create-label-processing'
+    if (parsed.lastEpic === 'create-label' && parsed.lastOperation === 'batch-create-label' && parsed.status === 'end') return '/create-label-result'
   } catch {
     /* noop */
   }
