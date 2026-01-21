@@ -12,7 +12,7 @@ import type { CreateLabelResponse } from '../../types/createLabel.ts';
 const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'multi-file-upload';
 
-export const CreateLabelScreen: React.FC = () => {
+export const DemoCreateLabelScreen: React.FC = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export const CreateLabelScreen: React.FC = () => {
       lastEpic: null,
       lastOperation: null,
       status: 'start',
-      demoFlag: false
+      demoFlag: true
     }
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
@@ -93,11 +93,11 @@ export const CreateLabelScreen: React.FC = () => {
     console.log("[ラベル付与]バッチ処理_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
 
     // 実行中画面に切り替え
-    navigate('/create-label-processing');
+    navigate('/demo-create-label-processing');
 
     // バッチ処理実行
     let res: CreateLabelResponse;
-    res = await createLabelApi.createLabelStart({
+    res = await createLabelApi.demoCreateLabelStart({
       user: 'demo-user',
       epic: DEFAULT_EPIC,
       operation: toPersist.lastOperation,
@@ -122,7 +122,7 @@ export const CreateLabelScreen: React.FC = () => {
   return (
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>ラベル付与</h1>
+        <h1>(デモ)ラベル付与</h1>
         <Link to="/hub" onClick={async (e) => {e.preventDefault();await sendEnd();navigate('/hub');}}>前に戻る</Link>
       </div>
       {initError && <p style={{ color: 'red' }}>初期化エラー: {initError}</p>}
