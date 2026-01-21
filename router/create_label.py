@@ -1,87 +1,99 @@
 from fastapi import BackgroundTasks, Request, APIRouter
-from fastapi.responses import JSONResponse
-import asyncio
-import logging
+from fastapi.responses import StreamingResponse
 from state.app_status import AppStatus
 from app_router import AppRoute, Status
-
+from app_logger import AppLogger
+from io import BytesIO
+import zipfile
+import os
 
 router = APIRouter(route_class=AppRoute)
 
 
-class BaseBootAnotherProcess:
-    # TODO log 
-    LOG_FILENAME = "logs/base_boot_another_process.log"
-    LOG_FORMAT = "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
-    UTF_8 = "utf-8"
-
-    logger = logging.getLogger(__name__)
-    logging.basicConfig(
-        filename=LOG_FILENAME,
-        format=LOG_FORMAT,
-        level=logging.INFO,
-        encoding=UTF_8,
-    )
-
-    @classmethod
-    def batch_start(cls, req_status, cmd):
-        try:
-            asyncio.run(cls.batch_run(req_status, cmd))
-        except Exception as e:
-            # TODO log
-            # TODO error handling
-            raise e
-
-    @classmethod
-    async def batch_run(cls, req_status, cmd: str):
-        try:
-            proc = await asyncio.create_subprocess_shell(
-                cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await proc.communicate()
-            if proc.returncode == 0:
-                req_status.status = Status.END
-
-            app_state = AppRoute.get_app_state()
-            app_state.update_boot_process_info(
-                req_status
-            )
-
-        except Exception as e:
-            # TODO error handling
-            raise e
-
-        return None
-
-
-# TODO no logic
-@router.post("/create-label")
+@router.post("/create-label/")
 async def create_label(request: Request, background_tasks: BackgroundTasks):
     state = request.state
     req_status = AppStatus.create_from_state(state)
-    # TODO batch用のログもapp_server側から提供されるものを使うように変更する
+
+    app_state = AppRoute.get_app_state()
+    logger = app_state.getLogger()
+    up_epic = 'create-label'
+    up_ope = 'multi-file-upload'
+
+    req_user = req_status.user
+    req_opid = req_status.operation_id
+    upload_dir = f"./multi-fileupload/{req_user}_{up_epic}_{up_ope}_{req_opid}"
 
     match req_status.status:
         case Status.START:
-            # TODO main
-            # 1) 該当するoperation_idのfaileuploadのステータスのセッションを確認
-            pass
-        case Status.DOING:
-            # TODO なにもない処理ステータスだけ返すか？
-            try:
-                app_state = AppRoute.get_app_state()
-                app_state.create_boot_process_info()
-                app_state.update_boot_process_info(
+            logger.log(
+                req_status,
+                AppLogger.DEBUG,
+                "DEMO-CREATE-LABEL START STATUS START"
+            )
+            if os.path.exists(upload_dir):
+                # app_status 作成
+                app_state.create_new_app_status(
                     req_status
                 )
-                cmd = "bash ./scripts/test.sh"
-                background_tasks.add_task(
-                    BaseBootAnotherProcess.batch_start, req_status, cmd)
-                return JSONResponse(content={"message": "doing batch"})
-            except Exception as e:
-                raise e
+                # TODO 別プロセスにてラベル付与実行
+                # app_status 更新
+                req_status.status = Status.END
+                app_state.update_app_status(
+                    req_status
+                )
+            else:
+                req_status.status = Status.ERROR
+                logger.log(
+                    req_status,
+                    AppLogger.ERROR,
+                    f"DEMO-CREATE-LABEL UPLOAD DIR NOT FOUND:{upload_dir}"
+                )
+            return AppRoute.create_responce_from_status(
+                req_status
+            )
+        case Status.DOING:
+            logger.log(
+                req_status,
+                AppLogger.DEBUG,
+                "DEMO-CREATE-LABEL DOING STATUS START"
+            )
         case Status.END:
-            # TODO: 終了している該当ファイルをダウンロードさせる
-            return JSONResponse(content={"message": "end batch"})
+            logger.log(
+                req_status,
+                AppLogger.DEBUG,
+                "DEMO-CREATE-LABEL END STATUS START"
+            )
+            # 1)status END確認
+            app_status = app_state.get_eq_app_status(req_status)
+            if app_status is None or app_status.status != Status.END:
+                logger.log(
+                    req_status,
+                    AppLogger.ERROR,
+                    f"DEMO-CREATE-LABEL REQUEST IS NOT END:{req_status.status}"
+                )
+                req_status.staus = Status.ERROR
+                return AppRoute.create_responce_from_status(
+                    req_status
+                )
+            # 2)ダウンロード先ディレクトリから図面ファイル、CSVファイル読み込み
+            res_dir = "./create-label-responce/"
+            fname_list = os.listdir(res_dir)
+            file_list = [
+                res_dir + fname for fname in fname_list if fname != ".gitkeep"
+            ]
+
+            # 3)ZIPに固めてダウンロードの返信を実施
+            io = BytesIO()
+            zip_filename = "demo-create-label.zip"
+            with zipfile.ZipFile(
+                    io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
+                for fpath in file_list:
+                    zip.write(fpath)
+            return StreamingResponse(
+                iter([io.getvalue()]),
+                media_type="application/x-zip-compressed",
+                headers={
+                   "Content-Disposition": f"attachment;filename={zip_filename}"
+                }
+            )

@@ -36,6 +36,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 app_state.create_new_app_status(
                     req_status
                 )
+                # TODO 別プロセスにてラベル付与実行
                 # app_status 更新
                 req_status.status = Status.END
                 app_state.update_app_status(
@@ -49,7 +50,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     f"DEMO-CREATE-LABEL UPLOAD DIR NOT FOUND:{upload_dir}"
                 )
             return AppRoute.create_responce_from_status(
-                    req_status
+                req_status
             )
         case Status.DOING:
             logger.log(
@@ -73,14 +74,14 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 )
                 req_status.staus = Status.ERROR
                 return AppRoute.create_responce_from_status(
-                        req_status
+                    req_status
                 )
             # 2)ダウンロード先ディレクトリから図面ファイル、CSVファイル読み込み
-            fname_list = os.listdir("./demo-create-label-responce/")
-            file_list = []
-            for fname in fname_list:
-                with open(fname, 'rb') as f:
-                    file_list.append(f)
+            res_dir = "./create-label-responce/"
+            fname_list = os.listdir(res_dir)
+            file_list = [
+                res_dir + fname for fname in fname_list if fname != ".gitkeep"
+            ]
 
             # 3)ZIPに固めてダウンロードの返信を実施
             io = BytesIO()
