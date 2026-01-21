@@ -93,12 +93,31 @@ button.primary {
 }
 
 table {
-border-collapse: collapse; /* 二重線を一本線にする */
-width: 50%;
+  border-collapse: collapse; /* 二重線を一本線にする */
+  /* width: 50%; */
 }
 
-th, td {
-border: 1px solid black; /* 枠線の色と太さ */
-padding: 8px;
-text-align: center;
+th {
+  background-color: #eee;
+  border: 1px solid black; /* 枠線の色と太さ */
+  padding: 8px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+}
+
+td {
+  border: 1px solid black; /* 枠線の色と太さ */
+  padding: 8px;
+  text-align: center;
+}
+
+.table-row {
+  font-size: 12px;
+}
+
+.table-wrapper {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
 }
