@@ -127,8 +127,13 @@ export const DemoCreateLabelScreen: React.FC = () => {
       </div>
       {initError && <p style={{ color: 'red' }}>初期化エラー: {initError}</p>}
       <ul>
-        <li>ラベル付与を行いたい図面をアップロードしてください。</li>
-        <li>想定: 1MB程度の画像を1枚送信</li>
+        <li>ラベル付与を行いたい図面を1枚アップロードしてください。</li>
+        <li>想定
+          <ul>
+            <li>図面に矩形領域線を追記。</li>
+            <li>図面が画像形式ファイル(JPAGやPNGなど)。</li>
+          </ul>
+        </li>
       </ul>
 
       <div style={{ display: 'grid', gap: 12 }}>
