@@ -49,7 +49,7 @@ class BackendTasks:
     def setup(cls, conf, app_state, logger):
         cls.logger = logger
         cls.app_state = app_state
-        cls.task_dic = app_state.backend_tasks
+        cls.task_dic = conf.backend_tasks
 
     @classmethod
     def set_backend_task(

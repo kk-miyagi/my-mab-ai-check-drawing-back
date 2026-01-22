@@ -130,6 +130,7 @@ class AppServer():
         # batch original logger
         BackendTasks.setup(
             self.conf,
+            self.app_state,
             self.batch_logger
         )
 

@@ -21,7 +21,7 @@ class LoggerBase:
 
     def __init__(self, conf: AppConfig):
         self.conf = conf
-        self.log_info = self._get_logger_info(conf)
+        self.log_info = self._get_log_info(conf)
 
         self.logger = logging.getLogger(
             self.log_info[self._INFO_KEY_LOGGER_NAME])

@@ -34,7 +34,7 @@ class AppConfig:
         # batch log setting set config object
         self.__batch_logger_conf_init(json_conf)
 
-    def __backedn_conf_init(self, json_conf):
+    def __backend_conf_init(self, json_conf):
         self.__setattr__("_BACKEND_TASKS_CONF_KEY", 'BACKEND_TASKS')
         self.__setattr__(
                 '_backend_tasks', json_conf[self._BACKEND_TASKS_CONF_KEY]
