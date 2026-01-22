@@ -4,7 +4,7 @@ import { localStorageKey } from '../../constants/localStorageKey';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import { usePolling } from '../../hooks/usePolling.ts';
 import { CheckStatusRequest } from '../../types/uploadServer.ts';
-export const CreateLabelProcessingScreen: React.FC = () => {
+export const DemoCreateLabelProcessingScreen: React.FC = () => {
   const raw = window.localStorage.getItem(localStorageKey.default) as string;
   const parsed = JSON.parse(raw);
 
@@ -23,15 +23,15 @@ export const CreateLabelProcessingScreen: React.FC = () => {
       return res;
     },
     (r) => r.status === 'end',
-    () => navigate('/create-label-result'),
+    () => navigate('/demo-create-label-result'),
     3000,
     10000
   );
 
   return (
     <div className="page">
-      <h2>ラベル付与の処理中</h2>
-      <p>現在ラベルを付与中です。<br />30分から1時間ほどかかりますのでしばらくお待ちください。</p>
+      <h2>(デモ)ラベル付与の処理中</h2>
+      <p>現在ラベルを付与中です。<br />10秒ほどで画面が切り替わります。(本番時は1時間ほどかかる想定です。)</p>
     </div>
 
   );

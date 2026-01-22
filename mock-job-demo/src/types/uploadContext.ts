@@ -40,4 +40,5 @@ export type PersistedState = {
   lastEpic: string | null;
   lastOperation: string | null;
   status: 'start' | 'doing' | 'end' | 'error';
+  demoFlag: boolean;
 };
