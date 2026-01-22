@@ -50,8 +50,8 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
       ]);
 
       // それぞれダウンロードを発火
-      downloadBlob(imageBlob, "MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_annotated_dims_llm_final.jpg");
-      downloadBlob(csvBlob, "MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_matched_dimensions_llm_final.csv");
+      downloadBlob(imageBlob, "MAB_drawings_viewssquare_annotated_dims_llm_final.jpg");
+      downloadBlob(csvBlob, "MAB_drawings_viewssquare_matched_dimensions_llm_final.csv");
     } catch (err) {
       console.error(err);
       alert("ダウンロードに失敗しました。ネットワークやパスを確認してください。");
@@ -71,14 +71,15 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
         });
         const data = await res as Blob
         const zip = await JSZip.loadAsync(data);
-        const imgFile = zip.file("demo-create-label-responce/MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_annotated_dims_llm_final.jpg")
+        const imgFile = zip.file(Object.keys(zip.files).find((p) => p.endsWith(".jpg")))
         if (imgFile) {
           const imgBlob = await imgFile.async('blob');
           const url = URL.createObjectURL(imgBlob);
           setImageUrl(url)
 
         }
-        const csvFile = zip.file("demo-create-label-responce/MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_matched_dimensions_llm_final.csv")
+        const csvFile = zip.file(Object.keys(zip.files).find((p) => p.endsWith(".csv")))
+        console.log(csvFile)
         if (csvFile) {
           const text = await csvFile.async("string");
           const csvBlob = await csvFile.async('blob');
