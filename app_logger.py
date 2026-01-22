@@ -3,31 +3,43 @@ from logging.handlers import TimedRotatingFileHandler
 import logging
 
 
-class AppLogger:
+class LoggerBase:
     DEBUG: int = 10
     INFO: int = 20
     WARNING: int = 30
     ERROR: int = 40
     CRITICAL: int = 50
 
+    _INFO_KEY_LOGGER_NAME = 'logger_name'
+    _INFO_KEY_LOG_LEVEL = 'log_level'
+    _INFO_KEY_LOG_FILE = 'log_file_name'
+    _INFO_KEY_LOG_WHEN = 'log_when'
+    _INFO_KEY_LOG_TERM = 'log_interval'
+    _INFO_KEY_LOG_FILE_CNT = 'log_backup_count'
+
+    _FORMAT = '%(asctime)s - %(levelname)s - [%(name)s] - %(message)s'
+
     def __init__(self, conf: AppConfig):
         self.conf = conf
-        self.logger = logging.getLogger(conf.logger_name)
+        self.log_info = self._get_logger_info(conf)
+
+        self.logger = logging.getLogger(
+            self.log_info[self._INFO_KEY_LOGGER_NAME])
         self._set_log_level(
-                self.logger,
-                conf.log_level
+            self.logger,
+            self.log_info[self._INFO_KEY_LOG_LEVEL]
         )
 
         formatter = logging.Formatter(
-            '%(asctime)s - %(levelname)s - [%(name)s] - %(message)s'
+            self._FORMAT
         )
 
         # for file outpu
         file_handler = TimedRotatingFileHandler(
-                self.conf.log_file_name,
-                self.conf.log_when,
-                self.conf.log_interval,
-                backupCount=self.conf.log_backup_count)
+            self.log_info[self._INFO_KEY_LOG_FILE],
+            self.log_info[self._INFO_KEY_LOG_WHEN],
+            self.log_info[self._INFO_KEY_LOG_TERM],
+            backupCount=self.log_info[self._INFO_KEY_LOG_FILE_CNT])
 
         file_handler.setFormatter(formatter)
         # for stdout
@@ -36,6 +48,9 @@ class AppLogger:
 
         self.logger.addHandler(file_handler)
         self.logger.addHandler(stream_handler)
+
+    def _get_log_info(self, app_conf):
+        raise Exception("NOT OVERRIDE")
 
     def _set_log_level(self, logger, conf_loglevel):
         if conf_loglevel == 'DEBUG':
@@ -66,3 +81,27 @@ class AppLogger:
                 self.logger.error(mess)
             case self.CRITICAL:
                 self.logger.critical(mess)
+
+
+class AppLogger(LoggerBase):
+    def _get_log_info(self, app_conf):
+        return {
+                self._INFO_KEY_LOGGER_NAME: app_conf.logger_name,
+                self._INFO_KEY_LOG_LEVEL: app_conf.log_level,
+                self._INFO_KEY_LOG_FILE: app_conf.log_file_name,
+                self._INFO_KEY_LOG_WHEN: app_conf.log_when,
+                self._INFO_KEY_LOG_TERM: app_conf.log_interval,
+                self._INFO_KEY_LOG_FILE_CNT: app_conf.log_backup_count,
+        }
+
+
+class BatchLogger(LoggerBase):
+    def _get_log_info(self, app_conf):
+        return {
+                self._INFO_KEY_LOGGER_NAME: app_conf.batch_logger_name,
+                self._INFO_KEY_LOG_LEVEL: app_conf.batch_log_level,
+                self._INFO_KEY_LOG_FILE: app_conf.batch_log_file_name,
+                self._INFO_KEY_LOG_WHEN: app_conf.batch_log_when,
+                self._INFO_KEY_LOG_TERM: app_conf.batch_log_interval,
+                self._INFO_KEY_LOG_FILE_CNT: app_conf.batch_log_backup_count,
+        }

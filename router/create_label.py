@@ -58,6 +58,10 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 AppLogger.DEBUG,
                 "DEMO-CREATE-LABEL DOING STATUS START"
             )
+            # requestと同じステータス
+            return AppRoute.create_responce_from_status(
+                req_status
+            )
         case Status.END:
             logger.log(
                 req_status,

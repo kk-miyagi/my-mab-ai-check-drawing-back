@@ -8,7 +8,8 @@ from manager.session_manager import SessionManager
 from manager.app_status_manager import AppStatusManager
 from app_router import AppRoute
 from app_config import AppConfig
-from app_logger import AppLogger
+from app_logger import AppLogger, BatchLogger
+from app_backend_task import BackendTasks
 from state.app_status import AppStatus
 import router.issue_operation_id as issue_operation_id
 import router.multi_fileupload as multi_fileupload
@@ -97,6 +98,7 @@ class AppServer():
 
         self.conf = AppConfig(conf_path)
         self.logger = AppLogger(self.conf)
+        self.batch_logger = BatchLogger(self.conf)
         origins = [f"http://{self.host}:{self.port}",]
         self.app.add_middleware(
             CORSMiddleware,
@@ -123,6 +125,13 @@ class AppServer():
 
         # routing setup
         self.setup_routers(app_state)
+
+        # backend task setu
+        # batch original logger
+        BackendTasks.setup(
+            self.conf,
+            self.batch_logger
+        )
 
     def setup_managers(self, app_state: AppState):
         MANAGERS.add_manager(
