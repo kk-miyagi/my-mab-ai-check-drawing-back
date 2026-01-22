@@ -97,18 +97,24 @@ export const CreateLabelScreen: React.FC = () => {
 
     // バッチ処理実行
     let res: CreateLabelResponse;
-    res = await createLabelApi.createLabelStart({
-      user: 'demo-user',
-      epic: DEFAULT_EPIC,
-      operation: toPersist.lastOperation,
-      operation_id: issueResult.operation_id,
-      status: toPersist.status,
-    });
-    if (res.status === 'end' || res.status === 'doing') {
-      toPersist.status = res.status
-      window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+    try {
+      res = await createLabelApi.createLabelStart({
+        user: 'demo-user',
+        epic: DEFAULT_EPIC,
+        operation: toPersist.lastOperation,
+        operation_id: issueResult.operation_id,
+        status: toPersist.status,
+      });
+      if (res.status === 'end' || res.status === 'doing') {
+        toPersist.status = res.status
+        window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+      }
+      console.log("[ラベル付与]バッチ処理実行中_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
+
+    } catch (err) {
+      window.alert("バッチ処理起動に失敗したため、画面を切り替えます")
+      navigate("/create-label")
     }
-    console.log("[ラベル付与]バッチ処理実行中_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
   }
 
   useEffect(() => {
