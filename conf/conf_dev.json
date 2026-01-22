@@ -20,6 +20,7 @@
 	"issue/operation-id": [],
 	"multi-fileupload": [],
 	"check-status": [],
+	"create-label": [],
 	"demo-create-label": []
     },
     "BACKEND_TASKS": {
