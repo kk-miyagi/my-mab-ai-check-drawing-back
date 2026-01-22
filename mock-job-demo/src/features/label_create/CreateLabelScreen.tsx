@@ -104,7 +104,7 @@ export const CreateLabelScreen: React.FC = () => {
       operation_id: issueResult.operation_id,
       status: toPersist.status,
     });
-    if (res.status === 'end') {
+    if (res.status === 'end' || res.status === 'doing') {
       toPersist.status = res.status
       window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
     }
