@@ -71,14 +71,14 @@ export const CreateLabelResultScreen: React.FC = () => {
         });
         const data = await res as Blob
         const zip = await JSZip.loadAsync(data);
-        const imgFile = zip.file(Object.keys(zip.files).find((p) => p.endsWith(".jpg")))
+        const imgFile = zip.file(/\.jpg$/)[0]
         if (imgFile) {
           const imgBlob = await imgFile.async('blob');
           const url = URL.createObjectURL(imgBlob);
           setImageUrl(url)
 
         }
-        const csvFile = zip.file(Object.keys(zip.files).find((p) => p.endsWith(".csv")))
+        const csvFile = zip.file(/\.csv$/)[0]
         if (csvFile) {
           const text = await csvFile.async("string");
           const csvBlob = await csvFile.async('blob');
