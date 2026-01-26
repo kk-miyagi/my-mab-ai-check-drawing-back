@@ -23,6 +23,6 @@
 	"demo-create-label": []
     },
     "BACKEND_TASKS": {
-	"create-label_batch-create-label": "python xxxx.py"
+	"create-label_batch-create-label": "bash ./shell/create_label.sh"
     }
 }

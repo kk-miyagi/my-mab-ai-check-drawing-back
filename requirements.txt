@@ -4,3 +4,4 @@ itsdangerous
 python-multipart
 autopep8
 requests
+google-cloud-vision

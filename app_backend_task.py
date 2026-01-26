@@ -5,10 +5,11 @@ import asyncio
 # TODO logger
 class BackendTaskRunner:
 
-    def get_cmd(self, base_cmd, req_status):
+    def get_cmd(self, base_cmd, app_state, req_status):
         raise Exception("NOT OVERRIDE")
 
     def start(self, req_status, app_state, cmd):
+        print(f"runner start backend cmd is :{cmd}")
         try:
             asyncio.run(
                 self.run(
@@ -22,6 +23,7 @@ class BackendTaskRunner:
             raise e
 
     async def run(cls, req_status, app_state, cmd: str):
+        # TODO log
         try:
             proc = await asyncio.create_subprocess_shell(
                 cmd,
@@ -52,26 +54,29 @@ class BackendTasks:
         cls.task_dic = conf.backend_tasks
 
     @classmethod
-    def set_backend_task(
+    def set_backend_runner(
             cls,
             req_status,
             background_tasks,
             task_runner: BackendTaskRunner):
-        base_cmd = cls.task_dic[cls._task_key(req_status)]
+        base_cmd = cls.task_dic[cls._task_state_key(req_status)]
         background_tasks.add_task(
             task_runner.start(
                 req_status,
                 cls.app_state,
                 task_runner.get_cmd(
                     base_cmd,
+                    cls.app_state,
                     req_status
                 )
             )
         )
 
-    def _task_state_key(self, req_status):
+    @classmethod
+    def _task_state_key(cls, req_status):
         return '_'.join(
-            req_status.user,
-            req_status.epic,
-            req_status.operation
+            [
+                req_status.epic,
+                req_status.operation
+            ]
         )
