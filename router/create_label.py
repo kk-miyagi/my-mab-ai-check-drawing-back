@@ -24,13 +24,13 @@ class CreateLabelRunner(BackendTaskRunner):
     def get_cmd(self, base_cmd, app_state, req_status):
         req = req_status
         in_dir = f"{self._IN_BASE_DIR}/"
-        in_dir += f"{req.user}_{self._EPIC}_{self._IN_OPE}_{req.operation_id}"
+        in_dir += f"{req.user}_{self._EPIC}_{self._IN_OPE}_{req.operation_id}/"
         out_dir = f"{self._OUT_BASE_DIR}/"
         out_dir += f"{req.user}_{self._EPIC}_{self._OUT_OPE}"
         f_list = [f for f in os.listdir(in_dir) if f != '.gitkeep']
         img = None
         if len(f_list) == 1:
-            img = f"{in_dir}/{f_list[0]}"
+            img = f_list[0]
 
         return f"{base_cmd} {in_dir} {img} {out_dir}"
 
