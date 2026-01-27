@@ -19,9 +19,31 @@ export const HubScreen: React.FC = () => {
               <p style={{ margin: '4px 0 0' }}>図面をアップロードし、ラベル付与した図面とCSVファイルが出力されます</p>
             </div>
             <Link className="primary" to="/create-label">開く</Link>
+            <Link className="primary" to="/create-label-re-upload">編集</Link>
             <Link className="primary" to="/demo-create-label">デモを開く</Link>
           </div>
         </section>
+
+        <section style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: '#f8fafc', display: 'grid', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h2 style={{ margin: 0 }}>図面比較</h2>
+              <p style={{ margin: '4px 0 0' }}>図面の変更前後の差分をハイライト</p>
+            </div>
+            <Link className="primary" to="/">開く</Link>
+          </div>
+        </section>
+
+        <section style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: '#f8fafc', display: 'grid', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h2 style={{ margin: 0 }}>図面審査</h2>
+              <p style={{ margin: '4px 0 0' }}>図面審査シートの指摘内容の反映チェック</p>
+            </div>
+            <Link className="primary" to="/">開く</Link>
+          </div>
+        </section>
+
       </div>
     </div>
   );

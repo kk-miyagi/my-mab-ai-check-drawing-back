@@ -4,5 +4,6 @@ export const ENDPOINTS = {
   fileUpload: '/multi-fileupload/',
   checkStatus: '/check-status/',
   createLabel: '/create-label/',
+  updateLabel: '/update-label/',
   demoCreateLabel: '/demo-create-label/',
 };
