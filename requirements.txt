@@ -5,3 +5,7 @@ python-multipart
 autopep8
 requests
 google-cloud-vision
+Pillow
+opencv-python
+google-cloud-aiplatform
+google-genai
