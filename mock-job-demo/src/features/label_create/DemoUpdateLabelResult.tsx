@@ -25,7 +25,7 @@ const fetchAsBlob = async (url: string): Promise<Blob> => {
 };
 
 
-export const DemoCreateLabelResultScreen: React.FC = () => {
+export const DemoUpdateLabelResultScreen: React.FC = () => {
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState<string>();
@@ -58,15 +58,11 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
     }
   };
 
-  const handleMove = async () => {
-    navigate('/demo-update-label')
-  }
-
   useEffect(() => {
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
     (async () => {
       try {
-        const res = await createLabelApi.demoCreateLabelEnd({
+        const res = await createLabelApi.updateLabelEnd({
           user: 'demo-user',
           epic: parsed.lastEpic,
           operation: parsed.lastOperation,
@@ -140,7 +136,6 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
         <button className="primary" onClick={handleRemoveItem}>最初からやり直す</button>
         <button className="primary" onClick={handleDownload}>画像とCSVを同時にダウンロード</button>
-        <button className="primary" onClick={handleMove}>編集画面へ</button>
       </div>
     </div>
   );

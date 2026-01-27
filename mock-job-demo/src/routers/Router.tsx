@@ -11,6 +11,9 @@ import { DemoCreateLabelScreen } from '../features/label_create/DemoCreateLabelS
 import { DemoCreateLabelProcessingScreen } from '../features/label_create/DemoCreateLabelProcessingScreen';
 import { DemoCreateLabelResultScreen } from '../features/label_create/DemoCreateLabelResult';
 import { CreateLabelReUploadScreen } from '../features/label_create/CreateLabelReUploadScreen';
+import { DemoUpdateLabelScreen } from '../features/label_create/DemoUpdateLabelScreen';
+import { DemoUpdateLabelProcessingScreen } from '../features/label_create/DemoUpdateLabelProcessingScreen';
+import { DemoUpdateLabelResultScreen } from '../features/label_create/DemoUpdateLabelResult';
 
 export const AppRouter = () => {
   return (
@@ -28,6 +31,9 @@ export const AppRouter = () => {
       <Route path="/demo-create-label-processing" element={<DemoCreateLabelProcessingScreen />} />
       <Route path="/demo-create-label-result" element={<DemoCreateLabelResultScreen />} />
       <Route path="/demo-create-label" element={<DemoCreateLabelScreen />} />
+      <Route path="/demo-update-label" element={<DemoUpdateLabelScreen />} />
+      <Route path="/demo-update-label-processing" element={<DemoUpdateLabelProcessingScreen />} />
+      <Route path="/demo-update-label-result" element={<DemoUpdateLabelResultScreen />} />
       <Route path="*" element={<Navigate to="/hub" replace />} />
     </Routes>
   )
