@@ -95,7 +95,7 @@ export const DemoUpdateLabelScreen: React.FC = () => {
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
     // 実行中画面に切り替え
-    navigate('/update-label-processing');
+    navigate('/demo-update-label-processing');
 
     // バッチ処理実行
     let res: CreateLabelResponse;
@@ -115,7 +115,7 @@ export const DemoUpdateLabelScreen: React.FC = () => {
 
     } catch (err) {
       window.alert("バッチ処理起動に失敗したため、画面を切り替えます")
-      navigate("/create-label-re-upload")
+      navigate("/demo-update-label")
     }
   }
 

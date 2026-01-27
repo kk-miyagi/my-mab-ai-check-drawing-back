@@ -59,7 +59,7 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
   };
 
   const handleMove = async () => {
-    navigate('/create-label-re-upload')
+    navigate('/demo-update-label')
   }
 
   useEffect(() => {

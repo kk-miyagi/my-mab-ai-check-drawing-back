@@ -31,7 +31,7 @@ export const AppRouter = () => {
       <Route path="/demo-create-label-processing" element={<DemoCreateLabelProcessingScreen />} />
       <Route path="/demo-create-label-result" element={<DemoCreateLabelResultScreen />} />
       <Route path="/demo-create-label" element={<DemoCreateLabelScreen />} />
-      <Route path="/update-label" element={<DemoUpdateLabelScreen />} />
+      <Route path="/demo-update-label" element={<DemoUpdateLabelScreen />} />
       <Route path="/demo-update-label-processing" element={<DemoUpdateLabelProcessingScreen />} />
       <Route path="/demo-update-label-result" element={<DemoUpdateLabelResultScreen />} />
       <Route path="*" element={<Navigate to="/hub" replace />} />

@@ -20,7 +20,7 @@ export const DemoUpdateLabelProcessingScreen: React.FC = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate("/update-label-result")
+      navigate("/demo-update-label-result")
     }, 10000);
     return () => clearTimeout(timer);
   }, [navigate]);
