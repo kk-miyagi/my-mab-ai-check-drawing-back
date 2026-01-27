@@ -14,11 +14,6 @@ const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'multi-file-upload';
 type Row = Record<string, string | number | boolean | null>;
 
-type Pair = {
-  id: string;
-  csv?: File;
-  image?: File;
-};
 
 
 export const CreateLabelReUploadScreen: React.FC = () => {
@@ -33,9 +28,6 @@ export const CreateLabelReUploadScreen: React.FC = () => {
   const [csvFile, setCsvFile] = useState<File[]>([]);
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
-
-  const [mergedFiles, setMergedFiles] = useState<File[]>([]);
-
 
   const handleSetFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -74,51 +66,21 @@ export const CreateLabelReUploadScreen: React.FC = () => {
   const handleStart = async () => {
     console.log("[ファイルアップロード]")
 
-    // ローカルストレージの初期化
-    const toPersist: PersistedState = {
-      phase: 'idle',
-      progress: 0,
-      completedRequests: 0,
-      totalRequests: 0,
-      failedUploads: [],
-      logs: [],
-      operationId: null,
-      resultData: null,
-      lastEpic: null,
-      lastOperation: null,
-      status: 'start',
-      demoFlag: false
-    }
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+    // ローカルストレージの取得
+    const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.default) as string);
 
     // ローカルストレージのステータスをdoingに変更
-    toPersist.phase = 'issuing_id'
     toPersist.status = 'doing'
     toPersist.lastEpic = DEFAULT_EPIC
     toPersist.lastOperation = DEFAULT_OPERATION
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
-    // オペレーションIDの発行
-    const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?? 'demo-user';
-    const metaPayload: OperationIssueRequest = {
-      user: DEFAULT_USER,
-      epic: DEFAULT_EPIC,
-      operation: DEFAULT_OPERATION,
-      operation_id: null,
-      status: 'start',
-    };
-    const issueResult = await issueOperationId(metaPayload);
-    toPersist.operationId = issueResult.operation_id
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-
-
-
     // 画像のアップロード
     const requestPayload = {
-      user: metaPayload.user,
-      epic: metaPayload.epic,
-      operation: metaPayload.operation,
-      operation_id: issueResult.operation_id,
+      user: 'demo-user',
+      epic: toPersist.lastEpic,
+      operation: toPersist.lastOperation,
+      operation_id: toPersist.operationId,
       status: toPersist.status,
       number: 1,
       files: imageFile.concat(csvFile),
@@ -127,26 +89,22 @@ export const CreateLabelReUploadScreen: React.FC = () => {
     const response = await uploadApi.uploadPair(requestPayload);
     toPersist.status = 'end'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-    console.log("[ラベル付与]画像アップロード_レスポンス ", response)
-    console.log("[ラベル付与]画像アップロード_ローカルストレージ更新 ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
-
 
     toPersist.status = 'start'
     toPersist.lastOperation = 'batch-update-label'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-    console.log("[ラベル付与]バッチ処理_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
 
     // 実行中画面に切り替え
-    navigate('/create-label-processing');
+    navigate('/update-label-processing');
 
     // バッチ処理実行
     let res: CreateLabelResponse;
     try {
-      res = await createLabelApi.createLabelStart({
+      res = await createLabelApi.updateLabelStart({
         user: 'demo-user',
         epic: DEFAULT_EPIC,
         operation: toPersist.lastOperation,
-        operation_id: issueResult.operation_id,
+        operation_id: toPersist.operationId,
         status: toPersist.status,
       });
       if (res.status === 'end' || res.status === 'doing') {
@@ -223,7 +181,7 @@ export const CreateLabelReUploadScreen: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart} disabled={imageFile.length === 0}>処理開始</button>
+        <button className="primary" onClick={handleStart} disabled={imageFile.length === 0 || csvFile.length === 0}>処理開始</button>
       </div>
 
     </div>
