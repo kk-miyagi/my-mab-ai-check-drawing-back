@@ -26,7 +26,8 @@ class CreateLabelRunner(BackendTaskRunner):
         in_dir = f"{self._IN_BASE_DIR}/"
         in_dir += f"{req.user}_{self._EPIC}_{self._IN_OPE}_{req.operation_id}/"
         out_dir = f"{self._OUT_BASE_DIR}/"
-        out_dir += f"{req.user}_{self._EPIC}_{self._OUT_OPE}_{req.operation_id}"
+        out_dir += f"{req.user}_{self._EPIC}"
+        out_dir += f"_{self._OUT_OPE}_{req.operation_id}/"
         f_list = [f for f in os.listdir(in_dir) if f != '.gitkeep']
         img = None
         if len(f_list) == 1:
