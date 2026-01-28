@@ -12,7 +12,7 @@ class BackendTaskRunner:
     def get_cmd(self, base_cmd, app_state, req_status):
         raise Exception("NOT OVERRIDE")
 
-    def start(self, req_status, app_state, cmd):
+    async def start(self, req_status, app_state, cmd):
         self.logger.log(
             req_status,
             BatchLogger.INFO,
