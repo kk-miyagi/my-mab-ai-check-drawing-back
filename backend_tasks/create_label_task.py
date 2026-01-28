@@ -1035,10 +1035,12 @@ def _annotate_matches(
                     label_height = font.getsize(label_text)[1]
             label_anchor = (rect[0], max(rect[1] - label_height - 4, 0))
             drawer.text(label_anchor, label_text, fill=outline, font=font)
-        # TODO output dir change
-        img.save(f"{output_dir}{annotated_path}")
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
+        output_path = f"{output_dir}{annotated_path.name}"
+        img.save(output_path)
 
-    return annotated_path
+    return output_path
 
 
 def _export_matches_csv(
@@ -1054,7 +1056,7 @@ def _export_matches_csv(
 
     output_fname = image_path.with_name(
             f"{image_path.stem}{filename_suffix}.csv")
-    output_path = f"./{output_dir}{output_fname}"
+    output_path = f"{output_dir}{output_fname.name}"
 
     def _get_row_value(row_data: object, index: int) -> str:
         if isinstance(row_data, list) and index < len(row_data):
@@ -1118,6 +1120,7 @@ def _export_unmatched_csv(
 
     output_path = image_path.with_name(
             f"{image_path.stem}{filename_suffix}.csv")
+    output_path = f"{output_dir}{output_path.name}"
 
     def _get_row_value(row_data: object, index: int) -> str:
         if isinstance(row_data, list) and index < len(row_data):
@@ -1150,8 +1153,7 @@ def _export_unmatched_csv(
             reason_text = _format_reason(entry)
             writer.writerow([idx, item, value, note, reason_text])
 
-    return f"{output_dir}{output_path}"
-
+    return output_path
 
 def highlight_mab_dimensions(
     dir_name: str,
