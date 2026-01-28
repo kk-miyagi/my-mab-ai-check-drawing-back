@@ -42,12 +42,15 @@ class AppStatus:
     operation: str
     operation_id: str
     status: Status
+    create_time: int
+
     APP_STATUS_SESSION_KEY = "APP_STATUS_SESSION_KEY"
     APP_STATUS_USER = "user"
     APP_STATUS_EPIC = "epic"
     APP_STATUS_OPE = "operation"
     APP_STATUS_OPE_ID = "operation_id"
     APP_STATUS_STATUS = "status"
+    APP_STATUS_TIME = "create_time"
 
     @classmethod
     def _get_req_status(cls, body, key):
@@ -64,7 +67,8 @@ class AppStatus:
                 cls._get_req_status(body, cls.APP_STATUS_OPE),
                 cls._get_req_status(body, cls.APP_STATUS_OPE_ID),
                 Status.str_to_status(
-                    cls._get_req_status(body, cls.APP_STATUS_STATUS))
+                    cls._get_req_status(body, cls.APP_STATUS_STATUS)),
+                -1
         )
 
     @classmethod
@@ -74,7 +78,8 @@ class AppStatus:
                 state.epic,
                 state.operation,
                 state.operation_id,
-                Status.str_to_status(state.status)
+                Status.str_to_status(state.status),
+                -1
         )
 
     @classmethod
@@ -85,6 +90,7 @@ class AppStatus:
             'SYSTEM',
             'SYSTEM',
             'START',
+            -1
         )
 
     @classmethod

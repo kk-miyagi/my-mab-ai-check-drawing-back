@@ -1010,7 +1010,7 @@ def _annotate_matches(
         return None
 
     annotated_path = image_path.with_name(
-            f"{output_dir}{image_path.stem}{suffix}{image_path.suffix}")
+            f"{image_path.stem}{suffix}{image_path.suffix}")
     with Image.open(image_path).convert("RGB") as img:
         drawer = ImageDraw.Draw(img)
         try:
@@ -1036,7 +1036,7 @@ def _annotate_matches(
             label_anchor = (rect[0], max(rect[1] - label_height - 4, 0))
             drawer.text(label_anchor, label_text, fill=outline, font=font)
         # TODO output dir change
-        img.save(annotated_path)
+        img.save(f"{output_dir}{annotated_path}")
 
     return annotated_path
 
@@ -1054,7 +1054,7 @@ def _export_matches_csv(
 
     output_fname = image_path.with_name(
             f"{image_path.stem}{filename_suffix}.csv")
-    output_path = f"./{output_dir}/{output_fname}"
+    output_path = f"./{output_dir}{output_fname}"
 
     def _get_row_value(row_data: object, index: int) -> str:
         if isinstance(row_data, list) and index < len(row_data):
@@ -1117,7 +1117,7 @@ def _export_unmatched_csv(
         return None
 
     output_path = image_path.with_name(
-            f"{output_dir}{image_path.stem}{filename_suffix}.csv")
+            f"{image_path.stem}{filename_suffix}.csv")
 
     def _get_row_value(row_data: object, index: int) -> str:
         if isinstance(row_data, list) and index < len(row_data):
@@ -1150,7 +1150,7 @@ def _export_unmatched_csv(
             reason_text = _format_reason(entry)
             writer.writerow([idx, item, value, note, reason_text])
 
-    return output_path
+    return f"{output_dir}{output_path}"
 
 
 def highlight_mab_dimensions(
