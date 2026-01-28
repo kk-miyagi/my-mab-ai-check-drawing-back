@@ -1,5 +1,6 @@
 from app_router import Status
 from app_logger import BatchLogger
+from concurrent.futures import ThreadPoolExecutor
 import subprocess
 
 
@@ -11,7 +12,7 @@ class BackendTaskRunner:
     def get_cmd(self, base_cmd, app_state, req_status):
         raise Exception("NOT OVERRIDE")
 
-    async def start(self, req_status, app_state, cmd):
+    def start(self, req_status, app_state, cmd):
         self.logger.log(
             req_status,
             BatchLogger.INFO,
@@ -77,7 +78,6 @@ class BackendTasks:
     def set_backend_runner(
             cls,
             req_status,
-            background_tasks,
             task_runner: BackendTaskRunner):
         cls.logger.log(
             req_status,
@@ -87,16 +87,22 @@ class BackendTasks:
         base_cmd = cls.task_dic[cls._task_state_key(req_status)]
 
         task_runner.set_logger(cls.logger)
-        background_tasks.add_task(
-            task_runner.start,
-            req_status,
-            cls.app_state,
-            task_runner.get_cmd(
-                 base_cmd,
-                 cls.app_state,
-                 req_status
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(
+                task_runner.start,
+                req_status,
+                cls.app_state,
+                task_runner.get_cmd(
+                    base_cmd,
+                    cls.app_state,
+                    req_status
+                )
             )
-        )
+            cls.logger.log(
+                req_status,
+                BatchLogger.DEBUG,
+                f"BACKEND FUTURE : {future}!!"
+            )
         cls.logger.log(
             req_status,
             BatchLogger.DEBUG,

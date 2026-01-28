@@ -1,4 +1,4 @@
-from fastapi import BackgroundTasks, Request, APIRouter
+from fastapi import Request, APIRouter
 from fastapi.responses import StreamingResponse
 from state.app_status import AppStatus
 from app_router import AppRoute, Status
@@ -37,7 +37,7 @@ class CreateLabelRunner(BackendTaskRunner):
 
 
 @router.post("/create-label/")
-async def create_label(request: Request, background_tasks: BackgroundTasks):
+async def create_label(request: Request):
     state = request.state
     req_status = AppStatus.create_from_state(state)
 
@@ -65,7 +65,6 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 # 別プロセスにてラベル付与実行
                 BackendTasks.set_backend_runner(
                     req_status,
-                    background_tasks,
                     CreateLabelRunner(),
                 )
             else:
