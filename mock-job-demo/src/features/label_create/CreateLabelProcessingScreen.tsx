@@ -17,6 +17,11 @@ export const CreateLabelProcessingScreen: React.FC = () => {
     status: 'doing',
   };
 
+  const handleError = () => {
+    window.alert("バッチ処理中にエラーが起こりました。画面を切り替えます")
+    navigate('/create-label')
+  }
+
   usePolling(
     async () => {
       const res = await createLabelApi.checkStatus(payload);
@@ -24,6 +29,8 @@ export const CreateLabelProcessingScreen: React.FC = () => {
     },
     (r) => r.status === 'end',
     () => navigate('/create-label-result'),
+    (r) => r.status === 'error',
+    () => handleError(),
     3000,
     10000
   );
