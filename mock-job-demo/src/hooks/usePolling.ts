@@ -2,13 +2,17 @@
 import { useEffect, useRef } from 'react';
 
 type Poller<T> = () => Promise<T>;
-type StopWhen<T> = (result: T) => boolean;
-type OnStop<T> = (result: T) => void;
+type StopEnd<T> = (result: T) => boolean;
+type OnStopEnd<T> = (result: T) => void;
+type StopError<T> = (result: T) => boolean;
+type OnStopError<T> = (result: T) => void;
 
 export function usePolling<T>(
   poller: Poller<T>,
-  stopWhen: StopWhen<T>,
-  onStop: OnStop<T>,
+  stopEnd: StopEnd<T>,
+  onStopEnd: OnStopEnd<T>,
+  stopError: StopError<T>,
+  onStopError: OnStopError<T>,
   intervalMs = 3000,
   startDelayMs = 0
 ) {
@@ -23,9 +27,14 @@ export function usePolling<T>(
       if (stoppedRef.current) return;
       try {
         const result = await poller();
-        if (stopWhen(result)) {
+        if (stopEnd(result)) {
           stoppedRef.current = true;
-          onStop(result);
+          onStopEnd(result);
+          return;
+        }
+        if (stopError(result)) {
+          stoppedRef.current = true;
+          onStopError(result);
           return;
         }
       } finally {
@@ -57,5 +66,5 @@ export function usePolling<T>(
         startTimerRef.current = null;
       }
     };
-  }, [poller, stopWhen, onStop, intervalMs, startDelayMs]);
+  }, [poller, stopEnd, onStopEnd, stopError, onStopError, intervalMs, startDelayMs]);
 }
