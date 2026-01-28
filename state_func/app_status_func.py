@@ -46,11 +46,12 @@ def create_new_app_status(self, status):
 def update_app_status(self, status):
     with self.lock:
         status_dic = self.app_state.APP_STATUS_SESSION_KEY
-        update_status = None
+        update_key = None
         for key in status_dic.keys():
             if key == status.get_hash_key():
                 update_key = key
-                update_status = status
                 continue
-        if update_status is not None:
-            status_dic[update_key] = update_status
+        if update_key is not None:
+            state_status = status_dic[update_key]
+            state_status.status = status.status
+            status_dic[update_key] = state_status

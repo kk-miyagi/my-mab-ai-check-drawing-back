@@ -999,12 +999,12 @@ def _load_mab_tokens(
 def _annotate_matches(
     image_path: Path,
     matches: List[Dict[str, object]],
+    output_dir: str,
     *,
     suffix: str = "_annotated_dims",
     outline: str = "red",
     label_prefix: str = "No.",
     start_index: int = 1,
-    output_dir: str
 ) -> Optional[Path]:
     if not matches:
         return None
@@ -1046,10 +1046,10 @@ def _annotate_matches(
 def _export_matches_csv(
     image_path: Path,
     matches: List[Dict[str, object]],
+    output_dir: str,
     *,
     filename_suffix: str = "_matched_dimensions",
     start_index: int = 1,
-    output_dir: str
 ) -> Optional[Path]:
     if not matches:
         return None
@@ -1110,10 +1110,10 @@ def _export_matches_csv(
 def _export_unmatched_csv(
     image_path: Path,
     unmatched_entries: List[Dict[str, object]],
+    output_dir: str,
     *,
     filename_suffix: str = "_unmatched_dimensions",
     start_index: int = 1,
-    output_dir: str
 ) -> Optional[Path]:
     if not unmatched_entries:
         return None
@@ -1159,13 +1159,13 @@ def highlight_mab_dimensions(
     dir_name: str,
     file_list: Dict,
     csv_payload: object,
+    output_dir: str,
     *,
     target_row_indices: Optional[Iterable[int]] = None,
     reuse_matches: Optional[Iterable[Dict[str, object]]] = None,
     reuse_unmatched_entries: Optional[Iterable[Dict[str, object]]] = None,
     row_tile_regions: Optional[Dict[int, Dict[str, object]]] = None,
     region_padding_px: int = 20,
-    output_dir: str,
 ) -> Optional[Path]:
     csv_text = _coerce_csv_string(csv_payload)
     rows = _parse_csv_rows(csv_text) if csv_text else []
@@ -1596,7 +1596,10 @@ def highlight_mab_dimensions(
             _write_json_file(
                     run_dir / "unmatched_entries.json", unmatched_entries)
             unmatched_csv_path = _export_unmatched_csv(
-                    image_path, unmatched_entries)
+                    image_path,
+                    unmatched_entries,
+                    output_dir
+                    )
             if unmatched_csv_path:
                 print(f"未マッチ行をCSVに出力しました: {unmatched_csv_path}")
             print("Geminiでのマッチが得られませんでした。未マッチ一覧を確認してください。")
@@ -1849,12 +1852,12 @@ def replay_dimension_run(
 def demission_group(
     dir_name,
     file_list: Dict,
+    output_dir,
     *,
     tile_dir: Optional[str] = None,
     tile_tolerance: float = 1e-3,
     tile_max_results: int = 1,
     tile_region_padding: int = 30,
-    output_dir
 ):
     # 投影図すべてに囲みました。
     if _gemini_manager is None:
