@@ -1010,7 +1010,7 @@ def _annotate_matches(
         return None
 
     annotated_path = image_path.with_name(
-            f"{image_path.stem}{suffix}{image_path.suffix}")
+            f"{output_dir}{image_path.stem}{suffix}{image_path.suffix}")
     with Image.open(image_path).convert("RGB") as img:
         drawer = ImageDraw.Draw(img)
         try:
@@ -1111,12 +1111,13 @@ def _export_unmatched_csv(
     *,
     filename_suffix: str = "_unmatched_dimensions",
     start_index: int = 1,
+    output_dir: str
 ) -> Optional[Path]:
     if not unmatched_entries:
         return None
 
     output_path = image_path.with_name(
-            f"{image_path.stem}{filename_suffix}.csv")
+            f"{output_dir}{image_path.stem}{filename_suffix}.csv")
 
     def _get_row_value(row_data: object, index: int) -> str:
         if isinstance(row_data, list) and index < len(row_data):
@@ -1270,6 +1271,7 @@ def highlight_mab_dimensions(
         return None
 
     run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # TODO
     run_dir = REPO_ROOT / "logs" / f"dimension_run_{image_path.stem}_{run_timestamp}"
     run_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1614,7 +1616,7 @@ def highlight_mab_dimensions(
         ordered_matches,
         suffix="_annotated_dims_llm_final",
         outline="red",
-        outpur_dir=output_dir
+        output_dir=output_dir
     )
 
     print("=== 寸法マッチ結果 ===")
@@ -1646,11 +1648,15 @@ def highlight_mab_dimensions(
         image_path,
         ordered_matches,
         filename_suffix="_matched_dimensions_llm_final",
+        output_dir=output_dir
     )
     if csv_output_path:
         print(f"マッチ結果をCSVに出力しました: {csv_output_path}")
 
-    unmatched_csv_path = _export_unmatched_csv(image_path, unmatched_entries)
+    unmatched_csv_path = _export_unmatched_csv(
+            image_path,
+            unmatched_entries,
+            output_dir)
     if unmatched_csv_path:
         print(f"未マッチ行をCSVに出力しました: {unmatched_csv_path}")
 
@@ -1673,7 +1679,8 @@ def highlight_mab_dimensions(
 
 
 def replay_dimension_run(
-        log_dir: Union[str, Path]) -> None:
+        log_dir: Union[str, Path],
+        output_dir) -> None:
     log_dir = Path(log_dir)
     if not log_dir.exists() or not log_dir.is_dir():
         print(f"ログディレクトリが存在しません: {log_dir}")
@@ -1833,6 +1840,7 @@ def replay_dimension_run(
         reuse_unmatched_entries=reuse_unmatched_payload,
         row_tile_regions=row_tile_regions_payload,
         region_padding_px=region_padding_int,
+        output_dir=output_dir
     )
 
 
@@ -1844,6 +1852,7 @@ def demission_group(
     tile_tolerance: float = 1e-3,
     tile_max_results: int = 1,
     tile_region_padding: int = 30,
+    output_dir
 ):
     # 投影図すべてに囲みました。
     if _gemini_manager is None:
@@ -1938,6 +1947,7 @@ def demission_group(
         csv_payload,
         row_tile_regions=row_tile_regions_payload,
         region_padding_px=effective_padding,
+        output_dir=output_dir
     )
 
 
@@ -1989,10 +1999,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.replay_log:
-        replay_dimension_run(args.replay_log)
+        replay_dimension_run(
+            args.replay_log,
+            args.output_dir
+        )
         sys.exit(0)
 
     dir_name = args.dir
+    # TODO
     if dir_name and not dir_name.endswith((os.sep, "/")):
         dir_name = dir_name + os.sep
     file_list: Dict[str, str] = {}
@@ -2006,4 +2020,5 @@ if __name__ == "__main__":
         tile_tolerance=args.tile_tolerance,
         tile_max_results=args.tile_max_results,
         tile_region_padding=args.tile_region_padding,
+        output_dir=args.output_dir
     )
