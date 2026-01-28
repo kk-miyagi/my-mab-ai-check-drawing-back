@@ -16,6 +16,7 @@ class LoggerBase:
     _INFO_KEY_LOG_WHEN = 'log_when'
     _INFO_KEY_LOG_TERM = 'log_interval'
     _INFO_KEY_LOG_FILE_CNT = 'log_backup_count'
+    _INFO_KEY_LOG_ENCODING = 'log_encoding'
 
     _FORMAT = '%(asctime)s - %(levelname)s - [%(name)s] - %(message)s'
 
@@ -39,7 +40,8 @@ class LoggerBase:
             self.log_info[self._INFO_KEY_LOG_FILE],
             self.log_info[self._INFO_KEY_LOG_WHEN],
             self.log_info[self._INFO_KEY_LOG_TERM],
-            backupCount=self.log_info[self._INFO_KEY_LOG_FILE_CNT])
+            backupCount=self.log_info[self._INFO_KEY_LOG_FILE_CNT],
+            encoding=self.log_info[self._INFO_KEY_LOG_ENCODING])
 
         file_handler.setFormatter(formatter)
         # for stdout
@@ -92,6 +94,7 @@ class AppLogger(LoggerBase):
                 self._INFO_KEY_LOG_WHEN: app_conf.log_when,
                 self._INFO_KEY_LOG_TERM: app_conf.log_interval,
                 self._INFO_KEY_LOG_FILE_CNT: app_conf.log_backup_count,
+                self._INFO_KEY_LOG_ENCODING: app_conf.log_encoding,
         }
 
 
@@ -104,4 +107,5 @@ class BatchLogger(LoggerBase):
                 self._INFO_KEY_LOG_WHEN: app_conf.batch_log_when,
                 self._INFO_KEY_LOG_TERM: app_conf.batch_log_interval,
                 self._INFO_KEY_LOG_FILE_CNT: app_conf.batch_log_backup_count,
+                self._INFO_KEY_LOG_ENCODING: app_conf.batch_log_encoding,
         }

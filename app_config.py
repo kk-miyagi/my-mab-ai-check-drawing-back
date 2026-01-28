@@ -13,6 +13,7 @@ class AppConfig:
         '_log_interval',
         '_log_backup_count',
         '_log_file_name',
+        '_log_encoding',
         '_BATCH_LOGGER_CONF_KEY',
         '_batch_logger_name',
         '_batch_log_level',
@@ -20,6 +21,7 @@ class AppConfig:
         '_batch_log_interval',
         '_batch_log_backup_count',
         '_batch_log_file_name',
+        '_batch_log_encoding',
         '_initialized'
     )
 
@@ -59,10 +61,12 @@ class AppConfig:
                 '_log_backup_count', logger_conf['log_backup_count'])
         self.__setattr__(
                 '_log_file_name', logger_conf['log_file_name'])
+        self.__setattr__(
+                '_log_encoding', logger_conf['log_encoding'])
 
     def __batch_logger_conf_init(self, conf):
         self.__setattr__("_BATCH_LOGGER_CONF_KEY", 'BATCH_LOGGER')
-        logger_conf = conf[self._LOGGER_CONF_KEY]
+        logger_conf = conf[self._BATCH_LOGGER_CONF_KEY]
         self.__setattr__(
                 '_batch_logger_name', logger_conf['logger_name'])
         self.__setattr__(
@@ -75,6 +79,8 @@ class AppConfig:
                 '_batch_log_backup_count', logger_conf['log_backup_count'])
         self.__setattr__(
                 '_batch_log_file_name', logger_conf['log_file_name'])
+        self.__setattr__(
+                '_batch_log_encoding', logger_conf['log_encoding'])
 
     @property
     def logger_name(self):
@@ -101,6 +107,10 @@ class AppConfig:
         return self._log_file_name
 
     @property
+    def log_encoding(self):
+        return self._log_encoding
+
+    @property
     def batch_logger_name(self):
         return self._batch_logger_name
 
@@ -119,6 +129,10 @@ class AppConfig:
     @property
     def batch_log_backup_count(self):
         return self._batch_log_backup_count
+
+    @property
+    def batch_log_encoding(self):
+        return self._batch_log_encoding
 
     @property
     def batch_log_file_name(self):

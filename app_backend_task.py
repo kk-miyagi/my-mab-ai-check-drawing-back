@@ -1,47 +1,68 @@
 from app_router import Status
-import asyncio
+from app_logger import BatchLogger
+import subprocess
 
 
-# TODO logger
 class BackendTaskRunner:
+
+    def set_logger(self, logger):
+        self.logger = logger
 
     def get_cmd(self, base_cmd, app_state, req_status):
         raise Exception("NOT OVERRIDE")
 
-    def start(self, req_status, app_state, cmd):
-        print(f"runner start backend cmd is :{cmd}")
+    async def start(self, req_status, app_state, cmd):
+        self.logger.log(
+            req_status,
+            BatchLogger.INFO,
+            f"**** runner start backend cmd is :{cmd} *****"
+        )
         try:
-            asyncio.run(
-                self.run(
-                    req_status,
-                    app_state,
-                    cmd
-                )
-            )
-        except Exception as e:
-            # TODO error logic
-            raise e
-
-    async def run(cls, req_status, app_state, cmd: str):
-        # TODO log
-        try:
-            proc = await asyncio.create_subprocess_shell(
+            result = subprocess.run(
                 cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                capture_output=True,
+                text=True,
+                check=True,
             )
-            stdout, stderr = await proc.communicate()
-            if proc.returncode == 0:
+            self.logger.log(
+                req_status,
+                BatchLogger.INFO,
+                f"backend result :{result.stdout}"
+            )
+            print(result.stdout)
+            if result.stderr is None or result.stderr == "":
                 req_status.status = Status.END
-
-            app_state.update_boot_process_info(
-                req_status
+            else:
+                self.logger.log(
+                    req_status,
+                    BatchLogger.ERROR,
+                    f"backend stderr:{result.stderr}"
+                )
+                req_status.status = Status.ERROR
+        except subprocess.CalledProcessError as e:
+            self.logger.log(
+                req_status,
+                BatchLogger.INFO,
+                f"backend error!!: {e}"
             )
-
+            req_status.status = Status.ERROR
         except Exception as e:
-            # TODO error handling
-            raise e
+            self.logger.log(
+                req_status,
+                BatchLogger.INFO,
+                f"backend error!!: {e}"
+            )
+            req_status.status = Status.ERROR
 
+        # app status update
+        app_state.update_app_status(
+            req_status
+        )
+        self.logger.log(
+            req_status,
+            BatchLogger.INFO,
+            f"**** runner end backend cmd is :{cmd} *****"
+        )
         return None
 
 
@@ -59,17 +80,28 @@ class BackendTasks:
             req_status,
             background_tasks,
             task_runner: BackendTaskRunner):
+        cls.logger.log(
+            req_status,
+            BatchLogger.DEBUG,
+            "BACKEND TASK SET START !!"
+        )
         base_cmd = cls.task_dic[cls._task_state_key(req_status)]
+
+        task_runner.set_logger(cls.logger)
         background_tasks.add_task(
-            task_runner.start(
-                req_status,
-                cls.app_state,
-                task_runner.get_cmd(
-                    base_cmd,
-                    cls.app_state,
-                    req_status
-                )
+            task_runner.start,
+            req_status,
+            cls.app_state,
+            task_runner.get_cmd(
+                 base_cmd,
+                 cls.app_state,
+                 req_status
             )
+        )
+        cls.logger.log(
+            req_status,
+            BatchLogger.DEBUG,
+            "BACKEND TASK SET END !!"
         )
 
     @classmethod
