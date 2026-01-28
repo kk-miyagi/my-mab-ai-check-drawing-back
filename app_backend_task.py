@@ -29,7 +29,7 @@ class BackendTaskRunner:
                 BatchLogger.INFO,
                 f"backend result :{result.stdout}"
             )
-            if result.stderr is None or result.stderr == "":
+            if result.returncode == 0:
                 req_status.status = Status.END
             else:
                 self.logger.log(
