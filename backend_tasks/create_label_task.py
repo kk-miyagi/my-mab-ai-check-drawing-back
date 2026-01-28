@@ -2027,3 +2027,4 @@ if __name__ == "__main__":
         tile_region_padding=args.tile_region_padding,
         output_dir=args.output_dir
     )
+    sys.exit(0)
