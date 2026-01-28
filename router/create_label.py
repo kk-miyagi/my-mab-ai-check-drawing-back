@@ -107,7 +107,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 )
             # 2)ダウンロード先ディレクトリから図面ファイル、CSVファイル読み込み
             ope_dir = f"{req_status.user}_{req_status.epic}_"
-            ope_dir += "{req_status.operation}_{req_status.operation_id}/"
+            ope_dir += f"{req_status.operation}_{req_status.operation_id}/"
             res_dir = f"./create-label-responce/{ope_dir}"
             fname_list = os.listdir(res_dir)
             file_list = [
