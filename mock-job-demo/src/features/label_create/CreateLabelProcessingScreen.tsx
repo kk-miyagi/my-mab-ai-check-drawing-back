@@ -17,6 +17,12 @@ export const CreateLabelProcessingScreen: React.FC = () => {
     status: 'doing',
   };
 
+  const handleEnd = () => {
+    parsed.status = 'end'
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
+    navigate('/create-label-result')
+  }
+
   const handleError = () => {
     window.alert("バッチ処理中にエラーが起こりました。画面を切り替えます")
     navigate('/create-label')
@@ -28,11 +34,10 @@ export const CreateLabelProcessingScreen: React.FC = () => {
       return res;
     },
     (r) => r.status === 'end',
-    () => navigate('/create-label-result'),
+    () => handleEnd(),
     (r) => r.status === 'error',
     () => handleError(),
-    3000,
-    10000
+    3000
   );
 
   return (
