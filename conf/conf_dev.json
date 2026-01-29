@@ -1,4 +1,7 @@
 {
+    "APP_STATUS":{
+       "EXPIRE": 86400 
+    },
     "LOGGER":{
 	"logger_name": "app_main",
 	"log_level": "DEBUG",

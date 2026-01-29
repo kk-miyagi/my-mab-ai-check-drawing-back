@@ -24,7 +24,7 @@ class SessionManager(Manager):
     # overload
     def child_start(self, request, body):
 
-        logger = self.get_manager_logger(body)
+        logger = self.get_manager_logger()
         session = request.session
 
         now = time.time()

@@ -20,7 +20,7 @@ class AppStatusManager(Manager):
         state.create_app_status()
         # status check
         req_status = AppStatus.create_from_request(body)
-        logger = self.get_manager_logger(body)
+        logger = self.get_manager_logger()
 
         if not req_status.is_not_none():
             logger.log(

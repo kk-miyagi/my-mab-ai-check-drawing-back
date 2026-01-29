@@ -22,7 +22,7 @@ class Manager:
 
     def start(self, request, body):
 
-        logger = self.get_manager_logger(body)
+        logger = self.get_manager_logger()
         logger.log(AppLogger.INFO, "START")
         self.child_start(request, body)
         logger.log(AppLogger.INFO, "END")
@@ -30,8 +30,8 @@ class Manager:
     def child_start(self, request, body):
         raise ManagerException(self.NOT_OVERRIDE_ERROR)
 
-    def get_manager_logger(self, body):
-        req_status = AppStatus.create_from_request(body)
+    def get_manager_logger(self):
+        req_status = AppStatus.get_dummy_status()
         logger = self.logger
         class_name = self.__class__.__name__
 
@@ -42,7 +42,7 @@ class Manager:
 
     def get_except_responce(
             self, exp, request):
-        logger = self.get_manager_logger(request.state.body)
+        logger = self.get_manager_logger()
         logger.log(AppLogger.INFO, "except responce START")
         self.get_child_except_responce(exp, request)
         logger.log(AppLogger.INFO, "except responce END")

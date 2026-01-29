@@ -1,4 +1,7 @@
 {
+    "APP_STATUS":{
+       "EXPIRE": 604800 
+    },
     "LOGGER":{
 	"logger_name": "app_main",
 	"log_level": "INFO",
@@ -6,7 +9,7 @@
 	"log_file_name": "./logs/app_main.log", 
 	"log_interval": 1,
 	"log_when": "D",
-	"log_encoding": "utf-8"
+	"log_encoding": "shift_jis"
     },
     "BATCH_LOGGER":{
 	"logger_name": "app_batch",
