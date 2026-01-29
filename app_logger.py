@@ -70,8 +70,7 @@ class LoggerBase:
             raise conf_loglevel
 
     def log(self, app_status, log_level, message):
-        mess = f"{app_status.user}::{app_status.epic}:{app_status.operation}"
-        mess += f":{app_status.operation_id}:{app_status.status} -- {message}"
+        mess = f"{app_status.operation_id} - {message}"
         match log_level:
             case self.DEBUG:
                 self.logger.debug(mess)

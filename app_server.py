@@ -121,6 +121,9 @@ class AppServer():
                 self.logger
         )
         self.app_state = app_state
+        self.app_state.system_encode = 'utf-8'
+        if run_env == 'DEV':
+            self.app_state.system_encode = 'shift-jis'
         # manager setup
         self.setup_managers(app_state)
 

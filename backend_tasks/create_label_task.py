@@ -1882,7 +1882,7 @@ def demission_group(
     error_message = _extract_error(raw_MAB_compare_res)
     if error_message:
         print(f"MAB_compare_resの取得でエラーが発生しました: {error_message}")
-        return
+        sys.exit(1)
     MAB_compare_res = get_raw_response(raw_MAB_compare_res)
     print(f"MAB_compare_res\n{MAB_compare_res}")
     tile_dir_path: Optional[Path] = None

@@ -1,7 +1,6 @@
 from app_router import Status
 from app_logger import BatchLogger
-from concurrent.futures import ThreadPoolExecutor
-import subprocess
+import asyncio
 
 
 class BackendTaskRunner:
@@ -19,33 +18,56 @@ class BackendTaskRunner:
             f"**** runner start backend cmd is :{cmd} *****"
         )
         try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True,
+            process = await asyncio.create_subprocess_exec(
+                *cmd.split(' '),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
             )
-            self.logger.log(
-                req_status,
-                BatchLogger.INFO,
-                f"backend result :{result.stdout}"
+
+            async def read_and_log_stream(
+                    stream,
+                    head_str,
+                    logger,
+                    log_level,
+                    status):
+                while True:
+                    line = await stream.readline()
+                    if not line:
+                        break
+                    mess = f"[{head_str}] "
+                    mess += f"{line.decode(app_state.system_encode).strip()}"
+
+                    logger.log(
+                        status,
+                        log_level,
+                        mess
+                    )
+            await asyncio.gather(
+                read_and_log_stream(
+                    process.stdout,
+                    "STD-OUT",
+                    self.logger,
+                    BatchLogger.INFO,
+                    req_status
+                ),
+                read_and_log_stream(
+                    process.stderr,
+                    "STD-ERR",
+                    self.logger,
+                    BatchLogger.INFO,
+                    req_status
+                )
             )
-            if result.returncode == 0:
+            return_code = await process.wait()
+            if return_code == 0:
                 req_status.status = Status.END
             else:
+                req_status.status = Status.ERROR
                 self.logger.log(
                     req_status,
                     BatchLogger.ERROR,
-                    f"backend stderr:{result.stderr}"
+                    f"backend stderr:{return_code}"
                 )
-                req_status.status = Status.ERROR
-        except subprocess.CalledProcessError as e:
-            self.logger.log(
-                req_status,
-                BatchLogger.INFO,
-                f"backend error!!: {e}"
-            )
-            req_status.status = Status.ERROR
         except Exception as e:
             self.logger.log(
                 req_status,
@@ -78,7 +100,8 @@ class BackendTasks:
     def set_backend_runner(
             cls,
             req_status,
-            task_runner: BackendTaskRunner):
+            task_runner: BackendTaskRunner,
+            background_tasks):
         cls.logger.log(
             req_status,
             BatchLogger.DEBUG,
@@ -87,8 +110,7 @@ class BackendTasks:
         base_cmd = cls.task_dic[cls._task_state_key(req_status)]
 
         task_runner.set_logger(cls.logger)
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(
+        background_tasks.add_task(
                 task_runner.start,
                 req_status,
                 cls.app_state,
@@ -97,11 +119,6 @@ class BackendTasks:
                     cls.app_state,
                     req_status
                 )
-            )
-            cls.logger.log(
-                req_status,
-                BatchLogger.DEBUG,
-                f"BACKEND FUTURE : {future}!!"
             )
         cls.logger.log(
             req_status,

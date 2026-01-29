@@ -1,4 +1,4 @@
-from fastapi import Request, APIRouter
+from fastapi import Request, APIRouter, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from state.app_status import AppStatus
 from app_router import AppRoute, Status
@@ -37,7 +37,7 @@ class CreateLabelRunner(BackendTaskRunner):
 
 
 @router.post("/create-label/")
-async def create_label(request: Request):
+async def create_label(request: Request, background_tasks: BackgroundTasks):
     state = request.state
     req_status = AppStatus.create_from_state(state)
 
@@ -49,7 +49,6 @@ async def create_label(request: Request):
     req_user = req_status.user
     req_opid = req_status.operation_id
     upload_dir = f"./multi-fileupload/{req_user}_{up_epic}_{up_ope}_{req_opid}"
-
     match req_status.status:
         case Status.START:
             logger.log(
@@ -66,6 +65,7 @@ async def create_label(request: Request):
                 BackendTasks.set_backend_runner(
                     req_status,
                     CreateLabelRunner(),
+                    background_tasks
                 )
             else:
                 req_status.status = Status.ERROR

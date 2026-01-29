@@ -42,8 +42,8 @@ class AppStatusManager(Manager):
                 f"app session status:{session_status.status}")
             if (
                     (req_status.status) < 0 or
-                    (req_status.status < session_status.status) or
-                    (req_status.status - session_status.status > 1)):
+                    (req_status.status < session_status.status)
+            ):
                 logger.log(
                     AppLogger.ERROR,
                     f"app status error :{self.INVALID_STATUS_ERROR}"
