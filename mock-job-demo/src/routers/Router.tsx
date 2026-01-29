@@ -10,7 +10,7 @@ import { CreateLabelResultScreen } from '../features/label_create/CreateLabelRes
 import { DemoCreateLabelScreen } from '../features/label_create/DemoCreateLabelScreen';
 import { DemoCreateLabelProcessingScreen } from '../features/label_create/DemoCreateLabelProcessingScreen';
 import { DemoCreateLabelResultScreen } from '../features/label_create/DemoCreateLabelResult';
-import { CreateLabelReUploadScreen } from '../features/label_create/CreateLabelReUploadScreen';
+import { UpdateLabelScreen } from '../features/label_create/UpdateLabelScreen';
 import { DemoUpdateLabelScreen } from '../features/label_create/DemoUpdateLabelScreen';
 import { DemoUpdateLabelProcessingScreen } from '../features/label_create/DemoUpdateLabelProcessingScreen';
 import { DemoUpdateLabelResultScreen } from '../features/label_create/DemoUpdateLabelResult';
@@ -27,7 +27,7 @@ export const AppRouter = () => {
       <Route path="/create-label" element={<CreateLabelScreen />} />
       <Route path="/create-label-processing" element={<CreateLabelProcessingScreen />} />
       <Route path="/create-label-result" element={<CreateLabelResultScreen />} />
-      <Route path="/create-label-re-upload" element={<CreateLabelReUploadScreen />} />
+      <Route path="/update-label" element={<UpdateLabelScreen />} />
       <Route path="/demo-create-label-processing" element={<DemoCreateLabelProcessingScreen />} />
       <Route path="/demo-create-label-result" element={<DemoCreateLabelResultScreen />} />
       <Route path="/demo-create-label" element={<DemoCreateLabelScreen />} />
