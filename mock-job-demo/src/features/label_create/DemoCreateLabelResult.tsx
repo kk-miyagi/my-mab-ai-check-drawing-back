@@ -30,6 +30,8 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState<string>();
   const [csvUrl, setCsvUrl] = useState<string>();
+  const [imageFileName, setImageFileName] = useState<string>();
+  const [csvFileName, setCsvFileName] = useState<string>();
   const navigate = useNavigate();
 
   const raw = window.localStorage.getItem(localStorageKey.default) as string;
@@ -50,8 +52,8 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
       ]);
 
       // それぞれダウンロードを発火
-      downloadBlob(imageBlob, "MAB_drawings_viewssquare_annotated_dims_llm_final.jpg");
-      downloadBlob(csvBlob, "MAB_drawings_viewssquare_matched_dimensions_llm_final.csv");
+      downloadBlob(imageBlob, imageFileName);
+      downloadBlob(csvBlob, csvFileName);
     } catch (err) {
       console.error(err);
       alert("ダウンロードに失敗しました。ネットワークやパスを確認してください。");
@@ -80,7 +82,9 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
           const imgBlob = await imgFile.async('blob');
           const url = URL.createObjectURL(imgBlob);
           setImageUrl(url)
-
+          const path = imgFile.name
+          const filename = path.split("/").pop()
+          setImageFileName(filename)
         }
         const csvFile = zip.file(/\.csv$/)[0]
         console.log(csvFile)
@@ -88,6 +92,9 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
           const text = await csvFile.async("string");
           const csvBlob = await csvFile.async('blob');
           setCsvUrl(URL.createObjectURL(csvBlob));
+          const path = csvFile.name
+          const filename = path.split("/").pop()
+          setCsvFileName(filename)
           const result = Papa.parse<Row>(text, {
             header: true,
             skipEmptyLines: true,
