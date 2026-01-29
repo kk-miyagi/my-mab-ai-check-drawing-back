@@ -16,7 +16,7 @@ type Row = Record<string, string | number | boolean | null>;
 
 
 
-export const CreateLabelReUploadScreen: React.FC = () => {
+export const UpdateLabelScreen: React.FC = () => {
   const navigate = useNavigate();
   const { sendEnd, error: initError } = useEpicInit(DEFAULT_EPIC);
 
@@ -115,7 +115,7 @@ export const CreateLabelReUploadScreen: React.FC = () => {
 
     } catch (err) {
       window.alert("バッチ処理起動に失敗したため、画面を切り替えます")
-      navigate("/create-label-re-upload")
+      navigate("/update-label")
     }
   }
 

@@ -30,6 +30,8 @@ export const CreateLabelResultScreen: React.FC = () => {
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState<string>();
   const [csvUrl, setCsvUrl] = useState<string>();
+  const [imageFileName, setImageFileName] = useState<string>();
+  const [csvFileName, setCsvFileName] = useState<string>();
   const navigate = useNavigate();
 
   const raw = window.localStorage.getItem(localStorageKey.default) as string;
@@ -50,13 +52,20 @@ export const CreateLabelResultScreen: React.FC = () => {
       ]);
 
       // それぞれダウンロードを発火
-      downloadBlob(imageBlob, "MAB_drawings_viewssquare_annotated_dims_llm_final.jpg");
-      downloadBlob(csvBlob, "MAB_drawings_viewssquare_matched_dimensions_llm_final.csv");
+      downloadBlob(imageBlob, imageFileName);
+      downloadBlob(csvBlob, csvFileName);
     } catch (err) {
       console.error(err);
       alert("ダウンロードに失敗しました。ネットワークやパスを確認してください。");
     }
   };
+
+  const handleMove = async () => {
+    parsed.status = 'start'
+    parsed.lastOperation = 'open-update-label-screen'
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
+    navigate('/update-label')
+  }
 
   useEffect(() => {
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
@@ -76,13 +85,18 @@ export const CreateLabelResultScreen: React.FC = () => {
           const imgBlob = await imgFile.async('blob');
           const url = URL.createObjectURL(imgBlob);
           setImageUrl(url)
-
+          const path = imgFile.name
+          const filename = path.split("/").pop()
+          setImageFileName(filename)
         }
         const csvFile = zip.file(/\.csv$/)[0]
         if (csvFile) {
           const text = await csvFile.async("string");
           const csvBlob = await csvFile.async('blob');
           setCsvUrl(URL.createObjectURL(csvBlob));
+          const path = csvFile.name
+          const filename = path.split("/").pop()
+          setCsvFileName(filename)
           const result = Papa.parse<Row>(text, {
             header: true,
             skipEmptyLines: true,
@@ -135,6 +149,7 @@ export const CreateLabelResultScreen: React.FC = () => {
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
         <button className="primary" onClick={handleRemoveItem}>最初からやり直す</button>
         <button className="primary" onClick={handleDownload}>画像とCSVを同時にダウンロード</button>
+        <button className="primary" onClick={handleMove}>編集画面へ</button>
       </div>
     </div>
   );
