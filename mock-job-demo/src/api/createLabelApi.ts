@@ -51,7 +51,7 @@ export const createLabelApi = {
   },
 
   async updateLabelStart(payload: CreateLabelRequest): Promise<CreateLabelResponse> {
-    if (!USE_MOCK_API) {
+    if (USE_MOCK_API) {
       await wait(400);
       return { user: "demo-user", epic: "test", operation: "test", operation_id: payload.operation_id, status: 'end', message: 'test' };
     }
