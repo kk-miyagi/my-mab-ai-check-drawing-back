@@ -11,9 +11,8 @@ import { DemoCreateLabelScreen } from '../features/label_create/DemoCreateLabelS
 import { DemoCreateLabelProcessingScreen } from '../features/label_create/DemoCreateLabelProcessingScreen';
 import { DemoCreateLabelResultScreen } from '../features/label_create/DemoCreateLabelResult';
 import { UpdateLabelScreen } from '../features/label_create/UpdateLabelScreen';
-import { DemoUpdateLabelScreen } from '../features/label_create/DemoUpdateLabelScreen';
-import { DemoUpdateLabelProcessingScreen } from '../features/label_create/DemoUpdateLabelProcessingScreen';
-import { DemoUpdateLabelResultScreen } from '../features/label_create/DemoUpdateLabelResult';
+import { UpdateLabelProcessingScreen } from '../features/label_create/UpdateLabelProcessingScreen';
+import { UpdateLabelResultScreen } from '../features/label_create/UpdateLabelResult';
 
 export const AppRouter = () => {
   return (
@@ -28,12 +27,11 @@ export const AppRouter = () => {
       <Route path="/create-label-processing" element={<CreateLabelProcessingScreen />} />
       <Route path="/create-label-result" element={<CreateLabelResultScreen />} />
       <Route path="/update-label" element={<UpdateLabelScreen />} />
+      <Route path="/update-label-processing" element={<UpdateLabelProcessingScreen />} />
+      <Route path="/update-label-result" element={<UpdateLabelResultScreen />} />
       <Route path="/demo-create-label-processing" element={<DemoCreateLabelProcessingScreen />} />
       <Route path="/demo-create-label-result" element={<DemoCreateLabelResultScreen />} />
       <Route path="/demo-create-label" element={<DemoCreateLabelScreen />} />
-      <Route path="/demo-update-label" element={<DemoUpdateLabelScreen />} />
-      <Route path="/demo-update-label-processing" element={<DemoUpdateLabelProcessingScreen />} />
-      <Route path="/demo-update-label-result" element={<DemoUpdateLabelResultScreen />} />
       <Route path="*" element={<Navigate to="/hub" replace />} />
     </Routes>
   )
