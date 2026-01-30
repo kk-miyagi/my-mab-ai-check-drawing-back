@@ -81,12 +81,10 @@ export const CreateLabelScreen: React.FC = () => {
       files: file,
     };
     const response = await uploadApi.uploadPair(requestPayload);
-    console.log("画像アップロード後: ", response)
-
+    console.log("/multi-file-uploadのレスポンス:", response)
 
     toPersist.status = 'start'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-    console.log("[ラベル付与]バッチ処理_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
 
     // 実行中画面に切り替え
     navigate('/create-label-processing');
@@ -101,12 +99,7 @@ export const CreateLabelScreen: React.FC = () => {
         operation_id: issueResult.operation_id,
         status: toPersist.status,
       });
-      if (res.status === 'end' || res.status === 'doing') {
-        toPersist.status = res.status
-        window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-      }
-      console.log("[ラベル付与]バッチ処理実行中_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
-
+      console.log("/create-labelのレスポンス:", res)
     } catch (err) {
       window.alert("バッチ処理起動に失敗したため、画面を切り替えます")
       navigate("/create-label")
