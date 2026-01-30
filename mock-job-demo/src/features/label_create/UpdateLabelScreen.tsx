@@ -1,5 +1,5 @@
 import React, { useEffect, useState, ChangeEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useEpicInit } from '../../hooks/useEpicInit';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
@@ -25,6 +25,13 @@ export const UpdateLabelScreen: React.FC = () => {
   const [csvFile, setCsvFile] = useState<File[]>([]);
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
+
+  // ローカルストレージの削除ボタン用
+  const handleRemoveItem = () => {
+    window.localStorage.removeItem(localStorageKey.default);
+    console.log('ローカルストレージを削除しました。');
+    navigate('/hub')
+  };
 
   const handleSetFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -119,7 +126,6 @@ export const UpdateLabelScreen: React.FC = () => {
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>ラベル付与_修正内容反映後用</h1>
-        <Link to="/hub" onClick={async (e) => {e.preventDefault();await sendEnd();navigate('/hub');}}>前に戻る</Link>
       </div>
       {initError && <p style={{ color: 'red' }}>初期化エラー: {initError}</p>}
       <ul>
@@ -169,6 +175,7 @@ export const UpdateLabelScreen: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+        <button className="primary" onClick={handleRemoveItem}>終了し、ホームに戻る</button>
         <button className="primary" onClick={handleStart} disabled={imageFile.length === 0 || csvFile.length === 0}>処理開始</button>
       </div>
 
