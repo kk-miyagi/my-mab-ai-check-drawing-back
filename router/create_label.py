@@ -17,7 +17,7 @@ class CreateLabelRunner(BackendTaskRunner):
     _IN_BASE_DIR = './multi-fileupload'
     _OUT_BASE_DIR = './create-label-responce'
     _EPIC = 'create-label'
-    _IN_OPE = 'multi-file-upload'
+    _IN_OPE = 'batch-create-label'
     _OUT_OPE = 'batch-create-label'
     _FILE_KEY = 'bf_file'
 
@@ -44,7 +44,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
     up_epic = 'create-label'
-    up_ope = 'multi-file-upload'
+    up_ope = 'batch-create-label'
 
     req_user = req_status.user
     req_opid = req_status.operation_id

@@ -37,7 +37,7 @@ class Manager:
 
         class manager_logger:
             def log(self, log_level, mess):
-                logger.log(req_status, log_level, f"{class_name} - {mess}")
+                logger.log(req_status, log_level, f"{class_name} {mess}")
         return manager_logger()
 
     def get_except_responce(

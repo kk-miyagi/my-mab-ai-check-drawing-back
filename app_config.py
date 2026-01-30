@@ -4,6 +4,8 @@ import json
 class AppConfig:
 
     __solts__ = (
+        '_APP_STATUS_CONF_KEY',
+        '_expire',
         '_BACKEND_TASKS_CONF_KEY',
         '_backend_tasks',
         '_LOGGER_CONF_KEY',
@@ -31,6 +33,8 @@ class AppConfig:
 
         # backend task cofig setting
         self.__backend_conf_init(json_conf)
+        # app status setting
+        self.__app_status_conf_init(json_conf)
         # log setting set config object
         self.__logger_conf_init(json_conf)
         # batch log setting set config object
@@ -45,6 +49,13 @@ class AppConfig:
     @property
     def backend_tasks(self):
         return self._backend_tasks
+
+    def __app_status_conf_init(self, conf):
+        self.__setattr__("_APP_STATUS_CONF_KEY", 'APP_STATUS')
+        app_status_conf = conf[self._APP_STATUS_CONF_KEY]
+        self.__setattr__(
+                '_expire', app_status_conf['expire']
+        )
 
     def __logger_conf_init(self, conf):
         self.__setattr__("_LOGGER_CONF_KEY", 'LOGGER')
@@ -81,6 +92,10 @@ class AppConfig:
                 '_batch_log_file_name', logger_conf['log_file_name'])
         self.__setattr__(
                 '_batch_log_encoding', logger_conf['log_encoding'])
+
+    @property
+    def expire(self):
+        return self._expire
 
     @property
     def logger_name(self):

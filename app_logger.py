@@ -18,7 +18,7 @@ class LoggerBase:
     _INFO_KEY_LOG_FILE_CNT = 'log_backup_count'
     _INFO_KEY_LOG_ENCODING = 'log_encoding'
 
-    _FORMAT = '%(asctime)s - %(levelname)s - [%(name)s] - %(message)s'
+    _FORMAT = '%(asctime)s %(levelname)s [%(name)s] %(message)s'
 
     def __init__(self, conf: AppConfig):
         self.conf = conf
@@ -66,7 +66,6 @@ class LoggerBase:
         elif conf_loglevel == 'CRITICAL':
             logger.setLevel(logging.CRITICAL)
         else:
-            # TODO rase object
             raise conf_loglevel
 
     def log(self, app_status, log_level, message):

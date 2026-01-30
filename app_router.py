@@ -33,7 +33,7 @@ class AppRoute(APIRoute):
         async def custom_route_handler(request: Request) -> Response:
             logger = self.app_state.getLogger()
             state = request.state
-            req_str = "custom route hander doing"
+            req_str = "custom route hander"
             req_str += " request state hasattr chek"
             req_str += f"\nuser:{hasattr(state, 'user')}"
             req_str += f"\nepic:{hasattr(state, 'epic')}"

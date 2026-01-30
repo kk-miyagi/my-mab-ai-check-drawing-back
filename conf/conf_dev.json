@@ -1,6 +1,6 @@
 {
     "APP_STATUS":{
-       "EXPIRE": 86400 
+       "expire": 86400 
     },
     "LOGGER":{
 	"logger_name": "app_main",
