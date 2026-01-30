@@ -84,6 +84,7 @@ export const UpdateLabelScreen: React.FC = () => {
     console.log("multi-file-uploadのレスポンス:", response)
 
     toPersist.status = 'start'
+    toPersist.lastOperation = DEFAULT_OPERATION
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
     // 実行中画面に切り替え
