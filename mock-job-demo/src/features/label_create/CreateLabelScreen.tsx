@@ -10,7 +10,7 @@ import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
 
 const DEFAULT_EPIC = 'create-label';
-const DEFAULT_OPERATION = 'multi-file-upload';
+const DEFAULT_OPERATION = 'batch-create-label';
 
 export const CreateLabelScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -81,14 +81,10 @@ export const CreateLabelScreen: React.FC = () => {
       files: file,
     };
     const response = await uploadApi.uploadPair(requestPayload);
-    toPersist.status = 'end'
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-    console.log("[ラベル付与]画像アップロード_レスポンス ", response)
-    console.log("[ラベル付与]画像アップロード_ローカルストレージ更新 ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
+    console.log("画像アップロード後: ", response)
 
 
     toPersist.status = 'start'
-    toPersist.lastOperation = 'batch-create-label'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
     console.log("[ラベル付与]バッチ処理_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
 
