@@ -19,7 +19,6 @@ export const HubScreen: React.FC = () => {
               <p style={{ margin: '4px 0 0' }}>図面をアップロードし、ラベル付与した図面とCSVファイルが出力されます</p>
             </div>
             <Link className="primary" to="/create-label">開く</Link>
-            <Link className="primary" to="/create-label-re-upload">編集</Link>
             <Link className="primary" to="/demo-create-label">デモを開く</Link>
           </div>
         </section>
