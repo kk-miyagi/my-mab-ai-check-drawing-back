@@ -3,20 +3,17 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEpicInit } from '../../hooks/useEpicInit';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
-import type { OperationIssueRequest } from '../../types/uploadServer.ts';
-import type { PersistedState } from '../../types/uploadContext.ts';
-import { issueOperationId } from '../../components/upload/issueOperationId.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
 import Papa  from 'papaparse';
 
 const DEFAULT_EPIC = 'create-label';
-const DEFAULT_OPERATION = 'multi-file-upload';
+const DEFAULT_OPERATION = 'batch-update-label';
+
 type Row = Record<string, string | number | boolean | null>;
 
-
-
 export const UpdateLabelScreen: React.FC = () => {
+  console.log(JSON.parse(window.localStorage.getItem(localStorageKey.default) as string))
   const navigate = useNavigate();
   const { sendEnd, error: initError } = useEpicInit(DEFAULT_EPIC);
 
@@ -69,17 +66,14 @@ export const UpdateLabelScreen: React.FC = () => {
     // ローカルストレージの取得
     const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.default) as string);
 
-    // ローカルストレージのステータスをdoingに変更
     toPersist.status = 'doing'
-    toPersist.lastEpic = DEFAULT_EPIC
-    toPersist.lastOperation = DEFAULT_OPERATION
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
     // 画像のアップロード
     const requestPayload = {
       user: 'demo-user',
       epic: toPersist.lastEpic,
-      operation: toPersist.lastOperation,
+      operation: DEFAULT_OPERATION,
       operation_id: toPersist.operationId,
       status: toPersist.status,
       number: 1,
@@ -87,11 +81,9 @@ export const UpdateLabelScreen: React.FC = () => {
     };
 
     const response = await uploadApi.uploadPair(requestPayload);
-    toPersist.status = 'end'
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+    console.log("multi-file-uploadのレスポンス:", response)
 
     toPersist.status = 'start'
-    toPersist.lastOperation = 'batch-update-label'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
     // 実行中画面に切り替え
@@ -107,12 +99,7 @@ export const UpdateLabelScreen: React.FC = () => {
         operation_id: toPersist.operationId,
         status: toPersist.status,
       });
-      if (res.status === 'end' || res.status === 'doing') {
-        toPersist.status = res.status
-        window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-      }
-      console.log("[ラベル付与]バッチ処理実行中_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
-
+      console.log("/update-labelのレスポンス:", res)
     } catch (err) {
       window.alert("バッチ処理起動に失敗したため、画面を切り替えます")
       navigate("/update-label")
