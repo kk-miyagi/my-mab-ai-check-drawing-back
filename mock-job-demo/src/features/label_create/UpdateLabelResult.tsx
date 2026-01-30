@@ -25,11 +25,13 @@ const fetchAsBlob = async (url: string): Promise<Blob> => {
 };
 
 
-export const DemoUpdateLabelResultScreen: React.FC = () => {
+export const UpdateLabelResultScreen: React.FC = () => {
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState<string>();
   const [csvUrl, setCsvUrl] = useState<string>();
+  const [imageFileName, setImageFileName] = useState<string>();
+  const [csvFileName, setCsvFileName] = useState<string>();
   const navigate = useNavigate();
 
   const raw = window.localStorage.getItem(localStorageKey.default) as string;
@@ -50,8 +52,8 @@ export const DemoUpdateLabelResultScreen: React.FC = () => {
       ]);
 
       // それぞれダウンロードを発火
-      downloadBlob(imageBlob, "MAB_drawings_viewssquare_annotated_dims_llm_final.jpg");
-      downloadBlob(csvBlob, "MAB_drawings_viewssquare_matched_dimensions_llm_final.csv");
+      downloadBlob(imageBlob, imageFileName);
+      downloadBlob(csvBlob, csvFileName);
     } catch (err) {
       console.error(err);
       alert("ダウンロードに失敗しました。ネットワークやパスを確認してください。");
@@ -76,14 +78,18 @@ export const DemoUpdateLabelResultScreen: React.FC = () => {
           const imgBlob = await imgFile.async('blob');
           const url = URL.createObjectURL(imgBlob);
           setImageUrl(url)
-
+          const path = imgFile.name
+          const filename = path.split("/").pop()
+          setImageFileName(filename)
         }
         const csvFile = zip.file(/\.csv$/)[0]
-        console.log(csvFile)
         if (csvFile) {
           const text = await csvFile.async("string");
           const csvBlob = await csvFile.async('blob');
           setCsvUrl(URL.createObjectURL(csvBlob));
+          const path = csvFile.name
+          const filename = path.split("/").pop()
+          setCsvFileName(filename)
           const result = Papa.parse<Row>(text, {
             header: true,
             skipEmptyLines: true,
@@ -112,7 +118,7 @@ export const DemoUpdateLabelResultScreen: React.FC = () => {
 
   return (
     <div className="page">
-      <h1>(デモ)ラベル付与</h1>
+      <h1>ラベル付与</h1>
       <p>ラベル付与を行った図面の確認画面です。</p>
       <h2>図面の結果</h2>
       <img src={imageUrl} alt="ラベル付与後の図面" style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
