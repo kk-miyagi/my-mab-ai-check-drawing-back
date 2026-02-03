@@ -147,6 +147,8 @@ def check_match_rect(image_path: str, json_path: str):
     print(f"一致数: {len(match_list)}")
     print(f"不一致数: {len(unmatch_list)}")
 
+    return match_list, unmatch_list
+
 if __name__ == "__main__":
     # 第一引数が画像、第二引数がfinal_matches.jsonファイル
     check_match_rect(
