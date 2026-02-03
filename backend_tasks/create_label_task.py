@@ -1014,10 +1014,10 @@ def _annotate_matches(
     with Image.open(image_path).convert("RGB") as img:
         drawer = ImageDraw.Draw(img)
         try:
-            font = ImageFont.truetype("arial.ttf", size=50)
+            font = ImageFont.truetype("arial.ttf", size=15)
         except Exception:
             try:
-                font = ImageFont.truetype("DejaVuSans.ttf", size=50)
+                font = ImageFont.truetype("DejaVuSans.ttf", size=15)
             except Exception:
                 font = ImageFont.load_default()
         for idx, match in enumerate(matches, start=start_index):
@@ -1272,9 +1272,9 @@ def highlight_mab_dimensions(
         print(f"MAB画像が見つかりません: {image_path}")
         return None
 
-    run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     # TODO
-    run_dir = REPO_ROOT / "logs" / f"dimension_run_{image_path.stem}_{run_timestamp}"
+    run_dir = Path(f"{output_dir}job_{run_timestamp}")
     run_dir.mkdir(parents=True, exist_ok=True)
 
     if csv_text:
@@ -1620,7 +1620,7 @@ def highlight_mab_dimensions(
         image_path,
         ordered_matches,
         suffix="_annotated_dims_llm_final",
-        outline="red",
+        outline=(220, 20, 60),
         output_dir=output_dir
     )
 
