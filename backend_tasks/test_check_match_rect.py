@@ -1,6 +1,8 @@
 import json
 import cv2
 import numpy as np
+from PIL import Image, ImageDraw
+import sys
 
 def get_output_rect(json_path: str) -> list[list]:
     """jsonからrectのみの配列を返す"""
@@ -54,25 +56,48 @@ def get_black_and_white_colors(img, hsv):
     hs = result.T[0].flatten()
     ss = result.T[1].flatten()
     vs = result.T[2].flatten()
-    tmp_values = np.array([0, 40, 20])
+    tmp_values = np.array([100, 100, 100])
     return (np.array([hs.min(), ss.min(), vs.min()]) + tmp_values,
             np.array([hs.max(), ss.max(), vs.max()]) + tmp_values)
 
+def modify_image(image_path: str, json_path: str) -> str:
+    """矩形の上部にある文字を削除し、新しい画像を保存"""
+    rects = get_output_rect(json_path)
+
+    out_image_path = "test_image/tmp_modify_image_0.jpg"
+
+    with Image.open(image_path).convert("RGB") as img:
+        drawer = ImageDraw.Draw(img)
+
+        text_h = 40 # 文字の高さ(今のプログラムが40っぽいので40にしている)
+
+        for i in rects:
+            x1, y1, x2, y2 = i[0], i[1], i[2], i[3]
+            h = y2 - y1
+            y1 = y1 - text_h
+            y2 = y2 - h
+            drawer.rectangle((x1, y1, x2+5, y2), fill=(255, 255, 255))
+        
+        img.save(out_image_path)
+    
+    return out_image_path
+
 def check_match_rect(image_path: str, json_path: str):
-    img = cv2.imread(image_path)
+    tmp_image_path = modify_image(image_path, json_path)
+
+    img = cv2.imread(tmp_image_path)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
     lower_color, upper_color = get_black_and_white_colors(img, hsv)
+    print(f"lower:{lower_color}\n upper:{upper_color}")
+
     mask = cv2.inRange(hsv, lower_color, upper_color)
 
-    k = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
-    er = cv2.erode(mask, k, iterations=1)
+    cv2.imwrite("test_image/tmp_modify_image_1.jpg", mask)
 
-    cv2.imwrite("test_image/test_1.jpg", er)
+    contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-    contours, _ = cv2.findContours(er, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
-    h, w = img.shape[:2]
-    max_area = w * h * 0.5
+    max_area = img.shape[0] * img.shape[1] * 0.5
 
     detected_boxes = []
     for cnt in contours:
@@ -84,47 +109,47 @@ def check_match_rect(image_path: str, json_path: str):
             if 30 < area < max_area:
                 x, y, w, h = cv2.boundingRect(approx)
                 detected_boxes.append((x, y, x + w, y + h))
+                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 1)
+
+    cv2.imwrite("test_image/tmp_modify_image_2.jpg", img)
+
+    unique_detected_boxes = []
+    for i in detected_boxes:
+        for j in detected_boxes:
+            if i == j:
+                continue
+            if abs(i[0] - j[0]) <= 5 and  abs(i[3] - j[3]) <=5:
+                if j[3] > i[3]:
+                    unique_detected_boxes.append(j)
+                else:
+                    unique_detected_boxes.append(i)
+    unique_detected_boxes = list(set(unique_detected_boxes))
 
     rects = get_output_rect(json_path)
-    print(f"画像から取得した数: {len(detected_boxes)}")
+    print(f"画像から取得した数: {len(unique_detected_boxes)}")
     print(f"jsonのrect数: {len(rects)}")
 
     print("-- 比較 --")
-    for d_box in detected_boxes:
+    
+    match_list = []
+    unmatch_list = []
+    for d_box in unique_detected_boxes:
         iou_list = []
         for j_rect in rects:
             iou = calc_iou(j_rect, d_box)
             iou_list.append((iou, j_rect))
-        max_iou, max_rect = max(iou_list, key=lambda t: t[0])
-        if max_iou > 0.7:
-            print(max_iou, max_rect, d_box, "これは元々あるようだ")
-        elif max_iou > 0.0:
-            print(max_iou, max_rect, d_box, "近いものがあるか？")
+        max_iou, _ = max(iou_list, key=lambda t: t[0])
+        if max_iou > 0.9:
+            match_list.append(d_box)
         else:
-            print(max_iou, max_rect, d_box, "追加された可能性があるもの")
-
-    # for j_rect in rects:
-    #     for d_box in detected_boxes:
-    #         iou = calc_iou(j_rect, d_box)
-    #         d_x1, d_y1, d_x2, d_y2 = d_box[0], d_box[1], d_box[2], d_box[3]
-    #         cv2.rectangle(img, (d_x1, d_y1), (d_x2, d_y2), (0, 255, 0), 4)
-    #         if iou > 0.7:
-    #             j_x1, j_y1, j_x2, j_y2 = j_rect[0], j_rect[1], j_rect[2], j_rect[3]
-    #             match.append([j_x1, j_y1, j_x2, j_y2])
-    #             d_match.append([d_x1, d_y1, d_x2, d_y2])
-    #             continue
-
-    #         if iou == 0.0:
-    #             add_rect.append([d_x1, d_y1, d_x2, d_y2])
+            unmatch_list.append(d_box)
     
-    # unique_match = [list(x) for x in list(dict.fromkeys(map(tuple, match)))]
-    # unique_add_rect = [list(x) for x in list(dict.fromkeys(map(tuple, add_rect)))]
+    print(f"一致数: {len(match_list)}")
+    print(f"不一致数: {len(unmatch_list)}")
 
-    # print(f"一致数: {len(unique_match)}")
-    # print(len(unique_add_rect))
-    # cv2.imwrite("test_image/test_2.jpg", img)
-
-
-# check_match_rect("test_image/1_bf_file_MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_annotated_dims_llm_final.jpg", "test_json/final_matches_2.json")
-
-check_match_rect("test_image/MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_annotated_dims_llm_final.jpg", "test_json/final_matches.json")
+if __name__ == "__main__":
+    # 第一引数が画像、第二引数がfinal_matches.jsonファイル
+    check_match_rect(
+        sys.argv[1],
+        sys.argv[2]
+    )

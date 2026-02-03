@@ -13,3 +13,6 @@ logs/*
 !/logs/.gitkeep
 
 .venv/
+
+create-label-responce/**/*.json
+create-label-responce/**/*.txt
