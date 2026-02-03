@@ -2,6 +2,7 @@ import json
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw
+import sys
 
 def get_output_rect(json_path: str) -> list[list]:
     """jsonからrectのみの配列を返す"""
@@ -146,7 +147,9 @@ def check_match_rect(image_path: str, json_path: str):
     print(f"一致数: {len(match_list)}")
     print(f"不一致数: {len(unmatch_list)}")
 
-check_match_rect(
-    "create-label-responce/demo-user_create-label_batch-create-label_d217680e-86ad-4758-b989-6e257b5ffb21/1_bf_file_MAB_drawings_ADS-COMP-ZZ25-0061_1_viewssquare_annotated_dims_llm_final.jpg",
-    "create-label-responce/demo-user_create-label_batch-create-label_d217680e-86ad-4758-b989-6e257b5ffb21/job_20260203192153/final_matches.json"
-)
+if __name__ == "__main__":
+    # 第一引数が画像、第二引数がfinal_matches.jsonファイル
+    check_match_rect(
+        sys.argv[1],
+        sys.argv[2]
+    )
