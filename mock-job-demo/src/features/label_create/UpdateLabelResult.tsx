@@ -60,6 +60,13 @@ export const UpdateLabelResultScreen: React.FC = () => {
     }
   };
 
+  const handleMove = async () => {
+    parsed.status = 'start'
+    parsed.lastOperation = 'open-update-label-screen'
+    window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
+    navigate('/update-label')
+  }
+
   useEffect(() => {
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
     (async () => {
@@ -142,6 +149,7 @@ export const UpdateLabelResultScreen: React.FC = () => {
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
         <button className="primary" onClick={handleRemoveItem}>最初からやり直す</button>
         <button className="primary" onClick={handleDownload}>画像とCSVを同時にダウンロード</button>
+        <button className="primary" onClick={handleMove}>編集画面へ</button>
       </div>
     </div>
   );
