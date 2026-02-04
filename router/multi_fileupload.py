@@ -162,7 +162,6 @@ async def multi_fileupload(request: Request):
                         app_state.update_app_status(
                                 req_status
                         )
-                        # TODO app status session 削除(削除タイミングは考える必要があるかも）
                 else:
                     # 既にsum_numberが更新されている場合は何もしない
                     logger.log(
