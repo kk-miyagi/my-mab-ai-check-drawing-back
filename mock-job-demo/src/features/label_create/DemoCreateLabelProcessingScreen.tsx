@@ -38,7 +38,7 @@ export const DemoCreateLabelProcessingScreen: React.FC = () => {
   return (
     <div className="page">
       <h2>(デモ)ラベル付与の処理中</h2>
-      <p>現在ラベルを付与中です。<br />10秒ほどで画面が切り替わります。(本番時は1時間ほどかかる想定です。)</p>
+      <p>現在ラベルを付与中です。<br />デモ版のため10秒ほどで画面が切り替わります。</p>
     </div>
 
   );
