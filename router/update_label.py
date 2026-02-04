@@ -12,10 +12,11 @@ import zipfile
 router = APIRouter(route_class=AppRoute)
 
 
-class CreateLabelRunner(BackendTaskRunner):
+# TODO create labelとの共通化
+class UpdateLabelRunner(BackendTaskRunner):
 
     _IN_BASE_DIR = './multi-fileupload'
-    _OUT_BASE_DIR = './create-label-responce'
+    _OUT_BASE_DIR = './update-label-responce'
     _EPIC = 'create-label'
     _IN_OPE = 'batch-create-label'
     _OUT_OPE = 'batch-create-label'
@@ -36,15 +37,15 @@ class CreateLabelRunner(BackendTaskRunner):
         return f"{base_cmd} {in_dir} {img} {out_dir}"
 
 
-@router.post("/create-label/")
+@router.post("/update-label/")
 async def create_label(request: Request, background_tasks: BackgroundTasks):
     state = request.state
     req_status = AppStatus.create_from_state(state)
 
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
-    up_epic = 'create-label'
-    up_ope = 'batch-create-label'
+    up_epic = 'update-label'
+    up_ope = 'batch-update-label'
 
     req_user = req_status.user
     req_opid = req_status.operation_id
@@ -54,7 +55,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
             logger.log(
                 req_status,
                 AppLogger.DEBUG,
-                "CREATE-LABEL START STATUS START"
+                "UPDATE-LABEL START STATUS START"
             )
             if os.path.exists(upload_dir):
                 # app_status 作成
@@ -64,7 +65,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 # 別プロセスにてラベル付与実行
                 BackendTasks.set_backend_runner(
                     req_status,
-                    CreateLabelRunner(),
+                    UpdateLabelRunner(),
                     background_tasks
                 )
             else:
@@ -72,7 +73,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
-                    f"CREATE-LABEL UPLOAD DIR NOT FOUND:{upload_dir}"
+                    f"UPDATE-LABEL UPLOAD DIR NOT FOUND:{upload_dir}"
                 )
             return AppRoute.create_responce_from_status(
                 req_status
@@ -81,7 +82,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
             logger.log(
                 req_status,
                 AppLogger.DEBUG,
-                "CREATE-LABEL DOING STATUS START"
+                "UPDATE-LABEL DOING STATUS START"
             )
             # requestと同じステータス
             return AppRoute.create_responce_from_status(
@@ -91,7 +92,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
             logger.log(
                 req_status,
                 AppLogger.DEBUG,
-                "CREATE-LABEL END STATUS START"
+                "UPDATE-LABEL END STATUS START"
             )
             # 1)status END確認
             app_status = app_state.get_eq_app_status(req_status)
@@ -99,7 +100,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
-                    f"CREATE-LABEL REQUEST IS NOT END:{req_status.status}"
+                    f"UPDATE-LABEL REQUEST IS NOT END:{req_status.status}"
                 )
                 req_status.staus = Status.ERROR
                 return AppRoute.create_responce_from_status(
@@ -108,7 +109,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
             # 2)ダウンロード先ディレクトリから図面ファイル、CSVファイル読み込み
             ope_dir = f"{req_status.user}_{req_status.epic}_"
             ope_dir += f"{req_status.operation}_{req_status.operation_id}/"
-            res_dir = f"./create-label-responce/{ope_dir}"
+            res_dir = f"./update-label-responce/{ope_dir}"
             fname_list = os.listdir(res_dir)
             file_list = [
                 res_dir + fname for fname in fname_list if fname != ".gitkeep"
@@ -119,7 +120,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
             # 3)ZIPに固めてダウンロードの返信を実施
             io = BytesIO()
             now = datetime.now().strftime('%Y%m%d%H%M%S')
-            zip_filename = f"create-label_{now}.zip"
+            zip_filename = f"update-label_{now}.zip"
             with zipfile.ZipFile(
                     io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
                 for fpath in file_list:
