@@ -14,5 +14,6 @@ logs/*
 
 .venv/
 
+backend_tasks/logs/*.json
 create-label-responce/**/*.json
 create-label-responce/**/*.txt
