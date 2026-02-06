@@ -2,15 +2,17 @@ import csv
 import json
 import sys
 
+
 def read_csv_as_dict(path: str, key_field: str, encoding: str) -> dict:
     """csvの読み込み"""
     data = {}
     with open(path, newline="", encoding=encoding) as f:
-        reader= csv.DictReader(f)
+        reader = csv.DictReader(f)
         for row in reader:
             key = row[key_field]
             data[key] = row
     return data
+
 
 def compare_csv(old_file_path: str, new_file_path: str):
     """csvを比較して、削除/追加/編集のNo一覧を返す"""
@@ -37,6 +39,7 @@ def compare_csv(old_file_path: str, new_file_path: str):
 
     return delete_keys, add_keys, modify_keys
 
+
 def find_delete_rect(old_csv_path, new_csv_path, json_path):
     """削除するNoと座標を見つける"""
     delete_keys, _, _ = compare_csv(old_csv_path, new_csv_path)
@@ -49,10 +52,10 @@ def find_delete_rect(old_csv_path, new_csv_path, json_path):
         for d in data:
             if i == d["row_index"]:
                 output_data.append((i, d["rect"]))
-    
     print(f"削除予定のNoと座標(x1, y1, x2, y2): {output_data}")
 
     return output_data
+
 
 if __name__ == "__main__":
     find_delete_rect(

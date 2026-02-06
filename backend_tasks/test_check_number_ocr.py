@@ -58,6 +58,7 @@ def main(input_img: str, delete_file_flg: bool = False):
     number_list = [text.description for text in res.text_annotations[1:]
                    if text.description.isdigit()]
     print(f"OCRで読み取れた数字一覧: {number_list}")
+    # TODO なんで？
     output_number = max(number_list)
     print(f"最終的に選定する数字: {output_number}")
 

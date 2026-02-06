@@ -1003,8 +1003,9 @@ def _annotate_matches(
     *,
     suffix: str = "_annotated_dims",
     outline: str = "red",
-    label_prefix: str = "No.",
+    label_prefix: str = "",
     start_index: int = 1,
+    box_on: bool = True
 ) -> Optional[Path]:
     if not matches:
         return None
@@ -1014,26 +1015,36 @@ def _annotate_matches(
     with Image.open(image_path).convert("RGB") as img:
         drawer = ImageDraw.Draw(img)
         try:
-            font = ImageFont.truetype("arial.ttf", size=15)
+            font = ImageFont.truetype("arial.ttf", size=40)
         except Exception:
             try:
-                font = ImageFont.truetype("DejaVuSans.ttf", size=15)
+                font = ImageFont.truetype("DejaVuSans.ttf", size=40)
             except Exception:
                 font = ImageFont.load_default()
         for idx, match in enumerate(matches, start=start_index):
             rect = match.get("rect")
             if not rect:
                 continue
-            drawer.rectangle(rect, outline=outline, width=4)
+            if box_on:
+                drawer.rectangle(rect, outline=outline, width=4)
             label_text = f"{label_prefix}{idx}" if label_prefix else str(idx)
             if hasattr(font, "getbbox"):
                 bbox = font.getbbox(label_text)
                 label_height = bbox[3] - bbox[1]
+                label_weight = bbox[2] - bbox[0]
             else:
                 label_height = 14
+                label_weight = 40 * 2
                 if hasattr(font, "getsize"):
                     label_height = font.getsize(label_text)[1]
-            label_anchor = (rect[0], max(rect[1] - label_height - 4, 0))
+            label_x = rect[0]
+            label_y = max(rect[1] - label_height - 4, 0)
+            if not box_on and ((rect[3] - rect[1]) > 2 * label_height):
+                label_y = min(rect[1] + label_height + 4, rect[3])
+            if not box_on and ((rect[2] - rect[0]) * 0.7 < label_weight):
+                label_x = min(rect[0] - label_weight - 4, rect[0])
+
+            label_anchor = (label_x, label_y)
             drawer.text(label_anchor, label_text, fill=outline, font=font)
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
@@ -1166,6 +1177,7 @@ def highlight_mab_dimensions(
     reuse_unmatched_entries: Optional[Iterable[Dict[str, object]]] = None,
     row_tile_regions: Optional[Dict[int, Dict[str, object]]] = None,
     region_padding_px: int = 20,
+    box_on: bool = True
 ) -> Optional[Path]:
     csv_text = _coerce_csv_string(csv_payload)
     rows = _parse_csv_rows(csv_text) if csv_text else []
@@ -1199,7 +1211,8 @@ def highlight_mab_dimensions(
                 item for item in indexed_rows if item[0] in target_row_set]
         if normalized_row_tile_regions:
             normalized_row_tile_regions = {
-                idx: entry for idx, entry in normalized_row_tile_regions.items()
+                idx: entry
+                for idx, entry in normalized_row_tile_regions.items()
                 if idx in target_row_set
             }
 
@@ -1307,7 +1320,12 @@ def highlight_mab_dimensions(
         )
 
     try:
-        aggregated_tokens, raw_tokens, paragraphs, image_size = _load_mab_tokens(image_path)
+        (
+          aggregated_tokens,
+          raw_tokens,
+          paragraphs,
+          image_size
+        ) = _load_mab_tokens(image_path)
     except Exception as exc:
         print(f"MABのOCR取得に失敗しました: {exc}")
         _write_json_file(run_dir / "ocr_error.json", {"message": str(exc)})
@@ -1316,7 +1334,8 @@ def highlight_mab_dimensions(
     if not aggregated_tokens:
         if not raw_tokens:
             print("OCRで取得できたトークンがありません。")
-            _write_json_file(run_dir / "ocr_error.json", {"message": "no_tokens"})
+            _write_json_file(
+                run_dir / "ocr_error.json", {"message": "no_tokens"})
             return None
         aggregated_tokens = [
             AggregatedToken(
@@ -1621,7 +1640,8 @@ def highlight_mab_dimensions(
         ordered_matches,
         suffix="_annotated_dims_llm_final",
         outline=(220, 20, 60),
-        output_dir=output_dir
+        output_dir=output_dir,
+        box_on=box_on
     )
 
     print("=== 寸法マッチ結果 ===")
@@ -1858,6 +1878,7 @@ def demission_group(
     tile_tolerance: float = 1e-3,
     tile_max_results: int = 1,
     tile_region_padding: int = 30,
+    box_on: bool = True
 ):
     # 投影図すべてに囲みました。
     if _gemini_manager is None:
@@ -1884,7 +1905,6 @@ def demission_group(
         print(f"MAB_compare_resの取得でエラーが発生しました: {error_message}")
         sys.exit(1)
     MAB_compare_res = get_raw_response(raw_MAB_compare_res)
-    print(f"MAB_compare_res\n{MAB_compare_res}")
     tile_dir_path: Optional[Path] = None
     if tile_dir:
         candidate = Path(tile_dir)
@@ -1952,7 +1972,8 @@ def demission_group(
         csv_payload,
         row_tile_regions=row_tile_regions_payload,
         region_padding_px=effective_padding,
-        output_dir=output_dir
+        output_dir=output_dir,
+        box_on=box_on
     )
 
 
@@ -1981,6 +2002,10 @@ if __name__ == "__main__":
             type=str,
             default="output/",
             help="実行結果出力先ディレクトリ")
+    parser.add_argument(
+            "--box-enable",
+            action='store_true',
+            help="出力画像の設計項目に赤枠をつける")
     parser.add_argument(
             "--tile-dir",
             type=str,
@@ -2011,13 +2036,13 @@ if __name__ == "__main__":
         sys.exit(0)
 
     dir_name = args.dir
-    # TODO
     if dir_name and not dir_name.endswith((os.sep, "/")):
         dir_name = dir_name + os.sep
     file_list: Dict[str, str] = {}
     file_list["MAB_picture1"] = args.mab_picture1
     file_list["MAB_picture2"] = args.mab_picture2
 
+    print(f"********** {args.box_enable} ************************")
     demission_group(
         dir_name,
         file_list,
@@ -2025,6 +2050,7 @@ if __name__ == "__main__":
         tile_tolerance=args.tile_tolerance,
         tile_max_results=args.tile_max_results,
         tile_region_padding=args.tile_region_padding,
-        output_dir=args.output_dir
+        output_dir=args.output_dir,
+        box_on=args.box_enable
     )
     sys.exit(0)

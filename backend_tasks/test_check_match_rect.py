@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 import sys
 
+
 def get_output_rect(json_path: str) -> list[list]:
     """jsonからrectのみの配列を返す"""
     with open(json_path, "r", encoding="utf-8") as f:
@@ -11,6 +12,7 @@ def get_output_rect(json_path: str) -> list[list]:
 
     rects = [i["rect"] for i in data]
     return rects
+
 
 def calc_iou(box_1: list, box_2: list) -> float:
     """矩形のIoUを計算"""
@@ -28,9 +30,9 @@ def calc_iou(box_1: list, box_2: list) -> float:
 
     if denominator == 0:
         return 0.0
-    
     iou = inter_area / denominator
     return iou
+
 
 def get_black_and_white_colors(img, hsv):
 
@@ -60,6 +62,7 @@ def get_black_and_white_colors(img, hsv):
     return (np.array([hs.min(), ss.min(), vs.min()]) + tmp_values,
             np.array([hs.max(), ss.max(), vs.max()]) + tmp_values)
 
+
 def modify_image(image_path: str, json_path: str) -> str:
     """矩形の上部にある文字を削除し、新しい画像を保存"""
     rects = get_output_rect(json_path)
@@ -69,7 +72,8 @@ def modify_image(image_path: str, json_path: str) -> str:
     with Image.open(image_path).convert("RGB") as img:
         drawer = ImageDraw.Draw(img)
 
-        text_h = 40 # 文字の高さ(今のプログラムが40っぽいので40にしている)
+        # 文字の高さ(今のプログラムが40っぽいので40にしている)
+        text_h = 40
 
         for i in rects:
             x1, y1, x2, y2 = i[0], i[1], i[2], i[3]
@@ -77,10 +81,11 @@ def modify_image(image_path: str, json_path: str) -> str:
             y1 = y1 - text_h
             y2 = y2 - h
             drawer.rectangle((x1, y1, x2+5, y2), fill=(255, 255, 255))
-        
+
         img.save(out_image_path)
-    
+
     return out_image_path
+
 
 def check_match_rect(image_path: str, json_path: str):
     tmp_image_path = modify_image(image_path, json_path)
@@ -95,7 +100,10 @@ def check_match_rect(image_path: str, json_path: str):
 
     cv2.imwrite("test_image/tmp_modify_image_1.jpg", mask)
 
-    contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+            mask,
+            cv2.RETR_LIST,
+            cv2.CHAIN_APPROX_SIMPLE)
 
     max_area = img.shape[0] * img.shape[1] * 0.5
 
@@ -118,7 +126,7 @@ def check_match_rect(image_path: str, json_path: str):
         for j in detected_boxes:
             if i == j:
                 continue
-            if abs(i[0] - j[0]) <= 5 and  abs(i[3] - j[3]) <=5:
+            if abs(i[0] - j[0]) <= 5 and abs(i[3] - j[3]) <= 5:
                 if j[3] > i[3]:
                     unique_detected_boxes.append(j)
                 else:
@@ -130,7 +138,7 @@ def check_match_rect(image_path: str, json_path: str):
     print(f"jsonのrect数: {len(rects)}")
 
     print("-- 比較 --")
-    
+
     match_list = []
     unmatch_list = []
     for d_box in unique_detected_boxes:
@@ -143,11 +151,12 @@ def check_match_rect(image_path: str, json_path: str):
             match_list.append(d_box)
         else:
             unmatch_list.append(d_box)
-    
+
     print(f"一致数: {len(match_list)}")
     print(f"不一致数: {len(unmatch_list)}")
 
     return match_list, unmatch_list
+
 
 if __name__ == "__main__":
     # 第一引数が画像、第二引数がfinal_matches.jsonファイル
