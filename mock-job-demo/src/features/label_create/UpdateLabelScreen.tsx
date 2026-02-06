@@ -28,8 +28,6 @@ export const UpdateLabelScreen: React.FC = () => {
 
   // ローカルストレージの削除ボタン用
   const handleRemoveItem = () => {
-    window.localStorage.removeItem(localStorageKey.default);
-    console.log('ローカルストレージを削除しました。');
     navigate('/hub')
   };
 
