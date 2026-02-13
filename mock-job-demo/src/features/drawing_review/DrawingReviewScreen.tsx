@@ -1,7 +1,9 @@
 import React, { useState, ChangeEvent, useRef, useEffect } from 'react'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import type { ImageFile, ImagePair, DrawingReviewResponse } from '../../types/drawingReview.ts';
+import { drawingReviewApi } from '../../api/drawingReviewApi.ts';
 
 const DEFAULT_EPIC = 'drawing-review';
 const DEFAULT_OPERATION = 'upload-images';
@@ -10,14 +12,19 @@ type Row = Record<string, string | number | boolean | null>;
 
 export const DrawingReviewScreen: React.FC = () => {
 
+  const navigate = useNavigate();
+
+  // アップロードしたExcelの中身
   const location = useLocation();
   const data = location.state;
+  console.log("確認", data)
+  const targetSheet = data.sheets[0]
 
   const matchesCondition = (row: Row): boolean => {
     return (row[4] === '〇' || row[4] === '△') && row[5] === '済' && row[2] !== "全体" && row[2] !== "-";
   };
 
-  const filtered = data.sheets[0].rows.filter((row) => matchesCondition(row));
+  const filtered = targetSheet.rows.filter((row) => matchesCondition(row));
 
   const uniques = Array.from(
     new Set(
@@ -66,7 +73,6 @@ export const DrawingReviewScreen: React.FC = () => {
   };
 
   const handleStart = async () => {
-    // await handlevali()
     // ローカルストレージの取得
     const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.default) as string);
     
@@ -74,22 +80,40 @@ export const DrawingReviewScreen: React.FC = () => {
     toPersist.status = 'doing'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
-    // 画像のアップロード
-    for (let i = 0; i < imagePairs.length; i++) {
-      const files: File[] = [imagePairs[i].image1, imagePairs[i].image2]
-      const requestPayload = {
+    try {
+      // 画像のアップロード
+      for (let i = 0; i < imagePairs.length; i++) {
+        const files: File[] = [imagePairs[i].image1, imagePairs[i].image2]
+        const requestPayload = {
+          user: 'demo-user',
+          epic: toPersist.lastEpic,
+          operation: DEFAULT_OPERATION,
+          operation_id: toPersist.operationId,
+          status: toPersist.status,
+          number: i+1,
+          files: files
+        };
+        const response = await uploadApi.uploadPair(requestPayload);
+      }
+      toPersist.status = 'start'
+      window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+
+      // 実行中画面に切り替え
+      navigate("/drawing-review-processing")
+
+      let res: DrawingReviewResponse;
+      res = await drawingReviewApi.drawingReviewStart({
         user: 'demo-user',
-        epic: toPersist.lastEpic,
-        operation: DEFAULT_OPERATION,
+        epic: DEFAULT_EPIC,
+        operation: 'batch-drawing-review',
         operation_id: toPersist.operationId,
         status: toPersist.status,
-        number: i+1,
-        files: files
-      };
-      const response = await uploadApi.uploadPair(requestPayload);
+      })
+    } catch (err) {
+      window.alert("バッチ処理起動に失敗したため、画面を切り替えます")
+      const sheets = data.sheets
+      navigate("/drawing-review", { state: { sheets }})
     }
-    toPersist.status = 'start'
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
   }
 
@@ -117,22 +141,9 @@ export const DrawingReviewScreen: React.FC = () => {
     };
   };
 
-
-  interface ImageFile {
-    file: File;
-  }
-  
-  interface ImagePair {
-    base: string;
-    image1: ImageFile;
-    image2: ImageFile;
-    excel: string;
-    checkVersion: number;
-  }
-
   const [imagePairs, setImagePairs] = useState<ImagePair[]>([])
 
-  const handleValidation = () => {
+  useEffect(() => {
     const u =
       new Set(
         imagePairs
@@ -142,12 +153,11 @@ export const DrawingReviewScreen: React.FC = () => {
     const un = uniques.filter(item => !u.has(item))
 
     if (un.length > 0) {
-      setErrorMessage(`以下に関する画像がありません。: ${un.join(', ')}`)
+      setErrorMessage(`以下に関する図面がアップロードされていません。: ${un.join(', ')}`)
     } else {
       setErrorMessage('')
     }
-    
-  }
+  }, [imagePairs])
 
   // 画像のペアリング
   useEffect(() =>{
@@ -226,7 +236,7 @@ export const DrawingReviewScreen: React.FC = () => {
           </ul>
       </ul>
 
-      {data.sheets[0] && (
+      {targetSheet && (
         <div style={{ marginTop: 12, overflowX: 'auto' }} className='table-wrapper' >
           <table
             style={{
@@ -260,14 +270,6 @@ export const DrawingReviewScreen: React.FC = () => {
 
       <h3>画像アップロード</h3>
 
-      {/* <p>必要な図面一覧</p>
-      <ul>
-        {uniques.map((file) =>(
-          <li>{file}</li>
-        ))}
-      </ul> */}
-
-
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
           <label style={{ display: 'grid', gap: 4 }}>
@@ -283,13 +285,10 @@ export const DrawingReviewScreen: React.FC = () => {
         {validationMessage && (
           <p style={{ color: 'red', border: '1px solid red', padding: '10px'}}>{validationMessage}</p>
         )}
-        
+
         <ul style={{ padding: 0 }}>
           {imageFile.map((file, i) => (
-
-            <li style={{ listStyle: "none", margin: 2 }}>
-
-              
+            <li style={{ listStyle: "none", margin: 2 }} key={i}>
               <strong>{file.name}</strong>{" "}
               <button type="button" onClick={() => handleImageFileReplace(i)}>別ファイルへ変更</button>{" "}
               <button type="button" onClick={() => handleImageFileRemove(i)}>削除</button>
@@ -301,7 +300,6 @@ export const DrawingReviewScreen: React.FC = () => {
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
         <button className="primary" onClick={handleStart}  disabled={errorMessage !== '' || validationMessage !== ''}>処理開始</button>
-        <button className="primary" onClick={handleValidation} >バリデーション</button>
       </div>
     </div>
   )

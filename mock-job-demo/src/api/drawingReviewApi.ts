@@ -2,7 +2,7 @@ import { http } from "./http";
 import { ENDPOINTS } from "./endpoints";
 import { AxiosRequestConfig } from "axios";
 import type { CheckStatusRequest, CheckStatusResponse } from "../types/checkStatus";
-import type { DrawingReviewRequest } from "../types/drawingReview.ts";
+import type { DrawingReviewRequest, DrawingReviewResponse } from "../types/drawingReview.ts";
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 
@@ -26,7 +26,7 @@ async function postForm<TResponse>(path: string, formData: FormData, responseTyp
 
 export const drawingReviewApi = {
 
-  async drawingReviewStart(payload: DrawingReviewRequest) {
+  async drawingReviewStart(payload: DrawingReviewRequest): Promise<DrawingReviewResponse> {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
@@ -36,7 +36,7 @@ export const drawingReviewApi = {
     return postForm(DRAWING_REVIEW_ENDPOINT, form);
   },
 
-  async drawingReviewEnd(payload: DrawingReviewRequest) {
+  async drawingReviewEnd(payload: DrawingReviewRequest): Promise<DrawingReviewResponse> {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
