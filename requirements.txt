@@ -10,3 +10,4 @@ opencv-python
 google-cloud-aiplatform
 google-genai
 pdf2image
+img2pdf
