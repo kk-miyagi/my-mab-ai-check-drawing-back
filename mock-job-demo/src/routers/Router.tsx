@@ -13,6 +13,10 @@ import { DemoCreateLabelResultScreen } from '../features/label_create/DemoCreate
 import { UpdateLabelScreen } from '../features/label_create/UpdateLabelScreen';
 import { UpdateLabelProcessingScreen } from '../features/label_create/UpdateLabelProcessingScreen';
 import { UpdateLabelResultScreen } from '../features/label_create/UpdateLabelResult';
+import { DrawingReviewScreen } from '../features/drawing_review/DrawingReviewScreen';
+import { DrawingReviewUploadExcelScreen } from '../features/drawing_review/DrawingReviewUploadExcelScreen';
+import { DrawingReviewProcessingScreen } from '../features/drawing_review/DrawingReviewProcessingScreen';
+import { DrawingReviewResultScreen } from '../features/drawing_review/DrawingReviewResultScreen';
 
 export const AppRouter = () => {
   return (
@@ -29,6 +33,10 @@ export const AppRouter = () => {
       <Route path="/update-label" element={<UpdateLabelScreen />} />
       <Route path="/update-label-processing" element={<UpdateLabelProcessingScreen />} />
       <Route path="/update-label-result" element={<UpdateLabelResultScreen />} />
+      <Route path="/drawing-review" element={<DrawingReviewScreen />} />
+      <Route path="/drawing-review-processing" element={<DrawingReviewProcessingScreen />} />
+      <Route path="/drawing-review-result" element={<DrawingReviewResultScreen />} />
+      <Route path="/drawing-review-upload-excel" element={<DrawingReviewUploadExcelScreen />} />
       <Route path="/demo-create-label-processing" element={<DemoCreateLabelProcessingScreen />} />
       <Route path="/demo-create-label-result" element={<DemoCreateLabelResultScreen />} />
       <Route path="/demo-create-label" element={<DemoCreateLabelScreen />} />
