@@ -40,7 +40,7 @@ export const HubScreen: React.FC = () => {
               <h2 style={{ margin: 0 }}>図面審査</h2>
               <p style={{ margin: '4px 0 0' }}>図面審査シートの指摘内容の反映チェック</p>
             </div>
-            <Link className="primary" to="/">開く</Link>
+            <Link className="primary" to="/drawing-review-upload-excel">開く</Link>
           </div>
         </section>
 
