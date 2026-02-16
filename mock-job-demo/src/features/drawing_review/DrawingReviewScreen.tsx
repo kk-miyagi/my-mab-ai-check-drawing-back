@@ -37,6 +37,7 @@ export const DrawingReviewScreen: React.FC = () => {
 
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [validationMessage, setValidationMessage] = useState<string>('');
+  const [validationMessage2, setValidationMessage2] = useState<string>('');
 
   const replaceInputRef = useRef<HTMLInputElement | null>(null);
   const replaceIndexRef = useRef<number | null>(null);
@@ -219,6 +220,21 @@ export const DrawingReviewScreen: React.FC = () => {
     }
   }, [imageFile])
 
+  useEffect(() => {
+    const fileNames = imageFile.map(img => img.name);
+    const excel = uniques.map(row => parseExcelRowFileName(row)?.base)
+    const filteredFiles: string[] = fileNames.filter(file => {
+      const hasKeyword = excel.some(keyword => file.includes(keyword))
+      return !hasKeyword
+    })
+    
+    if (filteredFiles.length > 0) {
+      setValidationMessage2(`以下のファイルは不要です。: ${filteredFiles.join(', ')}`)
+    } else {
+      setValidationMessage2('')
+    }
+  }, [imageFile])
+
 
   return (
     <div className="page">
@@ -285,6 +301,9 @@ export const DrawingReviewScreen: React.FC = () => {
         {validationMessage && (
           <p style={{ color: 'red', border: '1px solid red', padding: '10px'}}>{validationMessage}</p>
         )}
+        {validationMessage2 && (
+          <p style={{ color: 'red', border: '1px solid red', padding: '10px'}}>{validationMessage2}</p>
+        )}
 
         <ul style={{ padding: 0 }}>
           {imageFile.map((file, i) => (
@@ -299,7 +318,7 @@ export const DrawingReviewScreen: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart}  disabled={errorMessage !== '' || validationMessage !== ''}>処理開始</button>
+        <button className="primary" onClick={handleStart}  disabled={errorMessage !== '' || validationMessage !== ''|| validationMessage2 !== ''}>処理開始</button>
       </div>
     </div>
   )
