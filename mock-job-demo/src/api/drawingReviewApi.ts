@@ -36,7 +36,7 @@ export const drawingReviewApi = {
     return postForm(DRAWING_REVIEW_ENDPOINT, form);
   },
 
-  async drawingReviewEnd(payload: DrawingReviewRequest): Promise<DrawingReviewResponse> {
+  async drawingReviewEnd(payload: DrawingReviewRequest) {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
