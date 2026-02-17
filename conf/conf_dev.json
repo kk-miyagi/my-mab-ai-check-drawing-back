@@ -29,6 +29,7 @@
     },
     "BACKEND_TASKS": {
 	"create-label_batch-create-label": "bash ./shell/create_label.sh",
-	"update-label_batch-update-label": "bash ./shell/update_label.sh"
+	"update-label_batch-update-label": "bash ./shell/update_label.sh",
+	"drawing-review_batch-drawing-review": "bash ./shell/drawing_review.sh"
     }
 }
