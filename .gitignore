@@ -17,3 +17,6 @@ logs/*
 backend_tasks/logs/*.json
 create-label-responce/**/*.json
 create-label-responce/**/*.txt
+
+drawing-review-responce/*
+!/drawing-review-responce/.gitkeep
