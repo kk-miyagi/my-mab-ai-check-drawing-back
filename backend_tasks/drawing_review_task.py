@@ -41,7 +41,7 @@ def check_drawings_prompt(propt_list,files_list):
     
     bf_check_drawings = get_raw_response(raw_bf_check_drawings)
 
-    print(f"反映前情報出力: {bf_check_drawings}")
+    # print(f"反映前情報出力: {bf_check_drawings}")
     
     #反映前の図面と指摘の情報から反映事項の予測
     predict_prompt=f"""
@@ -73,7 +73,7 @@ def check_drawings_prompt(propt_list,files_list):
         )
     check_predict = get_raw_response(raw_check_predict)
     
-    print(f"指摘事項反映内容予測出力: {check_predict}")
+    # print(f"指摘事項反映内容予測出力: {check_predict}")
     
     #反映後の図面について確認
     af_check_drawings_prompt=f"""
@@ -97,7 +97,7 @@ def check_drawings_prompt(propt_list,files_list):
     
     af_check_drawings = get_raw_response(raw_af_check_drawings)
 
-    print(f"反映後情報出力: {af_check_drawings}")
+    # print(f"反映後情報出力: {af_check_drawings}")
 
     judge_prompt=f"""
         あなたは、製図図面を確認するアシスタントです。
@@ -118,7 +118,7 @@ def check_drawings_prompt(propt_list,files_list):
 
     judge_check_drawings = get_raw_response(raw_judge_check_drawings)
 
-    print(f"情報判断出力: {judge_check_drawings}")
+    # print(f"情報判断出力: {judge_check_drawings}")
 
     return judge_check_drawings
 
@@ -253,13 +253,16 @@ if __name__ == "__main__":
 
     results = []
     for i in extracted_data:
+        print(f"row: {i}")
         propt_list = {}
         files_list = {}
 
         # ファイル名検索
         p = Path(args.pdf_dir)
         bf_files = [f for f in p.glob(f"*bf_file_*{i[3]}*.jpg")]
-        af_files = [f for f in p.glob(f"*af_file_*{i[3]}*.jpg")]
+        af_files = [f for f in p.glob(f"*af_file_*{i[3].rsplit("_", 1)[0]}*.jpg")]
+        print(f"bf_files: {bf_files}")
+        print(f"af_files: {af_files}")
         if len(bf_files) == 1 and len(af_files) == 1:
             bf_file = bf_files[0]
             af_file = af_files[0]
@@ -282,10 +285,10 @@ if __name__ == "__main__":
         """
 
         res = check_drawings_prompt(propt_list, files_list)
-        print(f"レスポンス: {res}")
+        # print(f"レスポンス: {res}")
         i.append(res)
         results.append(i)
-        print(f"結果: {results}")
+        # print(f"結果: {results}")
 
     # TODO: 処理が終わった後にExcelシートを作成
     write_result(excel_path, output_dir, results)

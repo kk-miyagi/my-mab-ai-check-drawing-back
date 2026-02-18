@@ -21,7 +21,7 @@ export const DrawingReviewScreen: React.FC = () => {
   const targetSheet = data.sheets[0]
 
   const matchesCondition = (row: Row): boolean => {
-    return (row[4] === '〇' || row[4] === '△') && row[5] === '済' && row[2] !== "全体" && row[2] !== "-";
+    return row[6] === "可";
   };
 
   const filtered = targetSheet.rows.filter((row) => matchesCondition(row));
@@ -29,7 +29,7 @@ export const DrawingReviewScreen: React.FC = () => {
   const uniques = Array.from(
     new Set(
       filtered
-        .map((r) => r[2])
+        .map((r) => r[3])
     )
   );
 
@@ -75,11 +75,11 @@ export const DrawingReviewScreen: React.FC = () => {
 
   const handleStart = async () => {
     // ローカルストレージの取得
-    const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.default) as string);
+    const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingReview) as string);
     
     // ローカルストレージのステータスをdoingに変更
     toPersist.status = 'doing'
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(toPersist));
 
     try {
       // 画像のアップロード
@@ -97,7 +97,8 @@ export const DrawingReviewScreen: React.FC = () => {
         const response = await uploadApi.uploadPair(requestPayload);
       }
       toPersist.status = 'start'
-      window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+      toPersist.lastOperation = 'batch-drawing-review'
+      window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(toPersist));
 
       // 実行中画面に切り替え
       navigate("/drawing-review-processing")
@@ -120,7 +121,7 @@ export const DrawingReviewScreen: React.FC = () => {
 
   // ファイル名からベース部分とバージョンを抽出
   const parseFileName = (fileName: string): { base: string; version: number } | null => {
-    const match = fileName.match(/^(.+?)_(\d+)\.(jpg|jpeg|png|gif)$/i)
+    const match = fileName.match(/^(.+?)_(\d+)\.(jpg|jpeg|png|gif|pdf)$/i)
 
     if (!match) return null;
 
@@ -246,9 +247,7 @@ export const DrawingReviewScreen: React.FC = () => {
       <ul>
         <li>アップロードしたExcelの中で以下に該当するレコードのみを表示しています。</li>
           <ul>
-            <li>「採用可否」が〇もしくは△であり</li>
-            <li>「図面反映」が済であり</li>
-            <li>「図番」が全体もしくは-ではない</li>
+            <li>「採用可否」が可である</li>
           </ul>
       </ul>
 
@@ -289,7 +288,7 @@ export const DrawingReviewScreen: React.FC = () => {
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
           <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" multiple accept="image/*" onChange={handleSetImageFile} />
+            <input type="file" multiple accept="image/*, application/pdf" onChange={handleSetImageFile} />
           </label>
         </div>
 
