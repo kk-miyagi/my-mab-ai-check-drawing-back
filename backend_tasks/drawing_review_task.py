@@ -192,6 +192,7 @@ def write_result(excel_path: str, save_dir: str, data: list[list]) -> None:
     ws["H1"] = "反映先座標"
     ws["I1"] = "関連部門との検討結果"
     ws["J1"] = "AI判定結果"
+    ws["k1"] = "判定理由"
     for row_list in data:
         ws.append(row_list)
     
@@ -286,7 +287,17 @@ if __name__ == "__main__":
 
         res = check_drawings_prompt(propt_list, files_list)
         # print(f"レスポンス: {res}")
-        i.append(res)
+        
+        # 反映状況
+        check = "反映済" if "反映されています" in res else "未反映"
+        i.append(check)
+
+        # 反映理由
+        keyword = "理由"
+        start_index = res.find(keyword)
+        extracted_res = res[start_index:]
+        i.append(extracted_res)
+
         results.append(i)
         # print(f"結果: {results}")
 
