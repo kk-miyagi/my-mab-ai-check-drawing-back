@@ -52,6 +52,14 @@ export const DrawingReviewResultScreen: React.FC = () => {
     }
   };
 
+  const handleSlice = (sheet_name: string): number => {
+    if (sheet_name === "図面審査シート") {
+      return 7
+    } else {
+      return 0
+    }
+  }
+
   useEffect(() => {
     (async () => {
       try {
@@ -110,7 +118,7 @@ export const DrawingReviewResultScreen: React.FC = () => {
               style={{
                 padding: '6px 10px',
                 border: '1px solid #ccc',
-                background: idx === activeIndex ? '#eef' : '#fff',
+                background: idx === activeIndex ? 'green' : '#fff',
                 cursor: 'pointer',
               }}
             >
@@ -129,7 +137,7 @@ export const DrawingReviewResultScreen: React.FC = () => {
             }}
           >
             <tbody className='table-row'>
-              {sheets[activeIndex].rows.map((row, rIdx) => (
+              {sheets[activeIndex].rows.slice(handleSlice(sheets[activeIndex].name)).map((row, rIdx) => (
                 <tr key={rIdx}>
                   {row.map((cell, cIdx) => (
                     <td
@@ -158,7 +166,7 @@ export const DrawingReviewResultScreen: React.FC = () => {
       )}
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleDownload}>Excelファイルをダウンロード</button>
+        <button className="primary" onClick={handleDownload}>量産図面審査シートをダウンロード</button>
       </div>
     </div>
   );

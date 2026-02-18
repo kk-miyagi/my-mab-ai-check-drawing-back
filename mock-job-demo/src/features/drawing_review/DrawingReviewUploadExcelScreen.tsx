@@ -54,6 +54,13 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
     }
   };
 
+  const handleSlice = (sheet_name: string): number => {
+    if (sheet_name === "図面審査シート") {
+      return 7
+    } else {
+      return 0
+    }
+  }
 
   const handleStart = async () => {
     // ローカルストレージの初期化
@@ -118,7 +125,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
         <Link to="/hub">前に戻る</Link>
       </div>
 
-      <h3>Excelアップロード</h3>
+      <h3>量産図面審査シートのアップロード</h3>
 
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
@@ -137,7 +144,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
               style={{
                 padding: '6px 10px',
                 border: '1px solid #ccc',
-                background: idx === activeIndex ? '#eef' : '#fff',
+                background: idx === activeIndex ? 'green' : '#fff',
                 cursor: 'pointer',
               }}
             >
@@ -156,7 +163,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
             }}
           >
             <tbody className='table-row'>
-              {sheets[activeIndex].rows.map((row, rIdx) => (
+              {sheets[activeIndex].rows.slice(handleSlice(sheets[activeIndex].name)).map((row, rIdx) => (
                 <tr key={rIdx}>
                   {row.map((cell, cIdx) => (
                     <td
