@@ -78,7 +78,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
     toPersist.status = 'doing'
     toPersist.lastEpic = DEFAULT_EPIC
     toPersist.lastOperation = DEFAULT_OPERATION
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(toPersist));
 
     // オペレーションIDの発行
     const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?? 'demo-user';
@@ -91,7 +91,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
     };
     const issueResult = await issueOperationId(metaPayload);
     toPersist.operationId = issueResult.operation_id
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(toPersist));
 
     // 画像のアップロード
     const requestPayload = {

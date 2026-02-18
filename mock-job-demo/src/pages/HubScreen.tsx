@@ -5,6 +5,7 @@ import { localStorageKey } from '../constants/localStorageKey';
 export const HubScreen: React.FC = () => {
   const raw = window.localStorage.getItem(localStorageKey.default);
   console.log("[画面スタート]", "ローカルストレージ：", raw)
+  console.log("[画面スタート]", "drawローカルストレージ:", window.localStorage.getItem(localStorageKey.drawingReview))
 
   return (
     <div className="page">

@@ -17,23 +17,26 @@ class CreateLabelRunner(BackendTaskRunner):
     _IN_BASE_DIR = './multi-fileupload'
     _OUT_BASE_DIR = './drawing-review-responce'
     _EPIC = 'drawing-review'
-    _IN_OPE = 'batch-drawing-review'
+    _IN_OPE_EXCEL = 'upload-excel'
+    _IN_OPE_IMAGES = 'upload-images'
     _OUT_OPE = 'batch-drawing-review'
     _FILE_KEY = 'bf_file'
 
     def get_cmd(self, base_cmd, app_state, req_status):
         req = req_status
-        in_dir = f"{self._IN_BASE_DIR}/"
-        in_dir += f"{req.user}_{self._EPIC}_{self._IN_OPE}_{req.operation_id}/"
+        in_dir_excel = f"{self._IN_BASE_DIR}/"
+        in_dir_images = f"{self._IN_BASE_DIR}/"
+        in_dir_excel += f"{req.user}_{self._EPIC}_{self._IN_OPE_EXCEL}_{req.operation_id}/"
+        in_dir_images += f"{req.user}_{self._EPIC}_{self._IN_OPE_IMAGES}_{req.operation_id}/"
         out_dir = f"{self._OUT_BASE_DIR}/"
         out_dir += f"{req.user}_{self._EPIC}"
         out_dir += f"_{self._OUT_OPE}_{req.operation_id}/"
-        f_list = [f for f in os.listdir(in_dir) if f != '.gitkeep']
-        img = None
-        if len(f_list) == 1:
-            img = f_list[0]
+        # f_list = [f for f in os.listdir(in_dir) if f != '.gitkeep']
+        # img = None
+        # if len(f_list) == 1:
+        #     img = f_list[0]
 
-        return f"{base_cmd} {in_dir} {img} {out_dir}"
+        return f"{base_cmd} {in_dir_excel} {in_dir_images} {out_dir}"
 
 
 @router.post("/drawing-review/")
@@ -44,11 +47,13 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
     up_epic = 'drawing-review'
-    up_ope = 'batch-drawing-review'
+    up_excel_ope = 'upload-excel'
+    up_image_ope = 'upload-images'
 
     req_user = req_status.user
     req_opid = req_status.operation_id
-    upload_dir = f"./multi-fileupload/{req_user}_{up_epic}_{up_ope}_{req_opid}"
+    upload_excel_dir = f"./multi-fileupload/{req_user}_{up_epic}_{up_excel_ope}_{req_opid}"
+    upload_image_dir = f"./multi-fileupload/{req_user}_{up_epic}_{up_image_ope}_{req_opid}"
     match req_status.status:
         case Status.START:
             logger.log(
@@ -56,7 +61,7 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
                 AppLogger.DEBUG,
                 "DRAWING-REVIEW START STATUS START"
             )
-            if os.path.exists(upload_dir):
+            if os.path.exists(upload_excel_dir) and os.path.exists(upload_image_dir):
                 # app_status 作成
                 app_state.create_new_app_status(
                     req_status
@@ -72,7 +77,7 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
-                    f"DRAWING-REVIEW UPLOAD DIR NOT FOUND:{upload_dir}"
+                    f"DRAWING-REVIEW UPLOAD DIR NOT FOUND:{upload_excel_dir} or {upload_image_dir}"
                 )
             return AppRoute.create_responce_from_status(
                 req_status

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom';
 import JSZip from 'jszip';
 import { localStorageKey } from '../../constants/localStorageKey';
 import { drawingReviewApi } from '../../api/drawingReviewApi';
@@ -34,7 +35,7 @@ export const DrawingReviewResultScreen: React.FC = () => {
   const [sheets, setSheets] = useState<SheetData[]>([]);
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
-  const raw = window.localStorage.getItem(localStorageKey.default) as string;
+  const raw = window.localStorage.getItem(localStorageKey.drawingReview) as string;
   const parsed = JSON.parse(raw);
 
   const handleDownload = async () => {
@@ -95,7 +96,10 @@ export const DrawingReviewResultScreen: React.FC = () => {
 
   return (
     <div className="page">
-      <h2>図面審査の結果表示</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>図面審査の結果表示</h2>
+        <Link to="/hub" >ホームに戻る</Link>
+      </div>
 
       {sheets.length > 0 && (
         <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -154,7 +158,7 @@ export const DrawingReviewResultScreen: React.FC = () => {
       )}
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleDownload}>画像とCSVを同時にダウンロード</button>
+        <button className="primary" onClick={handleDownload}>Excelファイルをダウンロード</button>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import { CheckStatusRequest } from '../../types/checkStatus.ts';
 import { drawingReviewApi } from '../../api/drawingReviewApi.ts';
 
 export const DrawingReviewProcessingScreen: React.FC = () => {
-  const raw = window.localStorage.getItem(localStorageKey.default) as string;
+  const raw = window.localStorage.getItem(localStorageKey.drawingReview) as string;
   const parsed = JSON.parse(raw);
 
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ export const DrawingReviewProcessingScreen: React.FC = () => {
 
   const handleEnd = () => {
     parsed.status = 'end'
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
+    window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(parsed));
     navigate('/drawing-review-result')
   }
 
@@ -44,7 +44,7 @@ export const DrawingReviewProcessingScreen: React.FC = () => {
   return (
     <div className="page">
       <h2>図面審査の処理中</h2>
-      <p>現在図面審査の処理中です。<br />30分から1時間ほどかかりますのでしばらくお待ちください。</p>
+      <p>現在図面審査の処理中です。<br />(目安)1つの指摘に対して2分ほど処理がかかります。<br />完了までしばらくお待ちください。</p>
     </div>
 
   );
