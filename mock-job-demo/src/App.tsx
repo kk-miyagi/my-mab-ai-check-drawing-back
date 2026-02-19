@@ -3,13 +3,12 @@ import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { getRedirectUrl } from './routers/getRedirectUrl';
 import { AppRouter } from './routers/Router';
-import { localStorageKey } from './constants/localStorageKey';
 import './index.css';
 
 export const App: React.FC = () => {
   const initialEntry = (() => {
     if (typeof window === 'undefined') return '/hub';
-    const return_screen = getRedirectUrl(window.localStorage.getItem(localStorageKey.default));
+    const return_screen = getRedirectUrl();
     if (return_screen) return return_screen;
     return '/hub';
   })();
