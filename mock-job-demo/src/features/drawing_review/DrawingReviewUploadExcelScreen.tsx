@@ -51,6 +51,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
 
     } else {
       setExcelFile([]);
+      setSheets([])
     }
   };
 
