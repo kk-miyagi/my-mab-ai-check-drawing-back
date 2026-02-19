@@ -169,7 +169,7 @@ export const DrawingReviewScreen: React.FC = () => {
     const check_un = difference(baseUn, checkId)
 
     if (check_un.length > 0) {
-      setErrorMessage(`修正前後の図面がどちらも選択されていません。: ${un.join(', ')}`)
+      setErrorMessage(`修正前後の図面がどちらも選択されていません。: ${check_un.join(', ')}`)
     } else {
       setErrorMessage('')
     }
