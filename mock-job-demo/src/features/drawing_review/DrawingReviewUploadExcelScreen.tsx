@@ -126,7 +126,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
         <Link to="/hub">前に戻る</Link>
       </div>
 
-      <h3>量産図面審査シートのアップロード</h3>
+      <h3>図面審査シートのアップロード</h3>
 
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>

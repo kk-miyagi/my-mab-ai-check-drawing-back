@@ -166,7 +166,7 @@ export const DrawingReviewResultScreen: React.FC = () => {
       )}
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleDownload}>量産図面審査シートをダウンロード</button>
+        <button className="primary" onClick={handleDownload}>図面審査シートをダウンロード</button>
       </div>
     </div>
   );
