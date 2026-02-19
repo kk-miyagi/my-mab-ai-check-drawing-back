@@ -44,7 +44,7 @@ export const DrawingReviewProcessingScreen: React.FC = () => {
   return (
     <div className="page">
       <h2>図面審査の処理中</h2>
-      <p>現在図面審査の処理中です。<br />(目安)1つの指摘に対して2分ほど処理がかかります。<br />完了までしばらくお待ちください。</p>
+      <p>現在図面審査の処理中です。<br />完了までしばらくお待ちください。</p>
     </div>
 
   );
