@@ -20,9 +20,7 @@ export interface ImageFile {
 }
   
 export interface ImagePair {
-  base: string;
+  no: number;
   image1: ImageFile;
   image2: ImageFile;
-  excel: string;
-  checkVersion: number;
 }

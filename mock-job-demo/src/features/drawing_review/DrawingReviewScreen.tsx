@@ -2,7 +2,7 @@ import React, { useState, ChangeEvent, useRef, useEffect } from 'react'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import { useLocation, useNavigate } from 'react-router-dom';
-import type { ImageFile, ImagePair, DrawingReviewResponse } from '../../types/drawingReview.ts';
+import type { ImagePair, DrawingReviewResponse } from '../../types/drawingReview.ts';
 import { drawingReviewApi } from '../../api/drawingReviewApi.ts';
 
 const DEFAULT_EPIC = 'drawing-review';
@@ -18,7 +18,9 @@ export const DrawingReviewScreen: React.FC = () => {
   const location = useLocation();
   const data = location.state;
 
-  const targetSheet = data.sheets[0]
+  // 「図面審査シート」に絞る
+  const targetIndex = data.sheets.findIndex(sheet => sheet.name ==="図面審査シート");
+  const targetSheet = data.sheets[targetIndex]
 
   const matchesCondition = (row: Row): boolean => {
     return row[6] === "可";
@@ -26,20 +28,28 @@ export const DrawingReviewScreen: React.FC = () => {
 
   const filtered = targetSheet.rows.filter((row) => matchesCondition(row));
 
-  const uniques = Array.from(
+  const old_uniques = Array.from(
     new Set(
       filtered
         .map((r) => r[3])
     )
   );
 
+  const new_uniques = Array.from(
+    new Set(
+      filtered
+        .map((r) => r[7])
+    )
+  );
+
+  const all_uniques = [...old_uniques, ...new_uniques]
+
   const [imageFile, setImageFile] = useState<File[]>([]);
 
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [validationMessage, setValidationMessage] = useState<string>('');
-  const [validationMessage2, setValidationMessage2] = useState<string>('');
-  const [validationMessage3, setValidationMessage3] = useState<string[]>([]);
-  const [checkId, setCheckId] = useState<string[]>([]);
+  const [validationMessage01, setValidationMessage01] = useState<string[]>([]);
+  const [validationMessage02, setValidationMessage02] = useState<string[]>([]);
+  const [validationMessage03, setValidationMessage03] = useState<string[]>([]);
+  const [validationMessage04, setValidationMessage04] = useState<string[]>([]);
 
   const replaceInputRef = useRef<HTMLInputElement | null>(null);
   const replaceIndexRef = useRef<number | null>(null);
@@ -121,173 +131,85 @@ export const DrawingReviewScreen: React.FC = () => {
 
   }
 
-  // ファイル名からベース部分とバージョンを抽出
-  const parseFileName = (fileName: string): { base: string; version: number } | null => {
-    const match = fileName.match(/^(.+?)_(\d+)\.(jpg|jpeg|png|gif|pdf)$/i)
-
-    if (!match) return null;
-
-    return {
-      base: match[1],
-      version: parseInt(match[2], 10)
-    };
-  };
-
-  // ファイル名からベース部分とバージョンを抽出(Excel側)
-  const parseExcelRowFileName = (fileName: string): { base: string; version: number } | null => {
-    const match = fileName.match(/^(.+?)_(\d+)$/i)
-
-    if (!match) return null;
-
-    return {
-      base: match[1],
-      version: parseInt(match[2], 10)
-    };
-  };
-
-
-  const difference = (A: string[], B: string[]): string[] => {
-    const setB = new Set(B);
-    return A.filter(a => !setB.has(a));
-  };
-
-
   const [imagePairs, setImagePairs] = useState<ImagePair[]>([])
 
-  useEffect(() => {
-    const u =
-      new Set(
-        imagePairs
-          .map((r) => r.excel)
-    );
-    
-    const un = uniques.filter(item => !u.has(item))
-    
-    const baseUn = un.map(i => parseExcelRowFileName(i)?.base)
-    console.log(baseUn)
+  const compareFileLists = (listA: string[], listB: string[]): void => { 
+    setValidationMessage01([])   
+    setValidationMessage02([])
+    setValidationMessage03([])
+    const listA01 = listA.filter(s => s.endsWith("-01"));
+    const listA02 = listA.filter(s => s.endsWith("-02"));
+    const listB01 = listB.filter(s => s.endsWith("-01"));
+    const listB02 = listB.filter(s => s.endsWith("-02"));
+    const setA = new Set(listA);
+    const setA01 = new Set(listA01);
+    const setA02 = new Set(listA02);
+    const setB = new Set(listB);
+    const setB01 = new Set(listB01);
+    const setB02 = new Set(listB02);
 
-    const check_un = difference(baseUn, checkId)
-
-    if (check_un.length > 0) {
-      setErrorMessage(`修正前後の図面がどちらも選択されていません。: ${check_un.join(', ')}`)
-    } else {
-      setErrorMessage('')
+    for (const name of setB01) {
+      if (!setA01.has(name)) {
+        setValidationMessage01(prev => [...prev, name])
+      }
     }
-  }, [imagePairs])
 
-  // 画像のペアリング
-  useEffect(() =>{
-    setValidationMessage3([])
-    setCheckId([])
+    for (const name of setB02) {
+      if (!setA02.has(name)) {
+        setValidationMessage02(prev => [...prev, name])
+      }
+    }
+
+    for (const name of setA) {
+      if (!setB.has(name)) {
+        setValidationMessage03(prev => [...prev, name])
+      }
+    }
+  }
+
+  // 新しく作成するロジック,画像がセットされた段階で動く
+  // Excelのファイル名部分を抜き出す
+  useEffect(() => {
+    setImagePairs([])
+    const fileNames = imageFile.map(img => img.name.replace(/\.pdf$/i, ""));
+
+    compareFileLists(fileNames, all_uniques)
+
+    // ペアを作る
     const pairs: ImagePair[] = [];
-    const groupedImages: { [key: string]: ImageFile[] } = {};
-
-    // 付与なファイルを除外する(後続処理のため)
-    const excel = uniques.map(row => parseExcelRowFileName(row)?.base)
-    console.log(excel)
-    const filteredFiles = imageFile.filter(file => {
-      const hasKeyword = excel.some(keyword => file.name.includes(keyword))
-      return hasKeyword
-    })
-
-    console.log("中身を確認filteredFiles: ", filteredFiles)
-
-
-    // ファイル名の図番ごとにリストにする。(バージョンは除く)
-    filteredFiles.forEach((img) => {
-      const parsed = parseFileName(img.name);
-      if (parsed) {
-        if (!groupedImages[parsed.base]) {
-          groupedImages[parsed.base] = [];
-        }
-        groupedImages[parsed.base].push(img);
-      }
-    });
-
-    // ここで組になったファイルのうち、Excel側にあるかどうかを判定する処理を追加する。あればバージョン比較を行う
-    Object.keys(groupedImages).forEach((base) => {
-      const group = groupedImages[base];
-      console.log("groupの確認", group)
-
-      // groupのファイル名のバージョンとExcelのバージョンが一緒の場合、アップデート後の方がない
-      if (group.length < 2) {
-        const excel = uniques.find((row) => {
-          const r = parseExcelRowFileName(row)?.base;
-          return r === base
-        })
-        const imageVer = parseFileName(group[0].name)?.version
-        const excelVer = parseExcelRowFileName(excel)?.version
-        if (imageVer === excelVer) {
-          setValidationMessage3(prev => [...prev, `${base}: 指摘反映後の図面がありません`])
-          setCheckId(prev => [...prev, base])
-        }
-        if (imageVer > excelVer) {
-          setValidationMessage3(prev => [...prev, `${base}: 指摘反映前の図面がありません`])
-          setCheckId(prev => [...prev, base])
-        }
-        if (imageVer < excelVer) {
-          setValidationMessage3(prev => [...prev, `${base}: 図面審査シートに記載されているバージョンより古いようです。`])
-          setCheckId(prev => [...prev, base])
-        }
-      }
-
-      group.sort((a, b) => {
-        const versionA = parseFileName(a.name)?.version || 0;
-        const versionB = parseFileName(b.name)?.version || 0;
-        return versionA - versionB
+    Object.keys(filtered).forEach((i) => {
+      const image01 = imageFile.find((row) => {
+        const name = row.name.replace(/\.pdf$/i, "")
+        return name === filtered[i][3]
       })
-
-      for (let i = 0; i< group.length -1; i+= 2) {
-        const excel = uniques.find((row) => {
-          const r = parseExcelRowFileName(row)?.base;
-          return r === base
-        })
-
-        const versionA = parseFileName(group[i].name)?.version || 0
-        const versionB = parseFileName(group[i + 1].name)?.version || 0
-
+      const image02 = imageFile.find((row) => {
+        const name = row.name.replace(/\.pdf$/i, "")
+        return name === filtered[i][7]
+      })
+      if (image01 && image02) {
         pairs.push({
-          base: base,
-          image1: group[i],
-          image2: group[i + 1],
-          excel: excel,
-          checkVersion: versionB - versionA
+          no: filtered[i][0],
+          image1: image01,
+          image2: image02
         })
       }
-      
     })
     setImagePairs(pairs)
   }, [imageFile])
 
-
   useEffect(() => {
+    setValidationMessage04([])
     const fileNames = imageFile.map(img => img.name);
 
     const uniqueNames = new Set(fileNames);
 
     if (uniqueNames.size !== fileNames.length) {
       const duplicates = fileNames.filter((item, index) => fileNames.indexOf(item) !== index);
-      setValidationMessage(`以下のファイル名が重複しています: ${duplicates.join(', ')}`)
+      setValidationMessage04(duplicates)
     } else {
-      setValidationMessage('')
+      setValidationMessage04([])
     }
   }, [imageFile])
-
-  useEffect(() => {
-    const fileNames = imageFile.map(img => img.name);
-    const excel = uniques.map(row => parseExcelRowFileName(row)?.base)
-    const filteredFiles: string[] = fileNames.filter(file => {
-      const hasKeyword = excel.some(keyword => file.includes(keyword))
-      return !hasKeyword
-    })
-    
-    if (filteredFiles.length > 0) {
-      setValidationMessage2(`以下のファイルは不要です。: ${filteredFiles.join(', ')}`)
-    } else {
-      setValidationMessage2('')
-    }
-  }, [imageFile])
-
 
   return (
     <div className="page">
@@ -346,23 +268,26 @@ export const DrawingReviewScreen: React.FC = () => {
           </label>
         </div>
 
-        
-        {errorMessage && (
-          <p style={{ color: 'red', border: '1px solid red', padding: '10px'}}>{errorMessage}</p>
-        )}
-
-        {validationMessage && (
-          <p style={{ color: 'red', border: '1px solid red', padding: '10px'}}>{validationMessage}</p>
-        )}
-        {validationMessage2 && (
-          <p style={{ color: 'red', border: '1px solid red', padding: '10px'}}>{validationMessage2}</p>
-        )}
-        {validationMessage3.length > 0  && (
+        {validationMessage01.length > 0  && (
         <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
-          {validationMessage3.map((i) => (<p>{i}</p>))}
+          <ul><li>以下の指摘先図面を選択してください。</li><ul>{validationMessage01.map((i) => (<li>{i}</li>))}</ul></ul>
         </div>
         )}
-
+        {validationMessage02.length > 0  && (
+        <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
+          <ul><li>以下の指摘反映図面を選択してください。</li><ul>{validationMessage02.map((i) => (<li>{i}</li>))}</ul></ul>
+        </div>
+        )}
+        {validationMessage03.length > 0  && (
+        <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
+          <ul><li>以下の図面は不要であるため、選択から削除してください。</li><ul>{validationMessage03.map((i) => (<li>{i}</li>))}</ul></ul>
+        </div>
+        )}
+        {validationMessage04.length > 0  && (
+        <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
+          <ul><li>ファイルが重複しています。</li><ul>{validationMessage04.map((i) => (<li>{i}</li>))}</ul></ul>
+        </div>
+        )}
 
         <ul style={{ padding: 0 }}>
           {imageFile.map((file, i) => (
@@ -377,7 +302,7 @@ export const DrawingReviewScreen: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart}  disabled={errorMessage !== '' || validationMessage !== ''|| validationMessage2 !== '' || validationMessage3.length > 0}>処理開始</button>
+        <button className="primary" onClick={handleStart}  disabled={validationMessage01.length > 0 || validationMessage02.length > 0|| validationMessage03.length > 0 || validationMessage04.length > 0}>処理開始</button>
       </div>
     </div>
   )
