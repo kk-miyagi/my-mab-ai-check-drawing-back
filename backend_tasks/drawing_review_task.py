@@ -151,17 +151,17 @@ def read_excel_to_list(excel_path: str) -> list[list]:
         # 必要なデータのみに絞り込む
         for row in ws.iter_rows(min_row=start_row_index, min_col=start_col_index, values_only=True):
             no = row[0]
-            # index = row[1]
             category = row[1]
             product_name = row[2]
-            code = row[3]
+            bf_code = row[3]
             bf_grid = row[4]
             issue_and_request = row[5]
             is_use = row[6]
-            af_grid = row[7]
-            evaluation_result = row[8]
+            af_code = row[7]
+            af_grid = row[8]
+            evaluation_result = row[9]
             if is_use == "可":
-                extracted_data.append([no, category, product_name, code, bf_grid, issue_and_request, is_use, af_grid, evaluation_result])
+                extracted_data.append([no, category, product_name, bf_code, bf_grid, issue_and_request, is_use, af_code, af_grid, evaluation_result])
     else:
         print("見つかりません")
 
@@ -185,14 +185,15 @@ def write_result(excel_path: str, save_dir: str, data: list[list]) -> None:
     ws["A1"] = "No"
     ws["B1"] = "審査部門"
     ws["C1"] = "品名"
-    ws["D1"] = "図番 CODE."
+    ws["D1"] = "指摘先図番 CODE."
     ws["E1"] = "指摘先座標"
     ws["F1"] = "指摘・要望事項"
     ws["G1"] = "採用可否"
-    ws["H1"] = "反映先座標"
-    ws["I1"] = "関連部門との検討結果"
-    ws["J1"] = "AI判定結果"
-    ws["k1"] = "判定理由"
+    ws["H1"] = "反映先図番 CODE."
+    ws["I1"] = "反映先座標"
+    ws["J1"] = "関連部門との検討結果"
+    ws["K1"] = "AI判定結果"
+    ws["L1"] = "判定理由"
     for row_list in data:
         ws.append(row_list)
     
@@ -260,8 +261,8 @@ if __name__ == "__main__":
 
         # ファイル名検索
         p = Path(args.pdf_dir)
-        bf_files = [f for f in p.glob(f"*bf_file_*{i[3]}*.jpg")]
-        af_files = [f for f in p.glob(f"*af_file_*{i[3].rsplit("_", 1)[0]}*.jpg")]
+        bf_files = [f for f in p.glob(f"{i[0]}*bf_file_*{i[3]}*.jpg")]
+        af_files = [f for f in p.glob(f"{i[0]}*af_file_*{i[7]}*.jpg")]
         print(f"bf_files: {bf_files}")
         print(f"af_files: {af_files}")
         if len(bf_files) == 1 and len(af_files) == 1:
@@ -276,13 +277,13 @@ if __name__ == "__main__":
         files_list["after_file"] = af_file
 
         propt_list["bf_grid"] = i[4]
-        propt_list["af_grid"] = i[7]
+        propt_list["af_grid"] = i[8]
         propt_list["check_item"] = f"""
         指摘事項
             {i[5]}
 
         回答
-            {i[8]}
+            {i[9]}
         """
 
         res = check_drawings_prompt(propt_list, files_list)

@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from 'react'
+import React, { useState, ChangeEvent, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { PersistedState } from '../../types/uploadContext.ts';
@@ -119,6 +119,31 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
 
   }
 
+  type Row = Record<string, string | number | boolean | null>;
+  const matchesCondition = (row: Row): boolean => {
+    return row[6] === "可";
+  };
+  const [validation01, setValidation01] = useState<string[]>([]);
+  const [validation02, setValidation02] = useState<string[]>([]);
+
+  useEffect(() => {
+    setValidation01([])
+    setValidation02([])
+    if (sheets.length > 0) {
+      const targetIndex = sheets.findIndex(sheet => sheet.name ==="図面審査シート");
+      const targetRows = sheets[targetIndex].rows.slice(8).filter((row) => matchesCondition(row))
+      
+      Object.keys(targetRows).forEach((i) => {
+        if (!targetRows[i][3].endsWith('-01')) {
+          setValidation01(prev => [...prev, targetRows[i]])
+        }
+        if (!targetRows[i][7].endsWith('-02')) {
+          setValidation02(prev => [...prev, targetRows[i]])
+        }
+      })
+    }
+  }, [sheets])
+
   return (
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -134,6 +159,18 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
             <input type="file" accept=".xlsx" onChange={handleSetExcelFile} />
           </label>
         </div>
+
+        {validation01.length > 0  && (
+        <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
+          <ul><li>指摘先の図番の末尾に「-01」が無いようです。</li><ul>{validation01.map((i) => (<li>No:{i[0]} {i[3]}</li>))}</ul></ul>
+        </div>
+        )}
+
+        {validation02.length > 0  && (
+        <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
+          <ul><li>反映先の図番の末尾に「-02」が無いようです。</li><ul>{validation02.map((i) => (<li>No:{i[0]} {i[7]}</li>))}</ul></ul>
+        </div>
+        )}
       </div>
 
       {sheets.length > 0 && (
@@ -193,7 +230,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
       )}
       
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart}  disabled={excelFile.length === 0}>アップロード</button>
+        <button className="primary" onClick={handleStart}  disabled={excelFile.length === 0 || validation01.length > 0 || validation02.length > 0}>アップロード</button>
       </div>
     </div>
   )
