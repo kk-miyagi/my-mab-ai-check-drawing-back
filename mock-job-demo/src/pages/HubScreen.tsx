@@ -31,7 +31,8 @@ export const HubScreen: React.FC = () => {
               <h2 style={{ margin: 0 }}>図面比較</h2>
               <p style={{ margin: '4px 0 0' }}>図面の変更前後の差分をハイライト</p>
             </div>
-            <Link className="primary" to="/">開く</Link>
+            {/* <Link className="primary" to="/drawing-compare-upload">開く</Link> */}
+            <Link className="primary" to="/drawing-compare-upload-base">開く</Link>
           </div>
         </section>
 
