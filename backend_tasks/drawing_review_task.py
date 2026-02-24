@@ -17,9 +17,10 @@ from utils.gemini_response import (
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'poc-shared-mab-ai-adv-util-sa.json'
 model = GenerativeModel("gemini-2.5-pro")
 
-def check_drawings_prompt(propt_list,files_list):
-    #反映前の図面について確認
-    bf_check_drawings_prompt=f"""
+
+def check_drawings_prompt(propt_list, files_list):
+    # 反映前の図面について確認
+    bf_check_drawings_prompt = f"""
         あなたは、製図図面を読み取るためのアシスタントです。
         {files_list['before_file']}は製図図面です。
         {propt_list['bf_grid']}付近にある寸法情報について出力してください。
@@ -34,17 +35,17 @@ def check_drawings_prompt(propt_list,files_list):
     """
 
     raw_bf_check_drawings = generate_with_multiple_contents(
-            model,
-            image_paths=[f"{files_list['before_file']}"],
-            prompts=[bf_check_drawings_prompt],
-        )
-    
+        model,
+        image_paths=[f"{files_list['before_file']}"],
+        prompts=[bf_check_drawings_prompt],
+    )
+
     bf_check_drawings = get_raw_response(raw_bf_check_drawings)
 
     # print(f"反映前情報出力: {bf_check_drawings}")
-    
-    #反映前の図面と指摘の情報から反映事項の予測
-    predict_prompt=f"""
+
+    # 反映前の図面と指摘の情報から反映事項の予測
+    predict_prompt = f"""
         あなたは、製図図面を確認するアシスタントです。
         {files_list['before_file']}の製図図面内の下記の指摘がどのように反映されるべきか教えてください。
         下記は指摘事項と指摘部分に付近の寸法情報です。
@@ -67,16 +68,16 @@ def check_drawings_prompt(propt_list,files_list):
         predict_images.append(f"{refer_path}")
 
     raw_check_predict = generate_with_multiple_contents(
-            model,
-            image_paths=predict_images,
-            prompts=[predict_prompt],
-        )
+        model,
+        image_paths=predict_images,
+        prompts=[predict_prompt],
+    )
     check_predict = get_raw_response(raw_check_predict)
-    
+
     # print(f"指摘事項反映内容予測出力: {check_predict}")
-    
-    #反映後の図面について確認
-    af_check_drawings_prompt=f"""
+
+    # 反映後の図面について確認
+    af_check_drawings_prompt = f"""
         あなたは、製図図面を読み取るためのアシスタントです。
         {files_list['after_file']}は製図図面です。
         {propt_list['af_grid']}付近にある寸法情報について出力してください。
@@ -90,16 +91,16 @@ def check_drawings_prompt(propt_list,files_list):
             2:出力はjson形式のみにしてください
     """
     raw_af_check_drawings = generate_with_multiple_contents(
-            model,
-            image_paths=[f"{files_list['after_file']}"],
-            prompts=[af_check_drawings_prompt],
-        )
-    
+        model,
+        image_paths=[f"{files_list['after_file']}"],
+        prompts=[af_check_drawings_prompt],
+    )
+
     af_check_drawings = get_raw_response(raw_af_check_drawings)
 
     # print(f"反映後情報出力: {af_check_drawings}")
 
-    judge_prompt=f"""
+    judge_prompt = f"""
         あなたは、製図図面を確認するアシスタントです。
         下記に反映すべき事項と付近の寸法情報です。
         反映すべき事項内の”修正後の状態”が正しいと仮定して、{files_list['after_file']}図面に反映されているかどうかを、理由を踏まえて教えてください。
@@ -111,16 +112,17 @@ def check_drawings_prompt(propt_list,files_list):
         {af_check_drawings}
     """
     raw_judge_check_drawings = generate_with_multiple_contents(
-            model,
-            image_paths=[f"{files_list['after_file']}"],
-            prompts=[judge_prompt],
-        )
+        model,
+        image_paths=[f"{files_list['after_file']}"],
+        prompts=[judge_prompt],
+    )
 
     judge_check_drawings = get_raw_response(raw_judge_check_drawings)
 
     # print(f"情報判断出力: {judge_check_drawings}")
 
     return judge_check_drawings
+
 
 def read_excel_to_list(excel_path: str) -> list[list]:
     """Excelを読み込む。必要であればデータをフィルタリング"""
@@ -138,7 +140,7 @@ def read_excel_to_list(excel_path: str) -> list[list]:
                 break
         if found_cell:
             break
-    
+
     extracted_data = []
     if found_cell:
         start_row_index = found_cell.row + 2
@@ -146,7 +148,8 @@ def read_excel_to_list(excel_path: str) -> list[list]:
         start_col_index = 1
 
         print(f"基準セル: {found_cell.coordinate}")
-        print(f"Excelの取得開始行: {start_row_index}, Excelの取得開始列: {start_col_index}")
+        print(
+            f"Excelの取得開始行: {start_row_index}, Excelの取得開始列: {start_col_index}")
 
         # 必要なデータのみに絞り込む
         for row in ws.iter_rows(min_row=start_row_index, min_col=start_col_index, values_only=True):
@@ -161,13 +164,15 @@ def read_excel_to_list(excel_path: str) -> list[list]:
             af_grid = row[8]
             evaluation_result = row[9]
             if is_use == "可":
-                extracted_data.append([no, category, product_name, bf_code, bf_grid, issue_and_request, is_use, af_code, af_grid, evaluation_result])
+                extracted_data.append([no, category, product_name, bf_code, bf_grid,
+                                      issue_and_request, is_use, af_code, af_grid, evaluation_result])
     else:
         print("見つかりません")
 
     wb.close()
 
     return extracted_data
+
 
 def write_result(excel_path: str, save_dir: str, data: list[list]) -> None:
     wb = openpyxl.load_workbook(excel_path)
@@ -196,12 +201,13 @@ def write_result(excel_path: str, save_dir: str, data: list[list]) -> None:
     ws["L1"] = "判定理由"
     for row_list in data:
         ws.append(row_list)
-    
+
     print(save_dir / file_name)
-    
+
     wb.save(save_dir / file_name)
     wb.close()
     return None
+
 
 def pdf_to_jpeg(file_path):
     """PDFを画像に変換する"""
@@ -217,17 +223,18 @@ def pdf_to_jpeg(file_path):
 
     return save_path
 
+
 if __name__ == "__main__":
     parse = argparse.ArgumentParser("図面審査")
     parse.add_argument(
         "--excel-dir",
-        type = str,
-        help = "Excelファイルのパス"
+        type=str,
+        help="Excelファイルのパス"
     )
     parse.add_argument(
         "--pdf-dir",
-        type = str,
-        help = "PDFの図面のパス"
+        type=str,
+        help="PDFの図面のパス"
     )
     parse.add_argument(
         "--output-dir",
@@ -239,7 +246,7 @@ if __name__ == "__main__":
     if not os.path.isdir(args.output_dir):
         os.makedirs(args.output_dir)
         print(f"{args.output_dir}を作成しました")
-    
+
     output_dir = Path(args.output_dir)
 
     excel_dir = Path(args.excel_dir)
@@ -288,7 +295,7 @@ if __name__ == "__main__":
 
         res = check_drawings_prompt(propt_list, files_list)
         # print(f"レスポンス: {res}")
-        
+
         # 反映状況
         check = "反映済" if "反映されています" in res else "未反映"
         i.append(check)
