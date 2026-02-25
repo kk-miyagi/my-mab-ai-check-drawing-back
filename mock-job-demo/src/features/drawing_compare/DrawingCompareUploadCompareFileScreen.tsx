@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 
@@ -9,6 +9,10 @@ const DEFAULT_OPERATION = 'upload-compare';
 export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
 
   const navigate = useNavigate();
+
+  const location = useLocation();
+  const data = location.state;
+  const baseImageFile = data.baseImageFile;
 
   const [compareImageFile, setCompareImageFile] = useState<File[]>([]);
   const [compareImagepreview, setCompareImagePreview] = useState<string | null>(null);
@@ -54,6 +58,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       files: compareImageFile.concat(compareCsvFile),
     };
     const response = await uploadApi.uploadPair(requestPayload);
+    navigate("/drawing-compare",  { state: { baseImageFile, compareImageFile }})
 
     // ここで画像をサーバーに渡す。
     // サーバー側では、矩形領域の座標を特定して類似度を計算する

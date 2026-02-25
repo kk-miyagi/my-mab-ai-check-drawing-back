@@ -92,7 +92,7 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
     };
     console.log("これが確認したい", requestPayload)
     const response = await uploadApi.uploadPair(requestPayload);
-    navigate("/drawing-compare-upload-compare")
+    navigate("/drawing-compare-upload-compare", { state: { baseImageFile }})
 
     // ここで画像をサーバーに渡す。
     // サーバー側では、矩形領域の座標を特定して類似度を計算する
