@@ -20,6 +20,8 @@ import { DrawingReviewResultScreen } from '../features/drawing_review/DrawingRev
 import { DrawingCompareUploadScreen } from '../features/drawing_compare/DrawingCompareUploadScreen';
 import { DrawingCompareUploadBaseFileScreen } from '../features/drawing_compare/DrawingCompareUploadBaseFileScreen';
 import { DrawingCompareUploadCompareFileScreen } from '../features/drawing_compare/DrawingCompareUploadCompareFileScreen';
+import { DrawingCompareSelectScreen } from '../features/drawing_compare/DrawingCompareSelectScreen';
+import { DrawingCompare } from '../features/drawing_compare/DrawingCompare';
 
 export const AppRouter = () => {
   return (
@@ -43,6 +45,8 @@ export const AppRouter = () => {
       <Route path="/drawing-compare-upload" element={<DrawingCompareUploadScreen />} />
       <Route path="/drawing-compare-upload-base" element={<DrawingCompareUploadBaseFileScreen />} />
       <Route path="/drawing-compare-upload-compare" element={<DrawingCompareUploadCompareFileScreen />} />
+      <Route path="/drawing-compare-select" element={<DrawingCompareSelectScreen />} />
+      <Route path="/drawing-compare" element={<DrawingCompare />} />
       <Route path="/demo-create-label-processing" element={<DemoCreateLabelProcessingScreen />} />
       <Route path="/demo-create-label-result" element={<DemoCreateLabelResultScreen />} />
       <Route path="/demo-create-label" element={<DemoCreateLabelScreen />} />
