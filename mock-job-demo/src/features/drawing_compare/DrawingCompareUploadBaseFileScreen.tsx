@@ -78,7 +78,7 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
     window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
 
     toPersist.status = 'doing'
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
 
     // アップロード
     const requestPayload = {

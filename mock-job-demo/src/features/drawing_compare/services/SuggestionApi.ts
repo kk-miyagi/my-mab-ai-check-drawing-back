@@ -31,7 +31,9 @@ export async function fetchSuggestions({ sourceRect, targetImg, targetRects, cro
   for (const rect of candidates) {
     const labelIndex = targets.findIndex((t) => t.id === rect.id);
     const score = 82 + Math.random() * 15; // 82-97%
-    const cropRect = rect.imageCoords ?? rect;
+    // const cropRect = rect.imageCoords ?? rect;
+    // なぜかここ修正が必要だった。
+    const cropRect = {x: rect.x, y: rect.y, width: rect.width, height: rect.height};
     const image = await cropper.crop(targetImg, cropRect);
     result.push({
       id: `t-${rect.id}`,

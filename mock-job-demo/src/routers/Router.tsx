@@ -21,6 +21,7 @@ import { DrawingCompareUploadScreen } from '../features/drawing_compare/DrawingC
 import { DrawingCompareUploadBaseFileScreen } from '../features/drawing_compare/DrawingCompareUploadBaseFileScreen';
 import { DrawingCompareUploadCompareFileScreen } from '../features/drawing_compare/DrawingCompareUploadCompareFileScreen';
 import { DrawingCompareSelectScreen } from '../features/drawing_compare/DrawingCompareSelectScreen';
+import { DrawingCompareProcessingScreen } from '../features/drawing_compare/DrawingCompareProcessingScreen';
 import { DrawingCompare } from '../features/drawing_compare/DrawingCompare';
 
 export const AppRouter = () => {
@@ -47,6 +48,7 @@ export const AppRouter = () => {
       <Route path="/drawing-compare-upload-compare" element={<DrawingCompareUploadCompareFileScreen />} />
       <Route path="/drawing-compare-select" element={<DrawingCompareSelectScreen />} />
       <Route path="/drawing-compare" element={<DrawingCompare />} />
+      <Route path="/drawing-compare-processing" element={<DrawingCompareProcessingScreen />} />
       <Route path="/demo-create-label-processing" element={<DemoCreateLabelProcessingScreen />} />
       <Route path="/demo-create-label-result" element={<DemoCreateLabelResultScreen />} />
       <Route path="/demo-create-label" element={<DemoCreateLabelScreen />} />
