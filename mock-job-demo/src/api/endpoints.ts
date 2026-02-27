@@ -6,5 +6,6 @@ export const ENDPOINTS = {
   createLabel: '/create-label/',
   updateLabel: '/update-label/',
   demoCreateLabel: '/demo-create-label/',
-  drawingReview: '/drawing-review/'
+  drawingReview: '/drawing-review/',
+  getImageRects: '/xxx-xxxxx/'
 };

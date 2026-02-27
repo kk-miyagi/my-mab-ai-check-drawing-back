@@ -1,12 +1,12 @@
 import { http } from "./http";
 import { ENDPOINTS } from "./endpoints";
 import { AxiosRequestConfig } from "axios";
-import type { DrawingReviewRequest, DrawingReviewResponse } from "../types/drawingReview.ts";
+import type { GetImageRectsRequest, GetImageRectsResponse, DrawingReviewRequest, DrawingReviewResponse } from "../types/drawingReview.ts";
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 
 const DRAWING_REVIEW_ENDPOINT = ENDPOINTS.drawingReview;
-const CHECK_STATUS_ENDPOINT = ENDPOINTS.checkStatus;
+const GET_IMAGE_RECTS = ENDPOINTS.getImageRects;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -24,6 +24,16 @@ async function postForm<TResponse>(path: string, formData: FormData, responseTyp
 }
 
 export const drawingReviewApi = {
+
+  async getImageRects(payload: GetImageRectsRequest): Promise<GetImageRectsResponse> {
+    const form = new FormData();
+    form.append('user', payload.user);
+    form.append('epic', payload.epic);
+    form.append('operation', payload.operation);
+    form.append('operation_id', payload.operation_id);
+    form.append('status', payload.status);
+    return postForm(GET_IMAGE_RECTS, form)
+  },
 
   async drawingReviewStart(payload: DrawingReviewRequest): Promise<DrawingReviewResponse> {
     const form = new FormData();

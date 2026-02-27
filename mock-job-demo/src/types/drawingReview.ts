@@ -1,3 +1,20 @@
+export interface GetImageRectsRequest {
+  user: string;
+  epic: string;
+  operation: string;
+  operation_id: string;
+  status: 'start' | 'doing' | 'end' | string;
+}
+
+export interface GetImageRectsResponse {
+  user: string;
+  epic: string;
+  operation: string;
+  operation_id: string;
+  status: 'start' | 'doing' | 'end' | 'error' | string;
+  message: string;
+}
+
 export interface DrawingReviewRequest {
   user: string;
   epic: string;
