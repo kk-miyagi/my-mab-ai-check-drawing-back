@@ -44,9 +44,9 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
 
   const handleStart = async () => {
     // ローカルストレージの取得
-    const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.default) as string);
+    const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingCompare) as string);
     toPersist.lastOperation = DEFAULT_OPERATION
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
     // アップロード
     const requestPayload = {
       user: 'demo-user',

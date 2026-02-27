@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Link2, MousePointer2 } from 'lucide-react';
 import './styles.css';
 import type {
@@ -26,6 +26,8 @@ import { Sidebar } from './components/Sidebar';
 import { HeaderSection } from './components/HeaderSection';
 import { ResultModal } from './components/ResultModal';
 import { SuggestionScreen } from './components/SuggestionScreen';
+import { drawingReviewApi } from '../../api/drawingCompareApi.ts';
+import { localStorageKey } from '../../constants/localStorageKey.ts';
 
 const SAMPLE_IMAGES = {
   source: 'https://placehold.co/800x600/f1f5f9/94a3b8?text=Source+Drawing+A',
@@ -453,7 +455,27 @@ export const DrawingCompare: React.FC = () => {
     setSelectedSuggestionIds([]);
   };
 
-  const handleRunComparison = () => setShowResult(true);
+  const navigate = useNavigate();
+
+  // const handleRunComparison = () => setShowResult(true);
+  const handleRunComparison = () => {
+    const sourceRect = rects.filter((rect) => rect.role === 'source');
+    const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
+    console.log(result)
+    // navigate("/drawing-compare-processing")
+    // const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingCompare) as string);
+    // toPersist.lastOperation = "batch-drawing-compare"
+    // window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
+    // const requestPayload  = {
+    //   user: 'demo-user',
+    //   epic: toPersist.lastEpic,
+    //   operation: toPersist.lastOperation ,
+    //   operation_id: toPersist.operationId,
+    //   status: toPersist.status,
+      
+    // };
+    // drawingReviewApi.drawingReviewStart()
+  };
 
   const buildSourcePreviewAndSuggestions = async (sourceId: string | null, targetRects: RectModel[] = rects) => {
     if (!sourceId) {

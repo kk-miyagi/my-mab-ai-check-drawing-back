@@ -65,9 +65,10 @@ export function HeaderSection({
           </>
         ) : phase === 'select' ? (
           <>
-            <button className="btn btn-outline" onClick={onBackToDefine}>
+            {/* <button className="btn btn-outline" onClick={onBackToDefine}>
               <Edit3 size={16} /> 領域を修正
-            </button>
+            </button> */}
+            <p></p>
             <div className="divider" />
             <button
               className="btn btn-compare"
