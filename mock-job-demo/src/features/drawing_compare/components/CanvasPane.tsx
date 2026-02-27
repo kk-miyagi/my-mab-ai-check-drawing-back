@@ -21,7 +21,7 @@ interface CanvasPaneProps {
   containerRef: React.RefObject<HTMLDivElement>;
   imageRef: React.RefObject<HTMLImageElement>;
   isDrafting: boolean;
-  onBackgroundMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void;
+  // onBackgroundMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void;
   onRectMouseDown: (event: React.MouseEvent<HTMLDivElement>, id: string) => void;
   onHandleMouseDown: (
     event: React.MouseEvent<HTMLDivElement>,
@@ -30,7 +30,7 @@ interface CanvasPaneProps {
   ) => void;
   onRequestUpload: () => void;
   onSelectSample: () => void;
-  crops: {}[]
+  // crops: {}[]
 }
 
 export function CanvasPane({
@@ -46,12 +46,12 @@ export function CanvasPane({
   containerRef,
   imageRef,
   isDrafting,
-  onBackgroundMouseDown,
+  // onBackgroundMouseDown,
   onRectMouseDown,
   onHandleMouseDown,
   onRequestUpload,
   onSelectSample,
-  crops,
+  // crops,
 }: CanvasPaneProps) {
   // この pane の role に属する矩形のみ描画。
   const visibleRects = rects.filter((r) => r.role === role);
@@ -68,17 +68,17 @@ export function CanvasPane({
     });
   }
 
-  useEffect(() => {
-    const img = imageRef.current;
-    if (!img) return;
+  // useEffect(() => {
+  //   const img = imageRef.current;
+  //   if (!img) return;
 
-    handleImageLoad();
+  //   handleImageLoad();
 
-    const observer = new ResizeObserver(handleImageLoad);
-    observer.observe(img);
+  //   const observer = new ResizeObserver(handleImageLoad);
+  //   observer.observe(img);
 
-    return () => observer.disconnect();
-  }, [imageSrc]);
+  //   return () => observer.disconnect();
+  // }, [imageSrc]);
 
   return (
     <div className="canvas-wrapper">
@@ -104,7 +104,7 @@ export function CanvasPane({
           <div
             ref={containerRef}
             className={`image-container phase-${phase}`}
-            onMouseDown={onBackgroundMouseDown}
+            // onMouseDown={onBackgroundMouseDown}
           >
             <img ref={imageRef} src={imageSrc} alt={role} className="image-content" draggable={false} />
 
@@ -178,107 +178,9 @@ export function CanvasPane({
                 }}
               />
             )}
-          {scale && 
-            crops.map((crop) => (
-              <div className="rect" key={crop.id} style={{
-              position: "absolute",
-              left: crop.x * scale.x,
-              top: crop.y * scale.y,
-              width: crop.width * scale.x,
-              height: crop.height * scale.y,
-              borderStyle: 'dashed',
-              borderColor: '#3b82f6',
-              }}/>
-            ))
-          }
           </div>
         )}
       </div>
     </div>
   );
 }
-
-
-// import React, {  } from 'react';
-// import { Link2 } from 'lucide-react';
-// import type {
-//   DraftRect,
-//   HandleDirection,
-//   Phase,
-//   RectModel,
-//   RectRole,
-// } from '../types.ts';
-
-
-// interface CanvasPaneProps {
-//   phase: Phase;
-//   title: string;
-//   imageSrc: string | null;
-//   imageRef: React.RefObject<HTMLImageElement>;
-//   crops: {}[]
-// }
-
-// export function CanvasPane({
-//   phase,
-//   title,
-//   imageSrc,
-//   imageRef,
-//   crops
-
-// }: CanvasPaneProps) {
-
-//   const [scale, setScale] = useState<{ x: number; y: number } | null>(null);
-
-
-//   const handleImageLoad = () => {
-//     const img = imageRef.current;
-//     if (!img) return;
-//     setScale({
-//       x: img.clientWidth / img.naturalWidth,
-//       y: img.clientHeight / img.naturalHeight,
-//     });
-//   }
-
-
-//   useEffect(() => {
-//     const img = imageRef.current;
-//     if (!img) return;
-
-//     handleImageLoad();
-
-//     const observer = new ResizeObserver(handleImageLoad);
-//     observer.observe(img);
-
-//     return () => observer.disconnect();
-//   }, [imageSrc]);
-
-
-
-//   return (
-//     <div className="canvas-wrapper">
-//       <div className="canvas-header">
-//         <span>{title}</span>
-//       </div>
-//       <div className={`canvas-area phase-${phase}`}>
-//         <div className={`image-container phase-${phase}`}>
-//           {imageSrc && (
-//             <img ref={imageRef} src={imageSrc} className="image-content" draggable={false} onLoad={handleImageLoad}/>
-//           )}
-//           {scale && 
-//             crops.map((crop) => (
-//               <div className="rect" key={crop.id} style={{
-//               position: "absolute",
-//               left: crop.x * scale.x,
-//               top: crop.y * scale.y,
-//               width: crop.width * scale.x,
-//               height: crop.height * scale.y,
-//               borderStyle: 'dashed',
-//               borderColor: '#3b82f6',
-//               }}/>
-//             ))
-//           }  
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
