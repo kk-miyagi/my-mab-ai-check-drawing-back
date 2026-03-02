@@ -11,17 +11,19 @@ def mask_red_labels(img, hsv):
     tol_h, tol_s, tol_v = 20, 30, 200
 
     lower = np.array([max(target_hsv[0] - tol_h, 0),
-                    max(target_hsv[1] - tol_s, 0),
-                    max(target_hsv[2] - tol_v, 0)])
+                      max(target_hsv[1] - tol_s, 0),
+                      max(target_hsv[2] - tol_v, 0)])
     upper = np.array([180, 255, 255], dtype=np.uint8)
     mask = cv2.inRange(hsv, lower, upper)
 
     # 除去
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     expanded = cv2.dilate(mask, kernel, iterations=1)
-    result = cv2.inpaint(img, expanded, inpaintRadius=1, flags=cv2.INPAINT_TELEA)
+    result = cv2.inpaint(img, expanded, inpaintRadius=1,
+                         flags=cv2.INPAINT_TELEA)
 
     return result
+
 
 def get_black_and_white_colors(img, hsv):
 
@@ -48,8 +50,8 @@ def get_black_and_white_colors(img, hsv):
     ss = result.T[1].flatten()
     vs = result.T[2].flatten()
     tmp_values = np.array([20, 20, 20])
-    return (np.array([hs.min(),ss.min(),vs.min()]) + tmp_values,
-            np.array([hs.max(),ss.max(),vs.max()]) + tmp_values)
+    return (np.array([hs.min(), ss.min(), vs.min()]) + tmp_values,
+            np.array([hs.max(), ss.max(), vs.max()]) + tmp_values)
 
 
 def main(img_name):
@@ -64,22 +66,23 @@ def main(img_name):
     lower_color, upper_color = get_black_and_white_colors(image, hsv)
     print(f"lower:{lower_color}\n upper:{upper_color}")
     # 指定色のマスク作成
-    mask = cv2.inRange(hsv, lower_color, upper_color) 
+    mask = cv2.inRange(hsv, lower_color, upper_color)
 
     # ノイズ除去
-    kernel = np.ones((3,3), np.uint8)
+    kernel = np.ones((3, 3), np.uint8)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=1)
 
     # 輪郭抽出
-    contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+        mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     print(len(contours))
 
     if len(contours) == 0:
         print("指定色の四角形が見つかりませんでした。")
     else:
         print(f"contours size: {len(contours)}")
-        contours_list = [ cv2.boundingRect(cnt) for cnt in contours]
+        contours_list = [cv2.boundingRect(cnt) for cnt in contours]
         #     x, y, w, h = cv2.boundingRect(cnt)
 
     # 内包チェック関数
@@ -93,21 +96,21 @@ def main(img_name):
         ox, oy, ow, oh = outer_box
 
         # 内側の矩形の4辺
-        inner_left   = ix
-        inner_top    = iy
-        inner_right  = ix + iw
+        inner_left = ix
+        inner_top = iy
+        inner_right = ix + iw
         inner_bottom = iy + ih
 
         # 外側の矩形の4辺
-        outer_left   = ox
-        outer_top    = oy
-        outer_right  = ox + ow
+        outer_left = ox
+        outer_top = oy
+        outer_right = ox + ow
         outer_bottom = oy + oh
 
         # 完全に内包されている条件
-        return (inner_left   >= outer_left and
-                inner_top    >= outer_top and
-                inner_right  <= outer_right and
+        return (inner_left >= outer_left and
+                inner_top >= outer_top and
+                inner_right <= outer_right and
                 inner_bottom <= outer_bottom)
 
     # 不要なBOXを削除する関数
@@ -123,16 +126,15 @@ def main(img_name):
                     # 縦方向に結合
                     print(f"{l} <-> {nl}")
                     if (l[0] == nl[0]) and (l[2] == nl[2]):
-                        min_y = min(l[1],nl[1])
+                        min_y = min(l[1], nl[1])
                         # 隣り合っていたら
                         # 線の太さを考慮する必要がある(10px)
-                        if ((max(l[1],nl[1]) - 10 <= min_y + l[3] <= max(l[1],nl[1]) + 10) 
-                            or (max(l[1],nl[1]) - 10 <= min_y + nl[3] <= max(l[1],nl[1]) + 10)):
+                        if ((max(l[1], nl[1]) - 10 <= min_y + l[3] <= max(l[1], nl[1]) + 10)
+                                or (max(l[1], nl[1]) - 10 <= min_y + nl[3] <= max(l[1], nl[1]) + 10)):
                             new_l[0] = l[0]
                             new_l[1] = min_y
                             new_l[2] = l[2]
                             new_l[3] = l[3] + nl[3]
-                
 
                     # 横方向に結合
                     if (l[1] == nl[1]) and (l[3] == nl[3]):
@@ -140,16 +142,16 @@ def main(img_name):
                         print("find subbox!")
                         # 隣り合っていたら
                         # 線の太さを考慮する必要がある(10px)
-                        if ((max(l[0],nl[0]) - 10 <= min_x + l[2] <= max(l[0],nl[0]) + 10) 
-                        or (max(l[0],nl[0]) - 10 <= min_x + nl[2] <= max(l[0],nl[0]) + 10)): 
+                        if ((max(l[0], nl[0]) - 10 <= min_x + l[2] <= max(l[0], nl[0]) + 10)
+                                or (max(l[0], nl[0]) - 10 <= min_x + nl[2] <= max(l[0], nl[0]) + 10)):
                             print("conect box!!")
                             new_l[0] = min_x
                             new_l[1] = l[1]
                             new_l[2] = l[2] + nl[2]
                             new_l[3] = l[3]
-                        
-                if new_l != l: 
-                    new_ls_dic[i] = new_l 
+
+                if new_l != l:
+                    new_ls_dic[i] = new_l
             # 結合部分を更新
             for i in new_ls_dic.keys():
                 ret[i] = new_ls_dic[i]
