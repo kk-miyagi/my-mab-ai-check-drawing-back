@@ -1,8 +1,6 @@
 import cv2
 import numpy as np
 import sys
-from pathlib import Path
-import uuid
 
 
 def mask_red_labels(img, hsv):
@@ -18,19 +16,10 @@ def mask_red_labels(img, hsv):
     upper = np.array([180, 255, 255], dtype=np.uint8)
     mask = cv2.inRange(hsv, lower, upper)
 
-
     # 除去
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    # kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
     expanded = cv2.dilate(mask, kernel, iterations=1)
     result = cv2.inpaint(img, expanded, inpaintRadius=1, flags=cv2.INPAINT_TELEA)
-    # replace_color = (0, 0, 0)
-    # result = img.copy()
-    # result[expanded > 0] = replace_color
-
-    # cv2.imwrite("out_range_replace.jpg", result)
-
-    cv2.imwrite("out_range_replace.jpg", result)
 
     return result
 
@@ -54,8 +43,6 @@ def get_black_and_white_colors(img, hsv):
 
     # マスクを適用して色部分を抽出
     result = cv2.bitwise_and(img, img, mask=mask_color)
-    # tmp_file = Path(f"./test_image/{uuid.uuid4()}.jpg")
-    # cv2.imwrite(tmp_file, result)
 
     hs = result.T[0].flatten()
     ss = result.T[1].flatten()
@@ -67,10 +54,9 @@ def get_black_and_white_colors(img, hsv):
 
 def main(img_name):
     image = cv2.imread(img_name)
-    # BGR → HSV に変換
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    # ラベル付与部分を除去
+    # ラベル付与部分を除去(後続処理ではこちらの画像情報を利用する)
     image = mask_red_labels(image, hsv)
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -80,18 +66,10 @@ def main(img_name):
     # 指定色のマスク作成
     mask = cv2.inRange(hsv, lower_color, upper_color) 
 
-    result = cv2.bitwise_and(image, image, mask=mask)
-    cv2.imwrite("2_out_range_replace.jpg", result)
-
     # ノイズ除去
     kernel = np.ones((3,3), np.uint8)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=1)
-
-
-    # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-    # mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=1)
-
 
     # 輪郭抽出
     contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -195,6 +173,7 @@ def main(img_name):
 
     correct_list = get_correct_list(contours_list)
     print(correct_list)
+    return correct_list
 
 
 if __name__ == '__main__':
