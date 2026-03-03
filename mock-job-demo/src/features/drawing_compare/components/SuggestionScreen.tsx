@@ -38,13 +38,13 @@ export function SuggestionScreen({
 
   return (
     <div className="suggestion-screen">
-      <div className="suggestion-top">
-        <div>
-          <p className="text-xs text-slate-500">現在のSource</p>
-          <h3 className="text-lg font-bold text-slate-800">{currentSourceLabel ?? '未選択'}</h3>
-        </div>
-        <button className="btn btn-outline" onClick={onBack}>
-          <ChevronLeft size={16} /> 比較元選択に戻る
+      <div className="suggestion-actions">
+        <button
+          className="btn btn-primary"
+          onClick={onConfirm}
+          disabled={loading || (suggestions.some((s) => s.targetId) && selectedSuggestionIds.length === 0)}
+        >
+          完了して戻る
         </button>
       </div>
 
@@ -138,19 +138,6 @@ export function SuggestionScreen({
             )}
           </div>
         </div>
-      </div>
-
-      <div className="suggestion-actions">
-        <button className="btn btn-outline" onClick={onBack}>
-          <ChevronLeft size={16} /> 取消して戻る
-        </button>
-        <button
-          className="btn btn-primary"
-          onClick={onConfirm}
-          disabled={loading || (suggestions.some((s) => s.targetId) && selectedSuggestionIds.length === 0)}
-        >
-          完了して戻る
-        </button>
       </div>
     </div>
   );
