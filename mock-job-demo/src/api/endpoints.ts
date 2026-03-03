@@ -8,5 +8,5 @@ export const ENDPOINTS = {
   demoCreateLabel: '/demo-create-label/',
   drawingReview: '/drawing-review/',
   drawingCompare: '/drawing-compare/',
-  getImageRects: '/xxx-xxxxx/'
+  getImageSimilarity: '/image-similarity/'
 };
