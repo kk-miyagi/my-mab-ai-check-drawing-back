@@ -110,12 +110,13 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
             ope_dir += f"{req_status.operation}_{req_status.operation_id}/"
             res_dir = f"./create-label-responce/{ope_dir}"
             fname_list = os.listdir(res_dir)
+            # TODO pdfファイルとcsvファイルだけzipにまとめる
             file_list = [
                 res_dir + fname for fname in fname_list if fname != ".gitkeep"
             ]
             # TODO File name kara 1_bf_fileを除く
-            # CSVの最後の列を除く
-            pass
+            # TODO CSVの最後の列を除く
+
             # 3)ZIPに固めてダウンロードの返信を実施
             io = BytesIO()
             now = datetime.now().strftime('%Y%m%d%H%M%S')

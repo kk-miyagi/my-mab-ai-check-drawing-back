@@ -34,7 +34,6 @@ from utils.simple_multi_genemipronpt import (
 )
 
 
-# TODO
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.append(str(REPO_ROOT))
@@ -172,7 +171,6 @@ class GeminiRegionManager:
                 # type: ignore[misc]
                 model_instance = GenerativeModel(self.model_name)
             except Exception as exc:
-                # TODO error
                 last_response = {"error": str(exc)}
                 self._advance_region()
                 continue
@@ -1010,6 +1008,7 @@ def _annotate_matches(
     if not matches:
         return None
 
+    # TODO pdf 対応(pdfだったら画像ファイルに変換
     annotated_path = image_path.with_name(
             f"{image_path.stem}{suffix}{image_path.suffix}")
     with Image.open(image_path).convert("RGB") as img:
@@ -1050,6 +1049,7 @@ def _annotate_matches(
             os.makedirs(output_dir)
         output_path = f"{output_dir}{annotated_path.name}"
         img.save(output_path)
+        # TODO pdf も保存する
 
     return output_path
 
