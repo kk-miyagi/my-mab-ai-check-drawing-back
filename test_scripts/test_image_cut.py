@@ -2,6 +2,7 @@ from PIL import Image
 from pathlib import Path
 import argparse
 
+
 def cut_images(
     image_path: str,
     rects: list[list[int, int, int, int]],
@@ -43,10 +44,10 @@ if __name__ == "__main__":
         except ValueError:
             raise argparse.ArgumentTypeError(f"行のパースに失敗")
 
-
     parser = argparse.ArgumentParser(description="座標から画像を切り出す")
     parser.add_argument("--image-path", required=True, help="元画像のファイルパス")
-    parser.add_argument("--rects", type=int, nargs="+", required=True, help="座標一覧(カンマ区切りで渡す)")
+    parser.add_argument("--rects", type=int, nargs="+",
+                        required=True, help="座標一覧(カンマ区切りで渡す)")
     parser.add_argument("--output-dir", required=True, help="出力先")
 
     args = parser.parse_args()

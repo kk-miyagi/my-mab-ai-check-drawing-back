@@ -7,9 +7,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
-def hash_similarity(dir_name,image_list):
+
+def hash_similarity(dir_name, image_list):
     # 画像を読み込む
-    
+
     image1 = Image.open(f"{dir_name}{image_list[0]}")
     image2 = Image.open(f"{dir_name}{image_list[1]}")
 
@@ -21,7 +22,8 @@ def hash_similarity(dir_name,image_list):
     similarity = 1 - (hash1 - hash2) / len(hash1.hash)**2
     print(f"hash類似度: {similarity * 100:.2f}%")
 
-def hist_similarity(dir_name,image_list):
+
+def hist_similarity(dir_name, image_list):
     # 画像を読み込む
     image1 = cv2.imread(f"{dir_name}{image_list[0]}")
     image2 = cv2.imread(f"{dir_name}{image_list[1]}")
@@ -38,7 +40,8 @@ def hist_similarity(dir_name,image_list):
     similarity = cv2.compareHist(hist1, hist2, cv2.HISTCMP_CORREL)
     print(f"hist類似度: {similarity * 100:.2f}%")
 
-def ssim_similarity(dir_name,image_list):
+
+def ssim_similarity(dir_name, image_list):
     image1 = cv2.imread(f"{dir_name}{image_list[0]}")
     image2 = cv2.imread(f"{dir_name}{image_list[1]}")
 
@@ -52,7 +55,7 @@ def ssim_similarity(dir_name,image_list):
     # 画像のサイズを確認
     h1, w1 = image1.shape[:2]
     h2, w2 = image2.shape[:2]
-    
+
     # サイズが異なる場合は、小さい方のサイズに合わせてリサイズ
     if h1 != h2 or w1 != w2:
         min_height = min(h1, h2)
@@ -62,6 +65,7 @@ def ssim_similarity(dir_name,image_list):
 
     mssim, ssim = cv2.quality.QualitySSIM_compute(image1, image2)
     print(f"ssim類似度: {mssim[0] * 100:.2f}%")
+
 
 @dataclass(frozen=True)
 class ScoreRow:
@@ -74,6 +78,7 @@ class ScoreRow:
     akaze_good: int
     akaze_total: int
 
+
 def _parse_size(text: str) -> tuple[int, int]:
     import argparse
 
@@ -84,7 +89,9 @@ def _parse_size(text: str) -> tuple[int, int]:
             raise ValueError
         return (w, h)
     except Exception as exc:
-        raise argparse.ArgumentTypeError("--size は '200x200' の形式で指定してください") from exc
+        raise argparse.ArgumentTypeError(
+            "--size は '200x200' の形式で指定してください") from exc
+
 
 def _iter_images(img_dir: Path, exts: set[str]) -> Iterable[Path]:
     for p in sorted(img_dir.iterdir()):
@@ -92,6 +99,7 @@ def _iter_images(img_dir: Path, exts: set[str]) -> Iterable[Path]:
             continue
         if p.suffix.lower() in exts:
             yield p
+
 
 def _read_gray(path: Path, size: tuple[int, int]) -> Optional[Any]:
     img = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
@@ -201,11 +209,12 @@ def _write_csv(rows: list[ScoreRow], out_path: Path) -> None:
                 ]
             )
 
+
 def calc_image_similarity(
         base_image_path: str,
         target_image_dir: str,
         topk: int = 3,
-        size = (200, 200),
+        size=(200, 200),
         out_csv: str = None,
         orb_nfeatures: int = 1000,
         orb_ratio: float = 0.75,
@@ -213,7 +222,7 @@ def calc_image_similarity(
         akaze_n_octaves: int = 4,
         akaze_n_octave_layers: int = 4,
         akaze_ratio: float = 0.75
-        ):
+):
     img_dir = Path(target_image_dir)
 
     if not img_dir.exists() or not img_dir.is_dir():
@@ -245,7 +254,8 @@ def calc_image_similarity(
         if cand_img is None:
             continue
 
-        orb_avg, orb_good, orb_total = _orb_score(cache_base_img, cand_img, orb_nfeatures, orb_ratio)
+        orb_avg, orb_good, orb_total = _orb_score(
+            cache_base_img, cand_img, orb_nfeatures, orb_ratio)
         akz_avg, akz_good, akz_total = _akaze_score(
             cache_base_img,
             cand_img,
@@ -272,7 +282,8 @@ def calc_image_similarity(
     subset.sort(key=_sort_key)
 
     print("=" * 80)
-    print(f"BASE: {base_image_path} TARGET_DIR: {target_image_dir}  (size={size[0]}x{size[1]})")
+    print(
+        f"BASE: {base_image_path} TARGET_DIR: {target_image_dir}  (size={size[0]}x{size[1]})")
     print("※距離（avg_dist）は小さいほど類似と解釈")
     print("candidate\torb_avg_dist\torb_good/total\takaze_avg_dist\takaze_good/total")
     for r in subset[: max(1, int(topk))]:
@@ -284,21 +295,23 @@ def calc_image_similarity(
 
     if out_csv:
         out_path = Path(out_csv)
-        _write_csv(sorted(rows, key=lambda x: (x.target, _sort_key(x))), out_path)
+        _write_csv(sorted(rows, key=lambda x: (
+            x.target, _sort_key(x))), out_path)
         print(f"CSV出力: {out_path}")
 
     print("完了")
 
     return subset
-    
+
 
 if __name__ == "__main__":
     # 実行確認用
-    parser = argparse.ArgumentParser(description="ORB と AKAZE を同時に一括比較してスコア出力します")
+    parser = argparse.ArgumentParser(
+        description="ORB と AKAZE を同時に一括比較してスコア出力します")
     parser.add_argument("--base-image-path", required=True, help="基準側図面")
     parser.add_argument("--target-image-dir", required=True, help="比較側図面")
     args = parser.parse_args()
     calc_image_similarity(
-        base_image_path = args.base_image_path,
-        target_image_dir = args.target_image_dir,
+        base_image_path=args.base_image_path,
+        target_image_dir=args.target_image_dir,
     )
