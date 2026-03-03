@@ -461,7 +461,7 @@ export const DrawingCompare: React.FC = () => {
     const sourceRect = rects.filter((rect) => rect.role === 'source');
     const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
     console.log(result)
-    // navigate("/drawing-compare-processing")
+    navigate("/drawing-compare-processing")
     // const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingCompare) as string);
     // toPersist.lastOperation = "batch-drawing-compare"
     // window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
