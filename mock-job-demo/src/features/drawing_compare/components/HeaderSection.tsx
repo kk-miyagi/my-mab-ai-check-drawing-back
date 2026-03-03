@@ -54,9 +54,10 @@ export function HeaderSection({
       <div className="header-actions">
         {phase === 'define' ? (
           <>
-            <button className="btn btn-danger" onClick={onClearAll} disabled={!hasRects}>
+            {/* <button className="btn btn-danger" onClick={onClearAll} disabled={!hasRects}>
               <Trash2 size={16} /> 全削除
-            </button>
+            </button> */}
+            <p></p>
             <div className="divider" />
             <button className="btn btn-primary" onClick={onGoNext} disabled={!canProceed}>
               次へ：紐付け設定 <ChevronRight size={16} />
@@ -64,9 +65,10 @@ export function HeaderSection({
           </>
         ) : phase === 'select' ? (
           <>
-            <button className="btn btn-outline" onClick={onBackToDefine}>
+            {/* <button className="btn btn-outline" onClick={onBackToDefine}>
               <Edit3 size={16} /> 領域を修正
-            </button>
+            </button> */}
+            <p></p>
             <div className="divider" />
             <button
               className="btn btn-compare"

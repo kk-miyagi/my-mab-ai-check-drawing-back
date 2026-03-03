@@ -75,7 +75,7 @@ export function Sidebar({
                 key={rect.id}
                 className={`list-item ${phase === 'define' && selectedId === rect.id ? 'selected-item' : ''} ${isCurrent ? 'source-current-item' : ''}`}
                 onClick={() => {
-                  if (phase === 'define') onSelectRect(rect.id);
+                  // if (phase === 'define') onSelectRect(rect.id);
                   if (phase === 'select') onSelectSourceForLink(rect.id);
                 }}
               >
@@ -90,7 +90,7 @@ export function Sidebar({
                   </div>
                 )}
 
-                {phase === 'define' && (
+                {/* {phase === 'define' && (
                   <button
                     className="text-slate-400 hover:text-red-500"
                     onClick={(event) => {
@@ -100,7 +100,7 @@ export function Sidebar({
                   >
                     <Trash2 size={14} />
                   </button>
-                )}
+                )} */}
               </div>
             );
           })}
@@ -119,13 +119,13 @@ export function Sidebar({
                     <div
                       key={rect.id}
                       className={`list-item ${selectedId === rect.id ? 'selected-item' : ''}`}
-                      onClick={() => onSelectRect(rect.id)}
+                      // onClick={() => onSelectRect(rect.id)}
                     >
                       <div className="font-bold text-sm w-6">#{index + 1}</div>
                       <div className="flex-1 text-xs text-slate-500">
                         {Math.round(rect.width)}% × {Math.round(rect.height)}%
                       </div>
-                      <button
+                      {/* <button
                         className="text-slate-400 hover:text-red-500"
                         onClick={(event) => {
                           event.stopPropagation();
@@ -133,7 +133,7 @@ export function Sidebar({
                         }}
                       >
                         <Trash2 size={14} />
-                      </button>
+                      </button> */}
                     </div>
                   );
                 }

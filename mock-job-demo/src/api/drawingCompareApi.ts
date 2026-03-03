@@ -1,12 +1,12 @@
 import { http } from "./http";
 import { ENDPOINTS } from "./endpoints";
 import { AxiosRequestConfig } from "axios";
-import type { DrawingReviewRequest, DrawingReviewResponse } from "../types/drawingReview.ts";
+import type { GetImageRectsRequest, GetImageRectsResponse, DrawingCompareRequest, DrawingCompareResponse } from "../types/drawingCompare.ts";
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 
-const DRAWING_REVIEW_ENDPOINT = ENDPOINTS.drawingReview;
-const CHECK_STATUS_ENDPOINT = ENDPOINTS.checkStatus;
+const DRAWING_COMPARE_ENDPOINT = ENDPOINTS.drawingCompare;
+const GET_IMAGE_RECTS = ENDPOINTS.getImageRects;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -25,24 +25,35 @@ async function postForm<TResponse>(path: string, formData: FormData, responseTyp
 
 export const drawingReviewApi = {
 
-  async drawingReviewStart(payload: DrawingReviewRequest): Promise<DrawingReviewResponse> {
+  async getImageRects(payload: GetImageRectsRequest): Promise<GetImageRectsResponse> {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
     form.append('operation', payload.operation);
     form.append('operation_id', payload.operation_id);
     form.append('status', payload.status);
-    return postForm(DRAWING_REVIEW_ENDPOINT, form);
+    return postForm(GET_IMAGE_RECTS, form)
   },
 
-  async drawingReviewEnd(payload: DrawingReviewRequest) {
+  async drawingReviewStart(payload: DrawingCompareRequest): Promise<DrawingCompareResponse> {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
     form.append('operation', payload.operation);
     form.append('operation_id', payload.operation_id);
     form.append('status', payload.status);
-    return postForm(DRAWING_REVIEW_ENDPOINT, form, 'blob');
+    form.append('combination', JSON.stringify(payload.combination));
+    return postForm(DRAWING_COMPARE_ENDPOINT, form);
+  },
+
+  async drawingReviewEnd(payload: DrawingCompareRequest) {
+    const form = new FormData();
+    form.append('user', payload.user);
+    form.append('epic', payload.epic);
+    form.append('operation', payload.operation);
+    form.append('operation_id', payload.operation_id);
+    form.append('status', payload.status);
+    return postForm(DRAWING_COMPARE_ENDPOINT, form, 'blob');
   },
 
 }

@@ -91,7 +91,7 @@ def _resolve_vertex_project() -> Optional[str]:
         value = os.environ.get(key)
         if value:
             return value
-    return "mab-ai-adv-util"
+    return "mab-ai-check-drawing"
 
 
 def _is_rate_limit_error(response: object) -> bool:

@@ -5,7 +5,7 @@ import os
 import json
 from typing import List, Optional
 
-DEFAULT_PROJECT = os.environ.get("VERTEX_PROJECT") or os.environ.get("VERTEXAI_PROJECT") or os.environ.get("GOOGLE_CLOUD_PROJECT") or "mab-ai-adv-util"
+DEFAULT_PROJECT = os.environ.get("VERTEX_PROJECT") or os.environ.get("VERTEXAI_PROJECT") or os.environ.get("GOOGLE_CLOUD_PROJECT") or "mab-ai-check-drawing"
 DEFAULT_LOCATION = os.environ.get("VERTEX_LOCATION", "us-central1")
 DEFAULT_MODEL_NAME = os.environ.get("VERTEX_MODEL", "gemini-2.5-pro")
 
