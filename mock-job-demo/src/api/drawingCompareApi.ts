@@ -6,7 +6,7 @@ import type { GetImageSimilarityRequest, GetImageSimilarityResponse, DrawingComp
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 
 const DRAWING_COMPARE_ENDPOINT = ENDPOINTS.drawingCompare;
-const GET_IMAGE_RECTS = ENDPOINTS.getImageRects;
+const GET_IMAGE_SIMILARITY = ENDPOINTS.getImageSimilarity;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -32,41 +32,7 @@ export const drawingCompareApi = {
     form.append('operation', payload.operation);
     form.append('operation_id', payload.operation_id);
     form.append('status', payload.status);
-    // return postForm(GET_IMAGE_RECTS, form)
-    return {
-      user: payload.user,
-      epic: payload.epic,
-      operation: payload.operation,
-      operation_id: payload.operation_id,
-      status: 'end',
-      base_rects: {
-        "bf_1": [497, 123, 412, 421],
-        "bf_2": [275, 682, 432, 425],
-        "bf_3": [68, 57, 410, 451]
-      },
-      target_rects: {
-        "af_1": [497, 123, 412, 421],
-        "af_2": [275, 682, 432, 425],
-        "af_3": [68, 57, 410, 451]
-      },
-      similarities: {
-        "bf_1": {
-          "af_1": 10,
-          "af_2": 20,
-          "af_3": 30,
-        },
-        "bf_2": {
-          "af_1": 40,
-          "af_2": 50,
-          "af_3": 60,
-        },
-        "bf_3": {
-          "af_1": 70,
-          "af_2": 80,
-          "af_3": 90,
-        },
-      }
-    };
+    return postForm(GET_IMAGE_SIMILARITY, form)
   },
 
 
