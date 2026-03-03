@@ -1,7 +1,7 @@
 import { http } from "./http";
 import { ENDPOINTS } from "./endpoints";
 import { AxiosRequestConfig } from "axios";
-import type { GetImageRectsRequest, GetImageRectsResponse, DrawingCompareRequest, DrawingCompareResponse } from "../types/drawingCompare.ts";
+import type { GetImageSimilarityRequest, GetImageSimilarityResponse, DrawingCompareRequest, DrawingCompareResponse } from "../types/drawingCompare.ts";
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 
@@ -23,17 +23,53 @@ async function postForm<TResponse>(path: string, formData: FormData, responseTyp
   return data;
 }
 
-export const drawingReviewApi = {
+export const drawingCompareApi = {
 
-  async getImageRects(payload: GetImageRectsRequest): Promise<GetImageRectsResponse> {
+  async getImageSimilarity(payload: GetImageSimilarityRequest): Promise<GetImageSimilarityResponse> {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
     form.append('operation', payload.operation);
     form.append('operation_id', payload.operation_id);
     form.append('status', payload.status);
-    return postForm(GET_IMAGE_RECTS, form)
+    // return postForm(GET_IMAGE_RECTS, form)
+    return {
+      user: payload.user,
+      epic: payload.epic,
+      operation: payload.operation,
+      operation_id: payload.operation_id,
+      status: 'end',
+      base_rects: {
+        "bf_1": [497, 123, 412, 421],
+        "bf_2": [275, 682, 432, 425],
+        "bf_3": [68, 57, 410, 451]
+      },
+      target_rects: {
+        "af_1": [497, 123, 412, 421],
+        "af_2": [275, 682, 432, 425],
+        "af_3": [68, 57, 410, 451]
+      },
+      similarities: {
+        "bf_1": {
+          "af_1": 10,
+          "af_2": 20,
+          "af_3": 30,
+        },
+        "bf_2": {
+          "af_1": 40,
+          "af_2": 50,
+          "af_3": 60,
+        },
+        "bf_3": {
+          "af_1": 70,
+          "af_2": 80,
+          "af_3": 90,
+        },
+      }
+    };
   },
+
+
 
   async drawingReviewStart(payload: DrawingCompareRequest): Promise<DrawingCompareResponse> {
     const form = new FormData();

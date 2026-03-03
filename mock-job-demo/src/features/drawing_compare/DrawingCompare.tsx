@@ -26,7 +26,6 @@ import { Sidebar } from './components/Sidebar';
 import { HeaderSection } from './components/HeaderSection';
 import { ResultModal } from './components/ResultModal';
 import { SuggestionScreen } from './components/SuggestionScreen';
-import { drawingReviewApi } from '../../api/drawingCompareApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 
 const SAMPLE_IMAGES = {
@@ -41,6 +40,16 @@ export const DrawingCompare: React.FC = () => {
   const data = location.state;
   const baseImageFile = data.baseImageFile;
   const compareImageFile = data.compareImageFile;
+
+  // 座標と類似度
+  const baseRects = data.baseRects;
+  const targetRects = data.targetRects;
+  const similarities = data.similarities;
+
+  // console.log(baseRects)
+  // Object.keys(baseRects).forEach((i) =>{
+  //   console.log(i.)
+  // })
 
   // 図面のプレビュー
   useEffect(() => {
@@ -301,49 +310,39 @@ export const DrawingCompare: React.FC = () => {
 
   const handleSetRect = () => {
     setRects([])
-    const baseRects = [
-      { id: "bf_1", x: 320, y: 2000, width: 2400, height: 1000 },
-      { id: "bf_2", x: 100, y: 500, width: 2400, height: 1800 },
-      { id: "bf_3", x: 3000, y: 500, width: 2400, height: 1800 },
-    ]
-    const compareRects = [
-      { id: "af_1", x: 0, y: 2000, width: 2400, height: 100 },
-      { id: "af_2", x: 4000, y: 500, width: 1000, height: 180 },
-      { id: "af_3", x: 30, y: 1000, width: 2400, height: 1800 },
-    ]
     const changeRect = new ChageRect()
-    console.log(compareRects)
-    Object.keys(baseRects).forEach((i) => {
+
+    Object.entries(baseRects).forEach(([key, values]) => {
       (async () => {
-        const res = await changeRect.crop(images.source, {x: baseRects[i].x, y: baseRects[i].y, width: baseRects[i].width, height: baseRects[i].height})
+        const res = await changeRect.crop(images.source, {x: values[0], y: values[1], width: values[2], height: values[3]})
         setRects(prev => [
           ...prev,
           {
-            id: baseRects[i].id,
+            id: key,
             role: 'source',
             x: res.x,
             y: res.y,
             width: res.width,
             height: res.height,
-            imageCoords: {x: baseRects[i].x, y: baseRects[i].y, width: baseRects[i].width, height: baseRects[i].height},
+            imageCoords: {x: values[0], y: values[1], width: values[2], height: values[3]},
             linkedTargetIds: []
           }
         ])
       })()
     })
-    Object.keys(compareRects).forEach((i) => {
+    Object.entries(targetRects).forEach(([key, values]) => {
       (async () => {
-        const res = await changeRect.crop(images.target, {x: compareRects[i].x, y: compareRects[i].y, width: compareRects[i].width, height: compareRects[i].height})
+        const res = await changeRect.crop(images.target, {x: values[0], y: values[1], width: values[2], height: values[3]})
         setRects(prev => [
           ...prev,
           {
-            id: compareRects[i].id,
+            id: key,
             role: 'target',
             x: res.x,
             y: res.y,
             width: res.width,
             height: res.height,
-            imageCoords: {x: compareRects[i].x, y: compareRects[i].y, width: compareRects[i].width, height: compareRects[i].height}
+            imageCoords: {x: values[0], y: values[1], width: values[2], height: values[3]}
           }
         ])
       })()
@@ -505,13 +504,34 @@ export const DrawingCompare: React.FC = () => {
         return;
       }
 
-      const generated = await fetchSuggestions({
-        sourceRect: cropRect,
-        targetImg: images.target,
-        targetRects,
-        cropper: cropperRef.current,
-      });
-      setSuggestions(generated);
+      const t = Object.entries(similarities).filter(([key]) => key === sourceId)[0][1]
+      const allowedIds = new Set(Object.keys(t));
+
+      const targets = targetRects.filter((r) => r.role === 'target' && allowedIds.has(r.id));
+      console.log(targets)
+      const candidates = targets.slice(0, 3);
+
+      const result: SimilarSuggestion[] = [];
+
+      for (const rect of candidates) {
+        const labelIndex = targets.findIndex((t) => t.id === rect.id);
+        const score = similarities[sourceId][rect.id]
+
+        // const cropRect = rect.imageCoords ?? rect;
+        // なぜかここ修正が必要だった。
+        const cropRect = {x: rect.x, y: rect.y, width: rect.width, height: rect.height};
+        const image = await cropperRef.current.crop(images.target, cropRect);
+        result.push({
+          id: `t-${rect.id}`,
+          targetId: rect.id,
+          label: labelIndex >= 0 ? `Target #${labelIndex + 1}` : undefined,
+          score,
+          rect: { x: cropRect.x, y: cropRect.y, width: cropRect.width, height: cropRect.height },
+          image,
+        });
+      }
+
+      setSuggestions(result);
     } finally {
       setLoadingSuggestions(false);
     }
