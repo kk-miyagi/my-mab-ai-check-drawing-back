@@ -92,11 +92,7 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
     };
     console.log("これが確認したい", requestPayload)
     const response = await uploadApi.uploadPair(requestPayload);
-    navigate("/drawing-compare-upload-compare", { state: { baseImageFile }})
-
-    // ここで画像をサーバーに渡す。
-    // サーバー側では、矩形領域の座標を特定して類似度を計算する
-    // その類似度を受け取り、
+    navigate("/drawing-compare-upload-target", { state: { baseImageFile }})
 
   }
 
@@ -141,7 +137,7 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart} >処理開始</button>
+        <button className="primary" onClick={handleStart} >次に進む</button>
       </div>
 
     </div>

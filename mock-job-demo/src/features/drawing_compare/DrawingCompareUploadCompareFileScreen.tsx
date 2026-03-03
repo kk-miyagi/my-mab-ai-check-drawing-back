@@ -5,7 +5,7 @@ import { uploadApi } from '../../api/uploadApi.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
 
 const DEFAULT_EPIC = 'drawing-compare';
-const DEFAULT_OPERATION = 'upload-compare';
+const DEFAULT_OPERATION = 'upload-target';
 
 export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
 
@@ -58,7 +58,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       number: 1,
       files: compareImageFile.concat(compareCsvFile),
     };
-    const response = await uploadApi.uploadPair(requestPayload);
+    await uploadApi.uploadPair(requestPayload);
 
   
     toPersist.lastOperation = 'image-similarity'
@@ -72,13 +72,16 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       operation_id: toPersist.operationId,
       status: toPersist.status,
     }
-    const res = await drawingCompareApi.getImageSimilarity(requestSimilarityPayload)
-    const baseRects = res.base_rects
-    const targetRects = res.target_rects
-    const similarities = res.similarities
-
-    navigate("/drawing-compare",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
-
+    try {
+      const res = await drawingCompareApi.getImageSimilarity(requestSimilarityPayload)
+      const baseRects = res.base_rects
+      const targetRects = res.target_rects
+      const similarities = res.similarities
+      navigate("/drawing-compare",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
+    } catch (err) {
+      window.alert("処理に失敗したため、画面を切り替えます")
+      navigate("/drawing-compare-upload-base")
+    }
   }
 
   useEffect(() => {
