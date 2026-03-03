@@ -1,12 +1,12 @@
 import { http } from "./http";
 import { ENDPOINTS } from "./endpoints";
 import { AxiosRequestConfig } from "axios";
-import type { GetImageRectsRequest, GetImageRectsResponse, DrawingCompareRequest, DrawingCompareResponse } from "../types/drawingCompare.ts";
+import type { GetImageSimilarityRequest, GetImageSimilarityResponse, DrawingCompareRequest, DrawingCompareResponse } from "../types/drawingCompare.ts";
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 
 const DRAWING_COMPARE_ENDPOINT = ENDPOINTS.drawingCompare;
-const GET_IMAGE_RECTS = ENDPOINTS.getImageRects;
+const GET_IMAGE_SIMILARITY = ENDPOINTS.getImageSimilarity;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -23,17 +23,19 @@ async function postForm<TResponse>(path: string, formData: FormData, responseTyp
   return data;
 }
 
-export const drawingReviewApi = {
+export const drawingCompareApi = {
 
-  async getImageRects(payload: GetImageRectsRequest): Promise<GetImageRectsResponse> {
+  async getImageSimilarity(payload: GetImageSimilarityRequest): Promise<GetImageSimilarityResponse> {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
     form.append('operation', payload.operation);
     form.append('operation_id', payload.operation_id);
     form.append('status', payload.status);
-    return postForm(GET_IMAGE_RECTS, form)
+    return postForm(GET_IMAGE_SIMILARITY, form)
   },
+
+
 
   async drawingReviewStart(payload: DrawingCompareRequest): Promise<DrawingCompareResponse> {
     const form = new FormData();

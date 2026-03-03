@@ -45,7 +45,7 @@ export const AppRouter = () => {
       <Route path="/drawing-review-upload-excel" element={<DrawingReviewUploadExcelScreen />} />
       <Route path="/drawing-compare-upload" element={<DrawingCompareUploadScreen />} />
       <Route path="/drawing-compare-upload-base" element={<DrawingCompareUploadBaseFileScreen />} />
-      <Route path="/drawing-compare-upload-compare" element={<DrawingCompareUploadCompareFileScreen />} />
+      <Route path="/drawing-compare-upload-target" element={<DrawingCompareUploadCompareFileScreen />} />
       <Route path="/drawing-compare-select" element={<DrawingCompareSelectScreen />} />
       <Route path="/drawing-compare" element={<DrawingCompare />} />
       <Route path="/drawing-compare-processing" element={<DrawingCompareProcessingScreen />} />
