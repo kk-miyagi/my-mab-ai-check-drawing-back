@@ -9,10 +9,10 @@ def main(file_name):
     print(file_name)
     images = convert_from_path(file_name)
 
-    save_path = file_name.with_suffix(".jpg")
-
     # 各ページを画像として保存する
     for i, image in enumerate(images):
+        new_file_name = file_name.with_stem(f"{file_name.stem}_{i}")
+        save_path = new_file_name.with_suffix(".jpg")
         image.save(save_path, 'JPEG')
 
 
