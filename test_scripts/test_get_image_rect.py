@@ -54,6 +54,7 @@ def get_black_and_white_colors(img, hsv):
     return (np.array([hs.min(), ss.min(), vs.min()]) + tmp_values,
             np.array([hs.max(), ss.max(), vs.max()]) + tmp_values)
 
+
 def to_box(x, y, w, h):
     return (x, y, x + w, y + h)  # (x1, y1, x2, y2)
 
@@ -64,7 +65,7 @@ def is_inside(a, b, inclusive=True):
     if inclusive:
         return bx1 <= ax1 and by1 <= ay1 and bx2 >= ax2 and by2 >= ay2
     else:
-        return bx1 <  ax1 and by1 <  ay1 and bx2 >  ax2 and by2 >  ay2
+        return bx1 < ax1 and by1 < ay1 and bx2 > ax2 and by2 > ay2
 
 
 def main(img_name):
@@ -76,10 +77,9 @@ def main(img_name):
     print(f"lower:{lower_color}\n upper:{upper_color}")
     # 指定色のマスク作成
     mask = cv2.inRange(hsv, lower_color, upper_color)
-    
-    # result = cv2.bitwise_and(image, image, mask=mask)
-    # tmp_file = Path(f"./test_image/20260304_test_1.jpg")
-    # cv2.imwrite(tmp_file, result)
+
+    result = cv2.bitwise_and(image, image, mask=mask)
+    cv2.imwrite(Path(f"./test_image/test_draw_rect_1.jpg"), result)
 
     # ノイズ除去
     kernel = np.ones((3, 3), np.uint8)
@@ -99,28 +99,31 @@ def main(img_name):
         # 画像の総面積
         img_height, img_width = image.shape[:2]
         img_total_area = img_width * img_height
+
         contours_list = []
         for cnt in contours:
             area = cv2.contourArea(cnt)
             if area > img_total_area * 0.005:
                 contours_list.append(cv2.boundingRect(cnt))
-                x, y, w, h = cv2.boundingRect(cnt)
 
     boxes = [to_box(*r) for r in contours_list]
 
     # 内側の矩形だけを抽出
-    inner_rects = []
+    output_rects = []
     for i, a in enumerate(boxes):
         # どれか一つにでも内包されていれば内側とみなす
         if any(is_inside(a, boxes[j], inclusive=True) and j != i for j in range(len(boxes))):
-            inner_rects.append(contours_list[i])
-    # for c in inner_rects:
-    #     x, y, w, h = c
-    #     cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 1)
-    # cv2.imwrite("./test_image/20260304_test_2.jpg", image)
-    print(f"座標一覧: {inner_rects}")
+            output_rects.append(list(contours_list[i]))
 
-    return inner_rects
+    # 確認用に出力
+    for rect in output_rects:
+        x, y, w, h = rect
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 1)
+    cv2.imwrite(Path("./test_image/test_draw_rect_2.jpg"), image)
+    print(f"output_rects size: {len(output_rects)}")
+    print(f"座標一覧: {output_rects}")
+
+    return output_rects
 
 
 if __name__ == '__main__':
