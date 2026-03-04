@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import sys
+from pathlib import Path
 
 
 def mask_red_labels(img, hsv):
@@ -53,13 +54,21 @@ def get_black_and_white_colors(img, hsv):
     return (np.array([hs.min(), ss.min(), vs.min()]) + tmp_values,
             np.array([hs.max(), ss.max(), vs.max()]) + tmp_values)
 
+def to_box(x, y, w, h):
+    return (x, y, x + w, y + h)  # (x1, y1, x2, y2)
+
+
+def is_inside(a, b, inclusive=True):
+    ax1, ay1, ax2, ay2 = a
+    bx1, by1, bx2, by2 = b
+    if inclusive:
+        return bx1 <= ax1 and by1 <= ay1 and bx2 >= ax2 and by2 >= ay2
+    else:
+        return bx1 <  ax1 and by1 <  ay1 and bx2 >  ax2 and by2 >  ay2
+
 
 def main(img_name):
     image = cv2.imread(img_name)
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-    # ラベル付与部分を除去(後続処理ではこちらの画像情報を利用する)
-    image = mask_red_labels(image, hsv)
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     # 黒と白以外色の範囲を取得
@@ -67,6 +76,10 @@ def main(img_name):
     print(f"lower:{lower_color}\n upper:{upper_color}")
     # 指定色のマスク作成
     mask = cv2.inRange(hsv, lower_color, upper_color)
+    
+    # result = cv2.bitwise_and(image, image, mask=mask)
+    # tmp_file = Path(f"./test_image/20260304_test_1.jpg")
+    # cv2.imwrite(tmp_file, result)
 
     # ノイズ除去
     kernel = np.ones((3, 3), np.uint8)
@@ -82,100 +95,32 @@ def main(img_name):
         print("指定色の四角形が見つかりませんでした。")
     else:
         print(f"contours size: {len(contours)}")
-        contours_list = [cv2.boundingRect(cnt) for cnt in contours]
-        #     x, y, w, h = cv2.boundingRect(cnt)
 
-    # 内包チェック関数
-    def is_box_inside(inner_box, outer_box):
-        """
-        inner_box: (x, y, w, h) 内側の矩形
-        outer_box: (x, y, w, h) 外側の矩形
-        戻り値: True → 完全に内包, False → 内包されていない
-        """
-        ix, iy, iw, ih = inner_box
-        ox, oy, ow, oh = outer_box
+        # 画像の総面積
+        img_height, img_width = image.shape[:2]
+        img_total_area = img_width * img_height
+        contours_list = []
+        for cnt in contours:
+            area = cv2.contourArea(cnt)
+            if area > img_total_area * 0.005:
+                contours_list.append(cv2.boundingRect(cnt))
+                x, y, w, h = cv2.boundingRect(cnt)
 
-        # 内側の矩形の4辺
-        inner_left = ix
-        inner_top = iy
-        inner_right = ix + iw
-        inner_bottom = iy + ih
+    boxes = [to_box(*r) for r in contours_list]
 
-        # 外側の矩形の4辺
-        outer_left = ox
-        outer_top = oy
-        outer_right = ox + ow
-        outer_bottom = oy + oh
+    # 内側の矩形だけを抽出
+    inner_rects = []
+    for i, a in enumerate(boxes):
+        # どれか一つにでも内包されていれば内側とみなす
+        if any(is_inside(a, boxes[j], inclusive=True) and j != i for j in range(len(boxes))):
+            inner_rects.append(contours_list[i])
+    # for c in inner_rects:
+    #     x, y, w, h = c
+    #     cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 1)
+    # cv2.imwrite("./test_image/20260304_test_2.jpg", image)
+    print(f"座標一覧: {inner_rects}")
 
-        # 完全に内包されている条件
-        return (inner_left >= outer_left and
-                inner_top >= outer_top and
-                inner_right <= outer_right and
-                inner_bottom <= outer_bottom)
-
-    # 不要なBOXを削除する関数
-    def get_correct_list(ls):
-        # 完全に部分で分かれているものを統合する
-        def get_concat_box_list(box_list):
-            ret = box_list.copy()
-            new_ls_dic = {}
-            for i, l in enumerate(ret):
-                not_l_ls = [x for x in ret if not x == l]
-                new_l = list(l)
-                for nl in not_l_ls:
-                    # 縦方向に結合
-                    print(f"{l} <-> {nl}")
-                    if (l[0] == nl[0]) and (l[2] == nl[2]):
-                        min_y = min(l[1], nl[1])
-                        # 隣り合っていたら
-                        # 線の太さを考慮する必要がある(10px)
-                        if ((max(l[1], nl[1]) - 10 <= min_y + l[3] <= max(l[1], nl[1]) + 10)
-                                or (max(l[1], nl[1]) - 10 <= min_y + nl[3] <= max(l[1], nl[1]) + 10)):
-                            new_l[0] = l[0]
-                            new_l[1] = min_y
-                            new_l[2] = l[2]
-                            new_l[3] = l[3] + nl[3]
-
-                    # 横方向に結合
-                    if (l[1] == nl[1]) and (l[3] == nl[3]):
-                        min_x = min(l[0], nl[0])
-                        print("find subbox!")
-                        # 隣り合っていたら
-                        # 線の太さを考慮する必要がある(10px)
-                        if ((max(l[0], nl[0]) - 10 <= min_x + l[2] <= max(l[0], nl[0]) + 10)
-                                or (max(l[0], nl[0]) - 10 <= min_x + nl[2] <= max(l[0], nl[0]) + 10)):
-                            print("conect box!!")
-                            new_l[0] = min_x
-                            new_l[1] = l[1]
-                            new_l[2] = l[2] + nl[2]
-                            new_l[3] = l[3]
-
-                if new_l != l:
-                    new_ls_dic[i] = new_l
-            # 結合部分を更新
-            for i in new_ls_dic.keys():
-                ret[i] = new_ls_dic[i]
-            # 結合されていると必ず重複するので重複を削除
-            # 重なってる部分を削除
-            new_ret_set = {'_'.join([str(s) for s in x]) for x in ret}
-            return [[int(s) for s in x.split('_')] for x in new_ret_set]
-
-        # 完全に部分で分かれているものを統合する
-        ret = get_concat_box_list(ls)
-
-        # box内にできた小さなboxを削除
-        inside_boxs = []
-        for l in ret:
-            not_l_ls = [x for x in ret if not x == l]
-            if any([is_box_inside(l, x) for x in not_l_ls]):
-                print(f"box inside others: {l}")
-                inside_boxs.append(l)
-
-        return [x for x in ret if not x in inside_boxs]
-
-    correct_list = get_correct_list(contours_list)
-    print(correct_list)
-    return correct_list
+    return inner_rects
 
 
 if __name__ == '__main__':
