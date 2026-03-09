@@ -46,6 +46,9 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
     };
     await uploadApi.uploadPair(requestPayload);
 
+    // todo
+    // 図面ハイライトAPIをたたく
+
   }
 
   useEffect(() => {
@@ -78,7 +81,7 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
       )}
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart} >処理開始</button>
+        <button className="primary" onClick={handleStart} disabled={compareImageFile.length === 0}>処理開始</button>
       </div>
 
     </div>
