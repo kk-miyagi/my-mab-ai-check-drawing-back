@@ -62,7 +62,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
 
   
     toPersist.lastOperation = 'image-similarity'
-    toPersist.status = 'start'
+    toPersist.status = 'doing'
     window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
     // 座標と類似度計算
     const requestSimilarityPayload = {
