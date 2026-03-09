@@ -281,27 +281,32 @@ def calc_image_similarity(
     subset = rows.copy()
     subset.sort(key=_sort_key)
 
-    print("=" * 80)
-    print(
-        f"BASE: {base_image_path} TARGET_DIR: {target_image_dir}  (size={size[0]}x{size[1]})")
-    print("※距離（avg_dist）は小さいほど類似と解釈")
-    print("candidate\torb_avg_dist\torb_good/total\takaze_avg_dist\takaze_good/total")
-    for r in subset[: max(1, int(topk))]:
-        orb_s = "-" if r.orb_avg_dist is None else f"{r.orb_avg_dist:.2f}"
-        akz_s = "-" if r.akaze_avg_dist is None else f"{r.akaze_avg_dist:.2f}"
-        print(
-            f"{r.candidate}\t{orb_s}\t{r.orb_good}/{r.orb_total}\t{akz_s}\t{r.akaze_good}/{r.akaze_total}"
-        )
+    out = {}
+    for i, r in enumerate(subset[: max(1, int(topk))], start=1):
+        out[r.candidate.split(".")[0]] = i
 
-    if out_csv:
-        out_path = Path(out_csv)
-        _write_csv(sorted(rows, key=lambda x: (
-            x.target, _sort_key(x))), out_path)
-        print(f"CSV出力: {out_path}")
+    # print("=" * 80)
+    # print(
+    #     f"BASE: {base_image_path} TARGET_DIR: {target_image_dir}  (size={size[0]}x{size[1]})")
+    # print("※距離（avg_dist）は小さいほど類似と解釈")
+    # print("candidate\torb_avg_dist\torb_good/total\takaze_avg_dist\takaze_good/total")
+    # for r in subset[: max(1, int(topk))]:
+    #     orb_s = "-" if r.orb_avg_dist is None else f"{r.orb_avg_dist:.2f}"
+    #     akz_s = "-" if r.akaze_avg_dist is None else f"{r.akaze_avg_dist:.2f}"
+    #     print(
+    #         f"{r.candidate}\t{orb_s}\t{r.orb_good}/{r.orb_total}\t{akz_s}\t{r.akaze_good}/{r.akaze_total}"
+    #     )
 
-    print("完了")
+    # if out_csv:
+    #     out_path = Path(out_csv)
+    #     _write_csv(sorted(rows, key=lambda x: (
+    #         x.target, _sort_key(x))), out_path)
+    #     print(f"CSV出力: {out_path}")
 
-    return subset
+    # print("完了")
+
+    # return subset
+    return out
 
 
 if __name__ == "__main__":
