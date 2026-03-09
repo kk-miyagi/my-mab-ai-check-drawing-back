@@ -15,49 +15,34 @@ router = APIRouter(route_class=AppRoute)
 
 class DrawingCompareRunner(BackendTaskRunner):
 
-    _IN_BASE_DIR = './multi-fileupload'
-    _OUT_BASE_DIR = './drawing-review-responce'
-    _EPIC = 'drawing-review'
-    _IN_OPE = 'image-similarity'
-    _OUT_OPE = 'batch-drawing-compare'
-    _FILE_KEY = 'bf_file'
-
+    _BASE_DIR = './drawing-compare-responce'
     def get_cmd(self, base_cmd, app_state, req_status):
         req = req_status
-        in_dir_excel = f"{self._IN_BASE_DIR}/"
-        in_dir_images = f"{self._IN_BASE_DIR}/"
-        in_dir_excel += f"{req.user}_{self._EPIC}_{self._IN_OPE_EXCEL}_{req.operation_id}/"
-        in_dir_images += f"{req.user}_{self._EPIC}_{self._IN_OPE_IMAGES}_{req.operation_id}/"
-        out_dir = f"{self._OUT_BASE_DIR}/"
-        out_dir += f"{req.user}_{self._EPIC}"
-        out_dir += f"_{self._OUT_OPE}_{req.operation_id}/"
-        # f_list = [f for f in os.listdir(in_dir) if f != '.gitkeep']
-        # img = None
-        # if len(f_list) == 1:
-        #     img = f_list[0]
-
-        return f"{base_cmd} {in_dir_excel} {in_dir_images} {out_dir}"
+        # TODO: 引数が決まっていないため確定後に入れる
+        return f"{base_cmd}"
 
 
 @router.post("/drawing-compare/")
 async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
-    
     state = request.state
     req_status = AppStatus.create_from_state(state)
+
     req_combinations = state.combinations
     req_combinations = json.loads(req_combinations)
 
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
+
+    base_dir = './drawing-compare-responce'
     up_epic = 'drawing-compare'
-    up_excel_ope = 'upload-base'
-    up_image_ope = 'upload-target'
+    up_ope = 'image-similarity'
 
     req_user = req_status.user
     req_opid = req_status.operation_id
 
-    upload_excel_dir = f"./multi-fileupload/{req_user}_{up_epic}_{up_excel_ope}_{req_opid}"
-    upload_image_dir = f"./multi-fileupload/{req_user}_{up_epic}_{up_image_ope}_{req_opid}"
+    cut_base_dir = f'{base_dir}/{req_user}_{up_epic}_{up_ope}_{req_opid}/cut_base'
+    cut_target_dir = f'{base_dir}/{req_user}_{up_epic}_{up_ope}_{req_opid}/cut_target'
+
     match req_status.status:
         case Status.START:
             logger.log(
@@ -66,7 +51,7 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
                 "DRAWING-COMPARE START STATUS START"
             )
 
-            if os.path.exists(upload_excel_dir) and os.path.exists(upload_image_dir):
+            if os.path.exists(cut_base_dir) and os.path.exists(cut_target_dir):
                 # app_status 作成
                 app_state.create_new_app_status(
                     req_status
@@ -83,7 +68,7 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
-                    f"DRAWING-COMPARE UPLOAD DIR NOT FOUND:{upload_excel_dir} or {upload_image_dir}"
+                    f"DRAWING-COMPARE UPLOAD DIR NOT FOUND:{cut_base_dir} or {cut_target_dir}"
                 )
             return AppRoute.create_responce_from_status(
                 req_status
