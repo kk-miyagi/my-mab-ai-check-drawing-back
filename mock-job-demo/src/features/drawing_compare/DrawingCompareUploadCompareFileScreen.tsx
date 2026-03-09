@@ -17,7 +17,6 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
 
   const [compareImageFile, setCompareImageFile] = useState<File[]>([]);
   const [compareImagepreview, setCompareImagePreview] = useState<string | null>(null);
-  const [compareCsvFile, setCompareCsvFile] = useState<File[]>([]);
 
   const handleSetCompareImageFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -30,18 +29,6 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       setCompareImagePreview(null);
     }
   };
-
-
-  const handleSetCompareCsvFile = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const selectedFile = files[0];
-      setCompareCsvFile([selectedFile]);
-    } else {
-      setCompareCsvFile([]);
-    }
-  };
-
 
   const handleStart = async () => {
     // ローカルストレージの取得
@@ -56,7 +43,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       operation_id: toPersist.operationId,
       status: toPersist.status,
       number: 1,
-      files: compareImageFile.concat(compareCsvFile),
+      files: compareImageFile,
     };
     await uploadApi.uploadPair(requestPayload);
 
@@ -98,7 +85,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
         <h1>図面比較</h1>
       </div>
 
-      <h3>比較側ラベル付与済み図面</h3>
+      <h3>比較側図面</h3>
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
           <label style={{ display: 'grid', gap: 4 }}>
@@ -113,18 +100,8 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
         </div>
       )}
 
-      <h3>比較側設計情報</h3>
-
-      <div style={{ display: 'grid', gap: 12 }}>
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
-          <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" accept=".csv*" onChange={handleSetCompareCsvFile} />
-          </label>
-        </div>
-      </div>
-
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart} >処理開始</button>
+        <button className="primary" onClick={handleStart} disabled={compareImageFile.length === 0}>処理開始</button>
       </div>
 
     </div>

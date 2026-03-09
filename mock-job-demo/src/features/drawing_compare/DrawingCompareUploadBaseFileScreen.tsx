@@ -14,7 +14,6 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
   const navigate = useNavigate();
   const [baseImageFile, setBaseImageFile] = useState<File[]>([]);
   const [baseImagepreview, setBaseImagePreview] = useState<string | null>(null);
-  const [baseCsvFile, setBaseCsvFile] = useState<File[]>([]);
 
   const handleSetBaseImageFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -27,17 +26,6 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
       setBaseImagePreview(null);
     }
   };
-
-  const handleSetBaseCsvFile = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const selectedFile = files[0];
-      setBaseCsvFile([selectedFile]);
-    } else {
-      setBaseCsvFile([]);
-    }
-  };
-
 
   const handleStart = async () => {
     // ローカルストレージの初期化
@@ -88,9 +76,8 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
       operation_id: toPersist.operationId,
       status: toPersist.status,
       number: 1,
-      files: baseImageFile.concat(baseCsvFile),
+      files: baseImageFile,
     };
-    console.log("これが確認したい", requestPayload)
     const response = await uploadApi.uploadPair(requestPayload);
     navigate("/drawing-compare-upload-target", { state: { baseImageFile }})
 
@@ -111,7 +98,7 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
         <Link to="/hub">前に戻る</Link>
       </div>
 
-      <h3>基準側ラベル付与済み図面</h3>
+      <h3>基準側図面</h3>
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
           <label style={{ display: 'grid', gap: 4 }}>
@@ -126,18 +113,8 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
         </div>
       )}
 
-      <h3>基準側設計情報</h3>
-
-      <div style={{ display: 'grid', gap: 12 }}>
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
-          <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" accept=".csv*" onChange={handleSetBaseCsvFile} />
-          </label>
-        </div>
-      </div>
-
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart} >次に進む</button>
+        <button className="primary" onClick={handleStart} disabled={baseImageFile.length === 0} >次に進む</button>
       </div>
 
     </div>
