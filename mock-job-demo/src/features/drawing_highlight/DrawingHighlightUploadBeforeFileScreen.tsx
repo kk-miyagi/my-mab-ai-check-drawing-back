@@ -115,7 +115,7 @@ export const DrawingHighlightUploadBeforeFileScreen: React.FC = () => {
       )}
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart} >次に進む</button>
+        <button className="primary" onClick={handleStart} disabled={baseImageFile.length === 0}>次に進む</button>
       </div>
 
     </div>
