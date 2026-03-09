@@ -2,9 +2,10 @@ import React, { useState, ChangeEvent, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
+import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
 
 const DEFAULT_EPIC = 'drawing-compare';
-const DEFAULT_OPERATION = 'upload-compare';
+const DEFAULT_OPERATION = 'upload-target';
 
 export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
 
@@ -57,13 +58,30 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       number: 1,
       files: compareImageFile.concat(compareCsvFile),
     };
-    const response = await uploadApi.uploadPair(requestPayload);
-    navigate("/drawing-compare",  { state: { baseImageFile, compareImageFile }})
+    await uploadApi.uploadPair(requestPayload);
 
-    // ここで画像をサーバーに渡す。
-    // サーバー側では、矩形領域の座標を特定して類似度を計算する
-    // その類似度を受け取り、
-
+  
+    toPersist.lastOperation = 'image-similarity'
+    toPersist.status = 'start'
+    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
+    // 座標と類似度計算
+    const requestSimilarityPayload = {
+      user: 'demo-user',
+      epic: toPersist.lastEpic,
+      operation: toPersist.lastOperation,
+      operation_id: toPersist.operationId,
+      status: toPersist.status,
+    }
+    try {
+      const res = await drawingCompareApi.getImageSimilarity(requestSimilarityPayload)
+      const baseRects = res.base_rects
+      const targetRects = res.target_rects
+      const similarities = res.similarities
+      navigate("/drawing-compare",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
+    } catch (err) {
+      window.alert("処理に失敗したため、画面を切り替えます")
+      navigate("/drawing-compare-upload-base")
+    }
   }
 
   useEffect(() => {

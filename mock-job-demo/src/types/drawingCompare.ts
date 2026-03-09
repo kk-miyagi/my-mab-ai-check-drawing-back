@@ -1,4 +1,4 @@
-export interface GetImageRectsRequest {
+export interface GetImageSimilarityRequest {
   user: string;
   epic: string;
   operation: string;
@@ -6,13 +6,19 @@ export interface GetImageRectsRequest {
   status: 'start' | 'doing' | 'end' | string;
 }
 
-export interface GetImageRectsResponse {
+export type Similarity = Record<string, Record<string, number>>;
+
+export type Rect = Record<string, [number, number, number, number]>;
+
+export interface GetImageSimilarityResponse {
   user: string;
   epic: string;
   operation: string;
   operation_id: string;
   status: 'start' | 'doing' | 'end' | 'error' | string;
-  message: string;
+  base_rects: Rect;
+  target_rects: Rect;
+  similarities: Similarity
 }
 
 export type Item = {
