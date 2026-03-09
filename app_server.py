@@ -19,6 +19,7 @@ import router.demo_create_label as demo_create_label
 import router.create_label as create_label
 import router.update_label as update_label
 import router.drawing_review as drawing_review
+import router.image_similarity as image_similarity
 import threading
 
 
@@ -159,6 +160,7 @@ class AppServer():
         self.app.include_router(create_label.router)
         self.app.include_router(update_label.router)
         self.app.include_router(drawing_review.router)
+        self.app.include_router(image_similarity.router)
 
     def start(self, env_str):
         import uvicorn
