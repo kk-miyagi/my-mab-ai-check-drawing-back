@@ -29,10 +29,19 @@ export const HubScreen: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h2 style={{ margin: 0 }}>図面比較</h2>
+              <p style={{ margin: '4px 0 0' }}>自社図面と外部資料の整合性チェック</p>
+            </div>
+            <Link className="primary" to="/drawing-compare-upload-base">開く</Link>
+          </div>
+        </section>
+
+        <section style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: '#f8fafc', display: 'grid', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h2 style={{ margin: 0 }}>図面ハイライト</h2>
               <p style={{ margin: '4px 0 0' }}>図面の変更前後の差分をハイライト</p>
             </div>
-            {/* <Link className="primary" to="/drawing-compare-upload">開く</Link> */}
-            <Link className="primary" to="/drawing-compare-upload-base">開く</Link>
+            <Link className="primary" to="/drawing-highlight-upload-before">開く</Link>
           </div>
         </section>
 

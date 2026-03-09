@@ -6,10 +6,10 @@ import { OperationIssueRequest } from '../../types/upload.ts';
 import { issueOperationId } from '../../components/upload/issueOperationId.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 
-const DEFAULT_EPIC = 'drawing-compare';
-const DEFAULT_OPERATION = 'upload-base';
+const DEFAULT_EPIC = 'drawing-highlight';
+const DEFAULT_OPERATION = 'upload-before';
 
-export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
+export const DrawingHighlightUploadBeforeFileScreen: React.FC = () => {
 
   const navigate = useNavigate();
   const [baseImageFile, setBaseImageFile] = useState<File[]>([]);
@@ -43,14 +43,14 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
       status: 'start',
       demoFlag: false
     }
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
     
     // ローカルストレージのステータスをdoingに変更
     toPersist.phase = 'issuing_id'
     toPersist.status = 'doing'
     toPersist.lastEpic = DEFAULT_EPIC
     toPersist.lastOperation = DEFAULT_OPERATION
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
 
     // オペレーションIDの発行
     const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?? 'demo-user';
@@ -63,10 +63,10 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
     };
     const issueResult = await issueOperationId(metaPayload);
     toPersist.operationId = issueResult.operation_id
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
 
     toPersist.status = 'doing'
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
+    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
 
     // アップロード
     const requestPayload = {
@@ -78,8 +78,9 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
       number: 1,
       files: baseImageFile,
     };
-    const response = await uploadApi.uploadPair(requestPayload);
-    navigate("/drawing-compare-upload-target", { state: { baseImageFile }})
+
+    await uploadApi.uploadPair(requestPayload);
+    navigate("/drawing-highlight-upload-after", { state: { baseImageFile }})
 
   }
 
@@ -94,11 +95,11 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
   return (
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>図面比較</h1>
+        <h1>図面ハイライト</h1>
         <Link to="/hub">前に戻る</Link>
       </div>
 
-      <h3>基準側図面</h3>
+      <h3>修正前の図面</h3>
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
           <label style={{ display: 'grid', gap: 4 }}>
@@ -114,7 +115,7 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
       )}
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart} disabled={baseImageFile.length === 0} >次に進む</button>
+        <button className="primary" onClick={handleStart} disabled={baseImageFile.length === 0}>次に進む</button>
       </div>
 
     </div>
