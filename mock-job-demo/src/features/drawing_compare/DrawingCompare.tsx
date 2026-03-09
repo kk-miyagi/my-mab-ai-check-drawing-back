@@ -27,6 +27,7 @@ import { HeaderSection } from './components/HeaderSection';
 import { ResultModal } from './components/ResultModal';
 import { SuggestionScreen } from './components/SuggestionScreen';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
+import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
 
 const SAMPLE_IMAGES = {
   source: 'https://placehold.co/800x600/f1f5f9/94a3b8?text=Source+Drawing+A',
@@ -462,18 +463,21 @@ export const DrawingCompare: React.FC = () => {
     const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
     console.log(result)
     navigate("/drawing-compare-processing")
-    // const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingCompare) as string);
-    // toPersist.lastOperation = "batch-drawing-compare"
-    // window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
-    // const requestPayload  = {
-    //   user: 'demo-user',
-    //   epic: toPersist.lastEpic,
-    //   operation: toPersist.lastOperation ,
-    //   operation_id: toPersist.operationId,
-    //   status: toPersist.status,
-      
-    // };
-    // drawingReviewApi.drawingReviewStart()
+
+    // バッチ
+    const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingCompare) as string);
+    toPersist.lastOperation = "batch-drawing-compare"
+    toPersist.status = "start"
+    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
+    const requestPayload  = {
+      user: 'demo-user',
+      epic: toPersist.lastEpic,
+      operation: toPersist.lastOperation ,
+      operation_id: toPersist.operationId,
+      status: toPersist.status,
+      combinations: {'base_4': ['target_1', 'target_13']} // ここは組み合わせを入れるように変更する
+    };
+    drawingCompareApi.drawingCompareStart(requestPayload)
   };
 
   const buildSourcePreviewAndSuggestions = async (sourceId: string | null, targetRects: RectModel[] = rects) => {
