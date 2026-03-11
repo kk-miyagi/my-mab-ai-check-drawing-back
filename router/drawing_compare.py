@@ -9,6 +9,7 @@ from io import BytesIO
 import os
 import zipfile
 import json
+from pathlib import Path
 
 router = APIRouter(route_class=AppRoute)
 
@@ -16,10 +17,29 @@ router = APIRouter(route_class=AppRoute)
 class DrawingCompareRunner(BackendTaskRunner):
 
     _BASE_DIR = './drawing-compare-responce'
+    _UP_EPIC = 'drawing-compare'
+    _UP_OPE = 'image-similarity'
+    _UP_BASE_OPE = 'upload-base'
+    _UP_TARGET_OPE = 'upload-target'
+
+    def __init__(self, combinations: dict):
+        self.combinations = combinations
+
+
     def get_cmd(self, base_cmd, app_state, req_status):
         req = req_status
-        # TODO: 引数が決まっていないため確定後に入れる
-        return f"{base_cmd}"
+        combinations = self.combinations
+        combinations = f'"{str(combinations).strip()}"'
+        cut_base_dir = f'{self._BASE_DIR}/{req.user}_{self._UP_EPIC}_{self._UP_OPE}_{req.operation_id}/cut_base'
+        cut_target_dir = f'{self._BASE_DIR}/{req.user}_{self._UP_EPIC}_{self._UP_OPE}_{req.operation_id}/cut_target'
+        out_dir = f'{self._BASE_DIR}/{req.user}_{req.epic}_{req.operation}_{req.operation_id}'
+
+        upload_base_file_dir = f"./multi-fileupload/{req.user}_{self._UP_EPIC}_{self._UP_BASE_OPE}_{req.operation_id}"
+        upload_target_file_dir = f"./multi-fileupload/{req.user}_{self._UP_EPIC}_{self._UP_TARGET_OPE}_{req.operation_id}"
+        upload_base_file_path = list(Path(upload_base_file_dir).glob("*.jpg"))[0].as_posix()
+        upload_target_file_path = list(Path(upload_target_file_dir).glob("*.jpg"))[0].as_posix()
+
+        return f"{base_cmd} {upload_base_file_path} {upload_target_file_path} {cut_base_dir} {cut_target_dir} {out_dir}"
 
 
 @router.post("/drawing-compare/")
@@ -28,7 +48,6 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
     req_status = AppStatus.create_from_state(state)
 
     req_combinations = state.combinations
-    req_combinations = json.loads(req_combinations)
 
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
@@ -39,9 +58,12 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
 
     req_user = req_status.user
     req_opid = req_status.operation_id
+    req_op = req_status.operation
 
     cut_base_dir = f'{base_dir}/{req_user}_{up_epic}_{up_ope}_{req_opid}/cut_base'
     cut_target_dir = f'{base_dir}/{req_user}_{up_epic}_{up_ope}_{req_opid}/cut_target'
+
+    out_dir = f'{base_dir}/{req_user}_{up_epic}_{req_op}_{req_opid}'
 
     match req_status.status:
         case Status.START:
@@ -50,6 +72,23 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
                 AppLogger.DEBUG,
                 "DRAWING-COMPARE START STATUS START"
             )
+
+            if req_combinations:
+                out_json_path = Path(f'{out_dir}/combinations.json')
+                out_json_path.parent.mkdir(parents=True, exist_ok=True)
+                req_combinations = json.loads(req_combinations)
+                with open(out_json_path, 'w', encoding='utf-8') as f:
+                    json.dump(req_combinations, f, ensure_ascii=False, indent=2)
+            else:
+                req_status.status = Status.ERROR
+                logger.log(
+                    req_status,
+                    AppLogger.ERROR,
+                    "DRAWING-COMPARE COMBINATIONS NOT FOUND"
+                )
+                return AppRoute.create_responce_from_status(
+                    req_status
+                )
 
             if os.path.exists(cut_base_dir) and os.path.exists(cut_target_dir):
                 # app_status 作成
@@ -60,7 +99,7 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
                 # 別プロセスにてラベル付与実行
                 BackendTasks.set_backend_runner(
                     req_status,
-                    DrawingCompareRunner(),
+                    DrawingCompareRunner(req_combinations),
                     background_tasks
                 )
             else:
