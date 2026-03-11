@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { usePolling } from '../../hooks/usePolling.ts';
 import { CheckStatusRequest } from '../../types/checkStatus.ts';
@@ -18,34 +18,33 @@ export const DrawingCompareProcessingScreen: React.FC = () => {
     status: 'doing',
   };
 
-  // const handleEnd = () => {
-  //   parsed.status = 'end'
-  //   window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(parsed));
-  //   navigate('/') // TODO: 変更必要
-  // }
+  const handleEnd = () => {
+    parsed.status = 'end'
+    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(parsed));
+    navigate('/') // TODO: 変更必要
+  }
 
-  // const handleError = () => {
-  //   window.alert("バッチ処理中にエラーが起こりました。画面を切り替えます")
-  //   navigate('/')
-  // }
+  const handleError = () => {
+    window.alert("バッチ処理中にエラーが起こりました。画面を切り替えます")
+    navigate('/')
+  }
 
-  // usePolling(
-  //   async () => {
-  //     const res = await checkStatusApi.checkStatus(payload);
-  //     return res;
-  //   },
-  //   (r) => r.status === 'end',
-  //   () => handleEnd(),
-  //   (r) => r.status === 'error',
-  //   () => handleError(),
-  //   3000
-  // );
+  usePolling(
+    async () => {
+      const res = await checkStatusApi.checkStatus(payload);
+      return res;
+    },
+    (r) => r.status === 'end',
+    () => handleEnd(),
+    (r) => r.status === 'error',
+    () => handleError(),
+    3000
+  );
 
   return (
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>図面比較の処理中</h2>
-        <Link to="/hub">最初からやり直す</Link>
       </div>
       <p>現在図面比較を処理中です。<br />完了までしばらくお待ちください。</p>
 
