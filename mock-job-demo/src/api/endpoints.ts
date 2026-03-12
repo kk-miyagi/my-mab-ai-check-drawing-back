@@ -1,12 +1,14 @@
+const PREFIX = '/api'
+
 export const ENDPOINTS = {
-  issueOperation: '/issue/operation-id/',
-  epicInit: '/epic-init/',
-  fileUpload: '/multi-fileupload/',
-  checkStatus: '/check-status/',
-  createLabel: '/create-label/',
-  updateLabel: '/update-label/',
-  demoCreateLabel: '/demo-create-label/',
-  drawingReview: '/drawing-review/',
-  drawingCompare: '/drawing-compare/',
-  getImageSimilarity: '/image-similarity/'
+  issueOperation: `${PREFIX}/issue/operation-id/`,
+  epicInit: `${PREFIX}/epic-init/`,
+  fileUpload: `${PREFIX}/multi-fileupload/`,
+  checkStatus: `${PREFIX}/check-status/`,
+  createLabel: `${PREFIX}/create-label/`,
+  updateLabel: `${PREFIX}/update-label/`,
+  demoCreateLabel: `${PREFIX}/demo-create-label/`,
+  drawingReview: `${PREFIX}/drawing-review/`,
+  drawingCompare: `${PREFIX}/drawing-compare/`,
+  getImageSimilarity: `${PREFIX}/image-similarity/`
 };
