@@ -1,7 +1,7 @@
 import { http } from "./http";
 import { ENDPOINTS } from "./endpoints";
 import { AxiosRequestConfig } from "axios";
-import type { GetImageSimilarityRequest, GetImageSimilarityResponse, DrawingCompareRequest, DrawingCompareResponse } from "../types/drawingCompare.ts";
+import type { GetImageSimilarityRequest, GetImageSimilarityResponse, DrawingCompareRequest, DrawingCompareEndRequest, DrawingCompareResponse } from "../types/drawingCompare.ts";
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
 
@@ -48,7 +48,7 @@ export const drawingCompareApi = {
     return postForm(DRAWING_COMPARE_ENDPOINT, form);
   },
 
-  async drawingCompareEnd(payload: DrawingCompareRequest) {
+  async drawingCompareEnd(payload: DrawingCompareEndRequest) {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);

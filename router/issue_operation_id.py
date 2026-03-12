@@ -3,7 +3,7 @@ from fastapi import Request
 from fastapi import APIRouter
 from state.app_status import AppStatus
 
-router = APIRouter(route_class=AppRoute)
+router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
 @router.post('/issue/operation-id/')

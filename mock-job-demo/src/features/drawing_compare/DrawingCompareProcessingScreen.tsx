@@ -21,7 +21,7 @@ export const DrawingCompareProcessingScreen: React.FC = () => {
   const handleEnd = () => {
     parsed.status = 'end'
     window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(parsed));
-    navigate('/') // TODO: 変更必要
+    navigate('/drawing-compare-result')
   }
 
   const handleError = () => {

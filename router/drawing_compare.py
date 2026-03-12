@@ -11,7 +11,7 @@ import zipfile
 import json
 from pathlib import Path
 
-router = APIRouter(route_class=AppRoute)
+router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
 class DrawingCompareRunner(BackendTaskRunner):
@@ -140,17 +140,14 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
                 return AppRoute.create_responce_from_status(
                     req_status
                 )
-            # 2)ダウンロード先ディレクトリから図面ファイル、CSVファイル読み込み
+            # 2)ダウンロード先ディレクトリからCSVファイル読み込み
             ope_dir = f"{req_status.user}_{req_status.epic}_"
             ope_dir += f"{req_status.operation}_{req_status.operation_id}/"
             res_dir = f"./drawing-compare-responce/{ope_dir}"
             fname_list = os.listdir(res_dir)
             file_list = [
-                res_dir + fname for fname in fname_list if fname != ".gitkeep"
+                res_dir + fname for fname in fname_list if fname.endswith('.csv')
             ]
-            # TODO File name kara 1_bf_fileを除く
-            # CSVの最後の列を除く
-            pass
             # 3)ZIPに固めてダウンロードの返信を実施
             io = BytesIO()
             now = datetime.now().strftime('%Y%m%d%H%M%S')

@@ -32,6 +32,14 @@ export interface DrawingCompareRequest {
   combinations: combinations;
 }
 
+export interface DrawingCompareEndRequest {
+  user: string;
+  epic: string;
+  operation: string;
+  operation_id: string;
+  status: 'start' | 'doing' | 'end' | string;
+}
+
 export interface DrawingCompareResponse {
   user: string;
   epic: string;
