@@ -11,7 +11,7 @@ import zipfile
 import json
 from pathlib import Path
 
-router = APIRouter(route_class=AppRoute)
+router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
 class DrawingCompareRunner(BackendTaskRunner):

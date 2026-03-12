@@ -7,7 +7,7 @@ from io import BytesIO
 import zipfile
 import os
 
-router = APIRouter(route_class=AppRoute)
+router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
 @router.post("/demo-create-label/")

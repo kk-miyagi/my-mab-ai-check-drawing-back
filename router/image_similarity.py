@@ -11,7 +11,7 @@ from pathlib import Path
 from PIL import Image
 from test_scripts.test_similarity_image import calc_image_similarity
 
-router = APIRouter(route_class=AppRoute)
+router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
 class ImageSimilarity:

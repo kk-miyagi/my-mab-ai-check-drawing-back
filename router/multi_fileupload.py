@@ -6,7 +6,7 @@ from app_logger import AppLogger
 import os
 import time
 
-router = APIRouter(route_class=AppRoute)
+router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
 class MultiFileUploader:

@@ -9,7 +9,7 @@ from io import BytesIO
 import os
 import zipfile
 
-router = APIRouter(route_class=AppRoute)
+router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
 class CreateLabelRunner(BackendTaskRunner):

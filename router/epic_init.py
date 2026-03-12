@@ -3,7 +3,7 @@ from app_logger import AppLogger
 from fastapi import Request, APIRouter
 from state.app_status import Status, AppStatus
 
-router = APIRouter(route_class=AppRoute)
+router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
 @router.post('/epic-init/')
