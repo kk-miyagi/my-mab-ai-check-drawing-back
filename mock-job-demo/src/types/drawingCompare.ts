@@ -21,7 +21,7 @@ export interface GetImageSimilarityResponse {
   similarities: Similarity
 }
 
-export type combinations = Record<string, string[]>;
+export type Combinations = Record<string, string[]>;
 
 export interface DrawingCompareRequest {
   user: string;
@@ -29,7 +29,7 @@ export interface DrawingCompareRequest {
   operation: string;
   operation_id: string;
   status: 'start' | 'doing' | 'end' | string;
-  combinations: combinations;
+  combinations: Combinations;
 }
 
 export interface DrawingCompareEndRequest {

@@ -28,6 +28,7 @@ import { ResultModal } from './components/ResultModal';
 import { SuggestionScreen } from './components/SuggestionScreen';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
+import type { Combinations } from '../../types/drawingCompare.ts';
 
 const SAMPLE_IMAGES = {
   source: 'https://placehold.co/800x600/f1f5f9/94a3b8?text=Source+Drawing+A',
@@ -46,6 +47,9 @@ export const DrawingCompare: React.FC = () => {
   const baseRects = data.baseRects;
   const targetRects = data.targetRects;
   const similarities = data.similarities;
+
+  // 図面の組み合わせ
+  const [combinations, setCombinations] = useState<Combinations>({})
 
   // console.log(baseRects)
   // Object.keys(baseRects).forEach((i) =>{
@@ -475,7 +479,7 @@ export const DrawingCompare: React.FC = () => {
       operation: toPersist.lastOperation ,
       operation_id: toPersist.operationId,
       status: toPersist.status,
-      combinations: {'base_4': ['target_1', 'target_13']} // ここは組み合わせを入れるように変更する
+      combinations: combinations
     };
     drawingCompareApi.drawingCompareStart(requestPayload)
   };
@@ -614,6 +618,17 @@ export const DrawingCompare: React.FC = () => {
       </div>
     ) : undefined;
 
+  useEffect(() => {
+    setCombinations({})
+    const t = rects.filter((r) => r.role === 'source' && r.linkedTargetIds.length > 0)
+    Object.entries(t).forEach(([key, values]) => {
+      setCombinations(prev => ({...prev, [values.id]: values.linkedTargetIds}))
+    })
+  }, [rects]);
+  
+  useEffect(() =>{
+    console.log("combinations: ", combinations)
+  }, [combinations])
 
   return (
     <div
