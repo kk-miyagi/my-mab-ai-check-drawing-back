@@ -1,5 +1,6 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Loader2 } from 'lucide-react';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
@@ -18,6 +19,8 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
   const [compareImageFile, setCompareImageFile] = useState<File[]>([]);
   const [compareImagepreview, setCompareImagePreview] = useState<string | null>(null);
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const handleSetCompareImageFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
@@ -31,6 +34,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
   };
 
   const handleStart = async () => {
+    setIsLoading(true);
     // ローカルストレージの取得
     const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingCompare) as string);
     toPersist.lastOperation = DEFAULT_OPERATION
@@ -66,6 +70,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       const similarities = res.similarities
       navigate("/drawing-compare",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
     } catch (err) {
+      setIsLoading(false);
       window.alert("処理に失敗したため、画面を切り替えます")
       navigate("/drawing-compare-upload-base")
     }
@@ -101,7 +106,12 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       )}
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart} disabled={compareImageFile.length === 0}>処理開始</button>
+        <button className="primary" onClick={handleStart} disabled={compareImageFile.length === 0 || isLoading}>
+          {isLoading && (
+            <Loader2 className="spin" size={18} />
+          )}
+          {isLoading ? '処理中...' : '処理開始'}
+        </button>  
       </div>
 
     </div>
