@@ -516,7 +516,7 @@ body {
 }
 
 .candidate-tabs {
-  display: flex;
+  /* display: flex; */
   gap: 10px;
   padding: 8px;
   background: #f9fafb;

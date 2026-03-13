@@ -213,7 +213,7 @@ def _write_csv(rows: list[ScoreRow], out_path: Path) -> None:
 def calc_image_similarity(
         base_image_path: str,
         target_image_dir: str,
-        topk: int = 3,
+        topk: int = None,
         size=(200, 200),
         out_csv: str = None,
         orb_nfeatures: int = 1000,
@@ -282,7 +282,10 @@ def calc_image_similarity(
     subset.sort(key=_sort_key)
 
     out = {}
-    for i, r in enumerate(subset[: max(1, int(topk))], start=1):
+    if topk is not None:
+        subset = subset[: max(1, int(topk))]
+
+    for i, r in enumerate(subset, start=1):
         out[r.candidate.split(".")[0]] = i
 
     # print("=" * 80)
