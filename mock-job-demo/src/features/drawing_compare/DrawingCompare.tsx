@@ -517,7 +517,7 @@ export const DrawingCompare: React.FC = () => {
 
       const targets = targetRects.filter((r) => r.role === 'target' && allowedIds.has(r.id));
       console.log(targets)
-      const candidates = targets.slice(0, 3);
+      const candidates = targets.slice(0, targets.length);
 
       const result: SimilarSuggestion[] = [];
 
@@ -532,12 +532,13 @@ export const DrawingCompare: React.FC = () => {
         result.push({
           id: `t-${rect.id}`,
           targetId: rect.id,
-          label: labelIndex >= 0 ? `Target #${labelIndex + 1}` : undefined,
+          label: labelIndex >= 0 ? `Target #${rect.id}` : undefined,
           score,
           rect: { x: cropRect.x, y: cropRect.y, width: cropRect.width, height: cropRect.height },
           image,
         });
       }
+      result.sort((a, b) => a.score - b.score);
 
       setSuggestions(result);
     } finally {
