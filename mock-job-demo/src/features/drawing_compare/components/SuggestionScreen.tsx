@@ -26,12 +26,8 @@ export function SuggestionScreen({
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (suggestions.length === 0) {
-      setActiveId(null);
-    } else {
-      setActiveId(suggestions[0].id);
-    }
-  }, [suggestions, activeId]);
+    setActiveId(suggestions[0].id);
+  }, [suggestions]);
 
   const active = suggestions.find((s) => s.id === activeId) ?? null;
   const isSelected = active ? selectedSuggestionIds.includes(active.id) : false;
