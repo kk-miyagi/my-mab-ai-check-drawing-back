@@ -242,18 +242,18 @@ if __name__ == "__main__":
             rows = change_output(res, base_position, target_position)
             all_rows.extend(rows)
 
-        up_base_file_name = Path(base_image_path).stem
-        up_base_file_name = re.search(r"\d+_bf_file_(.*)", up_base_file_name).group(1)
-        up_target_file_name = Path(target_image_path).stem
-        up_target_file_name = re.search(r"\d+_bf_file_(.*)", up_target_file_name).group(1)
-        with open(f"{out_dir}/{up_base_file_name}_and_{up_target_file_name}_llm_final.csv", "w", newline="", encoding="utf-8-sig") as f:
-            writer = csv.DictWriter(f, fieldnames=save_cols, quoting=csv.QUOTE_ALL)
-            writer.writeheader()
-            writer.writerows(all_rows)
+    up_base_file_name = Path(base_image_path).stem
+    up_base_file_name = re.search(r"\d+_bf_file_(.*)", up_base_file_name).group(1)
+    up_target_file_name = Path(target_image_path).stem
+    up_target_file_name = re.search(r"\d+_bf_file_(.*)", up_target_file_name).group(1)
+    with open(f"{out_dir}/{up_base_file_name}_and_{up_target_file_name}_llm_final.csv", "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.DictWriter(f, fieldnames=save_cols, quoting=csv.QUOTE_ALL)
+        writer.writeheader()
+        writer.writerows(all_rows)
 
-        # 一覧と比較結果のチェック処理
-        check_draw_list(base_draw_list, all_rows, "客先", run_dir)
-        check_draw_list(target_draw_list, all_rows, "自社用", run_dir)
+    # 一覧と比較結果のチェック処理
+    check_draw_list(base_draw_list, all_rows, "客先", run_dir)
+    check_draw_list(target_draw_list, all_rows, "自社用", run_dir)
 
     end = time.time()
     print(end - start)
