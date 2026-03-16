@@ -20,3 +20,6 @@ create-label-responce/**/*.txt
 
 drawing-review-responce/*
 !/drawing-review-responce/.gitkeep
+
+drawing-compare-responce/*
+!/drawing-compare-responce/.gitkeep

@@ -26,12 +26,8 @@ export function SuggestionScreen({
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (suggestions.length === 0) {
-      setActiveId(null);
-    } else if (!activeId || !suggestions.some((s) => s.id === activeId)) {
-      setActiveId(suggestions[0].id);
-    }
-  }, [suggestions, activeId]);
+    setActiveId(suggestions[0].id);
+  }, [suggestions]);
 
   const active = suggestions.find((s) => s.id === activeId) ?? null;
   const isSelected = active ? selectedSuggestionIds.includes(active.id) : false;
@@ -69,7 +65,7 @@ export function SuggestionScreen({
           <div className="pane-body">
             {loading && (
               <div className="placeholder">
-                <Loader2 className="spin" size={18} /> 計算中...
+                <Loader2 className="spin" size={18} /> 処理中...
               </div>
             )}
             {!loading && suggestions.length === 0 && (
@@ -91,7 +87,7 @@ export function SuggestionScreen({
                         onClick={() => setActiveId(item.id)}
                       >
                         <span className="tab-label">{label}</span>
-                        <span className="score-pill">{item.score.toFixed(1)}%</span>
+                        <span className="score-pill">{item.score}</span>
                         {tabSelected && <CheckCircle2 size={14} />}
                       </button>
                     );
@@ -112,8 +108,8 @@ export function SuggestionScreen({
 
                     <div className="candidate-meta">
                       <div className="meta-row">
-                        <span className="meta-label">スコア</span>
-                        <span className="score-pill large">{active.score.toFixed(1)}%</span>
+                        <span className="meta-label">類似度の順位</span>
+                        <span className="score-pill large">{active.score}</span>
                       </div>
 
                       <div className="meta-actions">

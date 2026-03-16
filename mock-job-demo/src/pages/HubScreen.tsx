@@ -12,7 +12,7 @@ export const HubScreen: React.FC = () => {
       <h1 style={{ marginTop: 0 }}>検図検証プロジェクト</h1>
       <p>用途に合わせて画面を選択してください。</p>
 
-      <div style={{ display: 'grid', gap: 14, maxWidth: 720 }}>
+      <div style={{ display: 'grid', gap: 14 }}>
         <section style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: '#f8fafc', display: 'grid', gap: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>

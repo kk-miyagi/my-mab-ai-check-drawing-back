@@ -20,6 +20,7 @@ import router.create_label as create_label
 import router.update_label as update_label
 import router.drawing_review as drawing_review
 import router.image_similarity as image_similarity
+import router.drawing_compare as drawing_compare
 import threading
 
 
@@ -53,6 +54,7 @@ class AppMiddleware(BaseHTTPMiddleware):
             request.state.af_file_csv = form_data.get('af_file_csv')
             request.state.number = form_data.get('number')
             request.state.sum_number = form_data.get('sum_number')
+            request.state.combinations = form_data.get('combinations')
 
             body_json = {
                          'user': request.state.user,
@@ -77,6 +79,8 @@ class AppMiddleware(BaseHTTPMiddleware):
                 request.state.number = body_json['number']
             if 'sum_number' in body_json:
                 request.state.sum_number = body_json['sum_number']
+            if 'combinations' in body_json:
+                request.state.combinations = body_json['combinations']
             request.state.body = body_json
 
         res = MANAGERS.start_managers(request, body_json)
@@ -161,6 +165,7 @@ class AppServer():
         self.app.include_router(update_label.router)
         self.app.include_router(drawing_review.router)
         self.app.include_router(image_similarity.router)
+        self.app.include_router(drawing_compare.router)
 
     def start(self, env_str):
         import uvicorn

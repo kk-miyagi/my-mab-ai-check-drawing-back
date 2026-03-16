@@ -21,10 +21,7 @@ export interface GetImageSimilarityResponse {
   similarities: Similarity
 }
 
-export type Item = {
-  id: string;
-  linkedTargetIds: string[]
-};
+export type Combinations = Record<string, string[]>;
 
 export interface DrawingCompareRequest {
   user: string;
@@ -32,7 +29,15 @@ export interface DrawingCompareRequest {
   operation: string;
   operation_id: string;
   status: 'start' | 'doing' | 'end' | string;
-  combination: Item[];
+  combinations: Combinations;
+}
+
+export interface DrawingCompareEndRequest {
+  user: string;
+  epic: string;
+  operation: string;
+  operation_id: string;
+  status: 'start' | 'doing' | 'end' | string;
 }
 
 export interface DrawingCompareResponse {

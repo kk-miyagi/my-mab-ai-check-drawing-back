@@ -1,7 +1,7 @@
 from app_router import AppRoute
 from fastapi import Body, APIRouter
 
-router = APIRouter(route_class=AppRoute)
+router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
 @router.post('/hello/')

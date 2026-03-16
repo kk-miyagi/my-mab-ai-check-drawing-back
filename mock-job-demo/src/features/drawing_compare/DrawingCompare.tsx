@@ -27,6 +27,8 @@ import { HeaderSection } from './components/HeaderSection';
 import { ResultModal } from './components/ResultModal';
 import { SuggestionScreen } from './components/SuggestionScreen';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
+import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
+import type { Combinations } from '../../types/drawingCompare.ts';
 
 const SAMPLE_IMAGES = {
   source: 'https://placehold.co/800x600/f1f5f9/94a3b8?text=Source+Drawing+A',
@@ -45,6 +47,9 @@ export const DrawingCompare: React.FC = () => {
   const baseRects = data.baseRects;
   const targetRects = data.targetRects;
   const similarities = data.similarities;
+
+  // 図面の組み合わせ
+  const [combinations, setCombinations] = useState<Combinations>({})
 
   // console.log(baseRects)
   // Object.keys(baseRects).forEach((i) =>{
@@ -462,18 +467,21 @@ export const DrawingCompare: React.FC = () => {
     const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
     console.log(result)
     navigate("/drawing-compare-processing")
-    // const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingCompare) as string);
-    // toPersist.lastOperation = "batch-drawing-compare"
-    // window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
-    // const requestPayload  = {
-    //   user: 'demo-user',
-    //   epic: toPersist.lastEpic,
-    //   operation: toPersist.lastOperation ,
-    //   operation_id: toPersist.operationId,
-    //   status: toPersist.status,
-      
-    // };
-    // drawingReviewApi.drawingReviewStart()
+
+    // バッチ
+    const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingCompare) as string);
+    toPersist.lastOperation = "batch-drawing-compare"
+    toPersist.status = "start"
+    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
+    const requestPayload  = {
+      user: 'demo-user',
+      epic: toPersist.lastEpic,
+      operation: toPersist.lastOperation ,
+      operation_id: toPersist.operationId,
+      status: toPersist.status,
+      combinations: combinations
+    };
+    drawingCompareApi.drawingCompareStart(requestPayload)
   };
 
   const buildSourcePreviewAndSuggestions = async (sourceId: string | null, targetRects: RectModel[] = rects) => {
@@ -509,7 +517,7 @@ export const DrawingCompare: React.FC = () => {
 
       const targets = targetRects.filter((r) => r.role === 'target' && allowedIds.has(r.id));
       console.log(targets)
-      const candidates = targets.slice(0, 3);
+      const candidates = targets.slice(0, targets.length);
 
       const result: SimilarSuggestion[] = [];
 
@@ -524,12 +532,13 @@ export const DrawingCompare: React.FC = () => {
         result.push({
           id: `t-${rect.id}`,
           targetId: rect.id,
-          label: labelIndex >= 0 ? `Target #${labelIndex + 1}` : undefined,
+          label: labelIndex >= 0 ? `Target #${rect.id}` : undefined,
           score,
           rect: { x: cropRect.x, y: cropRect.y, width: cropRect.width, height: cropRect.height },
           image,
         });
       }
+      result.sort((a, b) => a.score - b.score);
 
       setSuggestions(result);
     } finally {
@@ -610,6 +619,17 @@ export const DrawingCompare: React.FC = () => {
       </div>
     ) : undefined;
 
+  useEffect(() => {
+    setCombinations({})
+    const t = rects.filter((r) => r.role === 'source' && r.linkedTargetIds.length > 0)
+    Object.entries(t).forEach(([key, values]) => {
+      setCombinations(prev => ({...prev, [values.id]: values.linkedTargetIds}))
+    })
+  }, [rects]);
+  
+  useEffect(() =>{
+    console.log("combinations: ", combinations)
+  }, [combinations])
 
   return (
     <div
