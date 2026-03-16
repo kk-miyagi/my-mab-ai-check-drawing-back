@@ -3,10 +3,8 @@ from state.app_status import AppStatus, Status
 from app_router import AppRoute
 from app_logger import AppLogger
 import os
-import time
 import cv2
 import numpy as np
-import sys
 from pathlib import Path
 from PIL import Image
 from test_scripts.test_similarity_image import calc_image_similarity
@@ -18,7 +16,7 @@ class ImageSimilarity:
 
     @classmethod
     async def get_image_rect(cls, img_path: str) -> list[list]:
-        
+
         def get_black_and_white_colors(img, hsv):
 
             # 黒色の範囲 (低明度)
@@ -49,7 +47,6 @@ class ImageSimilarity:
 
         def to_box(x, y, w, h):
             return (x, y, x + w, y + h)  # (x1, y1, x2, y2)
-
 
         def is_inside(a, b, inclusive=True):
             ax1, ay1, ax2, ay2 = a
@@ -100,7 +97,10 @@ class ImageSimilarity:
         output_rects = []
         for i, a in enumerate(boxes):
             # どれか一つにでも内包されていれば内側とみなす
-            if any(is_inside(a, boxes[j], inclusive=True) and j != i for j in range(len(boxes))):
+            if (
+                    any(is_inside(a, boxes[j], inclusive=True)
+                        and j != i for j in range(len(boxes)))
+            ):
                 output_rects.append(list(contours_list[i]))
 
         print(f"output_rects size: {len(output_rects)}")
@@ -109,8 +109,9 @@ class ImageSimilarity:
         return output_rects
 
     async def list_to_prefixed_dict(items, prefix="base", start=1):
-        return {f"{prefix}_{i}": row for i, row in enumerate(items, start=start)}
-    
+        return {
+            f"{prefix}_{i}": row for i, row in enumerate(items, start=start)
+        }
 
     def cut_images(
         image_path: str,
@@ -139,7 +140,7 @@ class ImageSimilarity:
                 saved_paths.append(str(out_path))
 
             return saved_paths
-        
+
     def get_similarity(base_image_path, target_image_dir):
         data = calc_image_similarity(base_image_path, target_image_dir)
         return data
@@ -161,12 +162,19 @@ async def image_similarity(request: Request):
     up_base_ope = 'upload-base'
     up_target_ope = 'upload-target'
 
-    upload_base_file_dir = f"./multi-fileupload/{req_user}_{req_epic}_{up_base_ope}_{req_opid}"
-    upload_target_file_dir = f"./multi-fileupload/{req_user}_{req_epic}_{up_target_ope}_{req_opid}"
+    upload_base_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
+    upload_base_file_dir += f"_{up_base_ope}_{req_opid}"
+
+    upload_target_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
+    upload_target_file_dir += f"_{up_target_ope}_{req_opid}"
 
     image_extensions = {".jpg", ".jpeg", ".png"}
-    base_image_name = [p.name for p in Path(upload_base_file_dir).iterdir() if p.suffix.lower() in image_extensions][0]
-    target_image_name = [p.name for p in Path(upload_target_file_dir).iterdir() if p.suffix.lower() in image_extensions][0]
+    base_image_name = [
+            p.name for p in Path(upload_base_file_dir).iterdir()
+            if p.suffix.lower() in image_extensions][0]
+    target_image_name = [
+            p.name for p in Path(upload_target_file_dir).iterdir()
+            if p.suffix.lower() in image_extensions][0]
     base_image_path = Path(upload_base_file_dir, base_image_name)
     target_image_path = Path(upload_target_file_dir, target_image_name)
     _OUT_BASE_DIR = './drawing-compare-responce'
@@ -190,34 +198,53 @@ async def image_similarity(request: Request):
                     "IMAGE-SIMILARITY DOING STATUS START"
                 )
 
-                if os.path.exists(upload_base_file_dir) and os.path.exists(upload_target_file_dir):
+                is_exist_dir = os.path.exists(upload_base_file_dir)
+                is_exist_file = os.path.exists(upload_target_file_dir)
+
+                if is_exist_dir and is_exist_file:
                     # app_status 作成
                     app_state.create_new_app_status(
                         req_status
                     )
                     # 座標の計算
-                    base_rects = await ImageSimilarity.get_image_rect(base_image_path)
-                    out_base_rects= await ImageSimilarity.list_to_prefixed_dict(base_rects, "base")
-                    target_rects = await ImageSimilarity.get_image_rect(target_image_path)
-                    out_target_rects = await ImageSimilarity.list_to_prefixed_dict(target_rects, "target")
+                    get_image_rect_ope = ImageSimilarity.get_image_rect
+                    base_rects = await get_image_rect_ope(
+                            base_image_path)
+                    list_to_dict_ope = ImageSimilarity.list_to_prefixed_dict
+                    out_base_rects = await list_to_dict_ope(
+                            base_rects, "base")
+                    target_rects = await get_image_rect_ope(
+                            target_image_path)
+                    out_target_rects = await list_to_dict_ope(
+                            target_rects, "target")
 
                     # 座標から切り取り
-                    ImageSimilarity.cut_images(base_image_path, out_base_rects, Path(out_dir, "cut_base"))
-                    ImageSimilarity.cut_images(target_image_path, out_target_rects, Path(out_dir, "cut_target"))
+                    ImageSimilarity.cut_images(
+                            base_image_path,
+                            out_base_rects,
+                            Path(out_dir, "cut_base"))
+                    ImageSimilarity.cut_images(
+                            target_image_path,
+                            out_target_rects,
+                            Path(out_dir, "cut_target"))
 
                     # 類似度計算
                     similarities = {}
                     for p in Path(out_dir, "cut_base").iterdir():
-                        data = ImageSimilarity.get_similarity(p, Path(out_dir, "cut_target"))
+                        data = ImageSimilarity.get_similarity(
+                                p,
+                                Path(out_dir, "cut_target"))
                         similarities[p.stem] = data
                 else:
+                    error_msg = "IMAGE-SIMILARITY DIR NOT FOUND:"
+                    error_msg += f"{upload_base_file_dir} "
+                    error_msg += f"or {upload_target_file_dir}"
                     req_status.status = Status.ERROR
                     logger.log(
                         req_status,
                         AppLogger.ERROR,
-                        f"IMAGE-SIMILARITY DIR NOT FOUND:{upload_base_file_dir} or {upload_target_file_dir}"
+                        error_msg
                     )
-
 
                 ret = AppRoute.create_responce_from_status(
                     req_status
