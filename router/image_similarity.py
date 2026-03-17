@@ -177,7 +177,7 @@ async def image_similarity(request: Request):
             if p.suffix.lower() in image_extensions][0]
     base_image_path = Path(upload_base_file_dir, base_image_name)
     target_image_path = Path(upload_target_file_dir, target_image_name)
-    _OUT_BASE_DIR = './drawing-compare-responce'
+    _OUT_BASE_DIR = f'./{req_epic}-responce'
     out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_ope}_{req_opid}"
 
     # TODO operation_idがない場合はエラーにするか？

@@ -7,7 +7,7 @@ import { issueOperationId } from '../../components/upload/issueOperationId.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 
 const DEFAULT_EPIC = 'drawing-highlight';
-const DEFAULT_OPERATION = 'upload-before';
+const DEFAULT_OPERATION = 'upload-base';
 
 export const DrawingHighlightUploadBeforeFileScreen: React.FC = () => {
 

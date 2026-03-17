@@ -226,12 +226,12 @@ def calc_image_similarity(
     img_dir = Path(target_image_dir)
 
     if not img_dir.exists() or not img_dir.is_dir():
-        raise SystemExit(f"--target-dir が存在しません: {img_dir}")
+        raise ValueError(f"--target-dir が存在しません: {img_dir}")
 
     exts = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff"}
     all_imgs = list(_iter_images(img_dir, exts))
     if not all_imgs:
-        raise SystemExit(f"画像が見つかりません: {img_dir}")
+        raise FileNotFoundError(f"画像が見つかりません: {img_dir}")
 
     cache: dict[str, Any] = {}
     for p in all_imgs:
@@ -243,7 +243,7 @@ def calc_image_similarity(
     cache_base_img = _read_gray(base_img, size)
 
     if not base_img.exists():
-        raise SystemExit(f"画像が見つかりません")
+        raise FileNotFoundError(f"画像が見つかりません")
 
     rows: list[ScoreRow] = []
 
