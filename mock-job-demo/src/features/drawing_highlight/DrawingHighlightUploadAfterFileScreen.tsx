@@ -1,14 +1,16 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Loader2 } from 'lucide-react';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
-
+import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
 
 const DEFAULT_EPIC = 'drawing-highlight';
-const DEFAULT_OPERATION = 'upload-after';
+const DEFAULT_OPERATION = 'upload-target';
 
 export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
 
+  const navigate = useNavigate();
 
   const location = useLocation();
   const data = location.state;
@@ -16,6 +18,8 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
 
   const [compareImageFile, setCompareImageFile] = useState<File[]>([]);
   const [compareImagepreview, setCompareImagePreview] = useState<string | null>(null);
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSetCompareImageFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -30,6 +34,7 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
   };
 
   const handleStart = async () => {
+    setIsLoading(true);
     // ローカルストレージの取得
     const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingHighlight) as string);
     toPersist.lastOperation = DEFAULT_OPERATION
@@ -46,9 +51,34 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
     };
     await uploadApi.uploadPair(requestPayload);
 
-    // todo
-    // 図面ハイライトAPIをたたく
+    toPersist.lastOperation = 'image-similarity'
+    toPersist.status = 'doing'
+    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
+    // 座標と類似度計算
+    const requestSimilarityPayload = {
+      user: 'demo-user',
+      epic: toPersist.lastEpic,
+      operation: toPersist.lastOperation,
+      operation_id: toPersist.operationId,
+      status: toPersist.status,
+    }
+    try {
+      const res = await drawingCompareApi.getImageSimilarity(requestSimilarityPayload)
+      const baseRects = res.base_rects
+      const targetRects = res.target_rects
+      const similarities = res.similarities
 
+      if (Object.keys(similarities).length === 0) {
+        // 実行中画面に遷移して、対象のAPIを叩く
+        navigate("/")
+      } else {
+        navigate("/drawing-highlight",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
+      }
+    } catch (err) {
+      setIsLoading(false);
+      window.alert("処理に失敗したため、画面を切り替えます")
+      navigate("/drawing-highlight-upload-before")
+    }
   }
 
   useEffect(() => {
@@ -81,7 +111,12 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
       )}
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart} disabled={compareImageFile.length === 0}>処理開始</button>
+        <button className="primary" onClick={handleStart} disabled={compareImageFile.length === 0 || isLoading}>
+          {isLoading && (
+            <Loader2 className="spin" size={18} />
+          )}
+          {isLoading ? '処理中...' : '処理開始'}
+        </button>  
       </div>
 
     </div>

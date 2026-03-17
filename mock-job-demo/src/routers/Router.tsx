@@ -26,6 +26,7 @@ import { DrawingHighlightUploadBeforeFileScreen } from '../features/drawing_high
 import { DrawingHighlightUploadAfterFileScreen } from '../features/drawing_highlight/DrawingHighlightUploadAfterFileScreen';
 import { DrawingCompare } from '../features/drawing_compare/DrawingCompare';
 import { DrawingCompareResultScreen } from '../features/drawing_compare/DrawingCompareResultScreen';
+import { DrawingHighlight } from '../features/drawing_highlight/DrawingHighlight';
 
 export const AppRouter = () => {
   return (
@@ -55,6 +56,7 @@ export const AppRouter = () => {
       <Route path="/drawing-compare-result" element={<DrawingCompareResultScreen />} />
       <Route path="/drawing-highlight-upload-before" element={<DrawingHighlightUploadBeforeFileScreen />} />
       <Route path="/drawing-highlight-upload-after" element={<DrawingHighlightUploadAfterFileScreen />} />
+      <Route path="/drawing-highlight" element={<DrawingHighlight />} />
       <Route path="/demo-create-label-processing" element={<DemoCreateLabelProcessingScreen />} />
       <Route path="/demo-create-label-result" element={<DemoCreateLabelResultScreen />} />
       <Route path="/demo-create-label" element={<DemoCreateLabelScreen />} />
