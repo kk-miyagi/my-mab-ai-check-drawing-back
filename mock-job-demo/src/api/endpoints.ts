@@ -10,5 +10,6 @@ export const ENDPOINTS = {
   demoCreateLabel: `${PREFIX}/demo-create-label/`,
   drawingReview: `${PREFIX}/drawing-review/`,
   drawingCompare: `${PREFIX}/drawing-compare/`,
-  getImageSimilarity: `${PREFIX}/image-similarity/`
+  getImageSimilarity: `${PREFIX}/image-similarity/`,
+  drawingHighlight: `${PREFIX}/drawing-highlight/`
 };

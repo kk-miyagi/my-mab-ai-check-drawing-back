@@ -3,7 +3,7 @@ import Papa from 'papaparse';
 import { localStorageKey } from '../../constants/localStorageKey';
 import { drawingCompareApi } from '../../api/drawingCompareApi';
 import JSZip from 'jszip';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 type Row = Record<string, string | number | boolean | null>;
 
@@ -26,6 +26,11 @@ const fetchAsBlob = async (url: string): Promise<Blob> => {
 
 
 export const DrawingHighlightResultScreen: React.FC = () => {
+
+  const location = useLocation();
+  const state = location.state;
+  const data = state.res as Blob;
+
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
   const [csvUrl, setCsvUrl] = useState<string>();

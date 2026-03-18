@@ -27,7 +27,7 @@ import { HeaderSection } from './components/HeaderSection';
 import { ResultModal } from './components/ResultModal';
 import { SuggestionScreen } from './components/SuggestionScreen';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
+import { drawingHighlightApi } from '../../api/drawingHighlightApi.ts';
 import type { Combinations } from '../../types/drawingCompare.ts';
 
 const SAMPLE_IMAGES = {
@@ -466,12 +466,12 @@ export const DrawingHighlight: React.FC = () => {
     const sourceRect = rects.filter((rect) => rect.role === 'source');
     const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
     console.log(result)
-    navigate("/drawing-compare-processing")
+    navigate("/drawing-highlight-processing")
 
     // バッチ
     const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingHighlight) as string);
-    toPersist.lastOperation = "batch-drawing-compare"
-    toPersist.status = "start"
+    toPersist.lastOperation = "drawing-highlight"
+    toPersist.status = "doing"
     window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
     const requestPayload  = {
       user: 'demo-user',
@@ -481,7 +481,9 @@ export const DrawingHighlight: React.FC = () => {
       status: toPersist.status,
       combinations: combinations
     };
-    drawingCompareApi.drawingCompareStart(requestPayload)
+    const res = drawingHighlightApi.DrawingHighligh(requestPayload)
+    console.log("かえってきているか？", res)
+    navigate("/drawing-highlight-result", { state: { res }})
   };
 
   const buildSourcePreviewAndSuggestions = async (sourceId: string | null, targetRects: RectModel[] = rects) => {
