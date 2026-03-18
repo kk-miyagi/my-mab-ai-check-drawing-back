@@ -9,37 +9,37 @@ export const DrawingHighlightProcessingScreen: React.FC = () => {
   const raw = window.localStorage.getItem(localStorageKey.drawingHighlight) as string;
   const parsed = JSON.parse(raw);
 
-  const navigate = useNavigate();
-  const payload: CheckStatusRequest = {
-    user: 'demo-user',
-    epic: parsed.lastEpic,
-    operation: parsed.lastOperation,
-    operation_id: parsed.operationId,
-    status: 'doing',
-  };
+  // const navigate = useNavigate();
+  // const payload: CheckStatusRequest = {
+  //   user: 'demo-user',
+  //   epic: parsed.lastEpic,
+  //   operation: parsed.lastOperation,
+  //   operation_id: parsed.operationId,
+  //   status: 'doing',
+  // };
 
-  const handleEnd = () => {
-    parsed.status = 'end'
-    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(parsed));
-    navigate('/drawing-highlight-result')
-  }
+  // const handleEnd = () => {
+  //   parsed.status = 'end'
+  //   window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(parsed));
+  //   navigate('/drawing-highlight-result')
+  // }
 
-  const handleError = () => {
-    window.alert("バッチ処理中にエラーが起こりました。画面を切り替えます")
-    navigate('/')
-  }
+  // const handleError = () => {
+  //   window.alert("バッチ処理中にエラーが起こりました。画面を切り替えます")
+  //   navigate('/')
+  // }
 
-  usePolling(
-    async () => {
-      const res = await checkStatusApi.checkStatus(payload);
-      return res;
-    },
-    (r) => r.status === 'end',
-    () => handleEnd(),
-    (r) => r.status === 'error',
-    () => handleError(),
-    3000
-  );
+  // usePolling(
+  //   async () => {
+  //     const res = await checkStatusApi.checkStatus(payload);
+  //     return res;
+  //   },
+  //   (r) => r.status === 'end',
+  //   () => handleEnd(),
+  //   (r) => r.status === 'error',
+  //   () => handleError(),
+  //   3000
+  // );
 
   return (
     <div className="page">
