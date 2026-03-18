@@ -1,6 +1,7 @@
 from app_router import Status
 from app_logger import BatchLogger
 import asyncio
+import os
 
 
 class BackendTaskRunner:
@@ -21,7 +22,8 @@ class BackendTaskRunner:
             process = await asyncio.create_subprocess_exec(
                 *cmd.split(' '),
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
+                env={**os.environ, 'PYTHONIOENCODING': 'utf-8'}
             )
 
             async def read_and_log_stream(
