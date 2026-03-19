@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
+import { drawingHighlightApi } from '../../api/drawingHighlightApi.ts';
 
 const DEFAULT_EPIC = 'drawing-highlight';
 const DEFAULT_OPERATION = 'upload-target';
@@ -70,7 +71,21 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
 
       if (Object.keys(similarities).length === 0) {
         // 実行中画面に遷移して、対象のAPIを叩く
-        navigate("/")
+        navigate("/drawing-highlight-processing")
+        const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingHighlight) as string);
+        toPersist.lastOperation = "drawing-highlight"
+        toPersist.status = "doing"
+        window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
+        const requestPayload  = {
+          user: 'demo-user',
+          epic: toPersist.lastEpic,
+          operation: toPersist.lastOperation ,
+          operation_id: toPersist.operationId,
+          status: toPersist.status,
+          combinations: {}
+        };
+        const res = drawingHighlightApi.DrawingHighligh(requestPayload)
+        navigate("/drawing-highlight-result", { state: { res }})
       } else {
         navigate("/drawing-highlight",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
       }

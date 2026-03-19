@@ -11,6 +11,8 @@ from PIL import Image
 from io import BytesIO
 import zipfile
 from datetime import datetime
+import json
+import shutil
 
 
 router = APIRouter(prefix='/api', route_class=AppRoute)
@@ -71,7 +73,7 @@ class DrawingHighlight:
         return img1_marked, img2_marked
 
     @classmethod
-    async def highlight(cls, before_img, after_img, out_dir):
+    def highlight(cls, before_img, after_img, out_dir):
         img_1 = cv.imread(before_img)
         img_2 = cv.imread(after_img)
 
@@ -125,9 +127,64 @@ class DrawingHighlight:
                 f"{out_dir}/{before_file_name}_highlight.jpeg",
                 img_1_hl)
         cv.imwrite(
-                f"{out_dir}/{after_file_name}_hightlight.jpeg",
+                f"{out_dir}/{after_file_name}_highlight.jpeg",
                 img_2_hl)
 
+    @classmethod
+    def paste_simple(cls, dst_bgr, patch_bgr, x, y, alpha=1.0):
+        """
+        とてもシンプルな貼り付け（はみ出し考慮なし）
+        """
+        ph, pw = patch_bgr.shape[:2]
+
+        # 貼り付け先ROI
+        dst_roi = dst_bgr[y:y+ph, x:x+pw]
+
+        # アルファブレンド
+        blended = cv.addWeighted(patch_bgr, alpha, dst_roi, 1 - alpha, 0)
+
+        # 貼り戻し
+        dst_bgr[y:y+ph, x:x+pw] = blended
+        return dst_bgr
+
+    @classmethod
+    async def paste_cut_image(cls, kind, img_path, out_dir, rects_json):
+        print(f"貼り付け開始: {kind}, {img_path}")
+        # 最初に元画像をコピーする
+        save_img = f'{out_dir}/{kind}_output_img.jpg'
+        shutil.copy(img_path, save_img)
+
+        with open(rects_json, 'r') as f:
+            res = json.load(f)
+            for key, rect in res[f'{kind}_rects'].items():
+                # 元の画像
+                img = cv.imread(save_img)
+
+                # 切った画像
+                x, y, w, h = rect[0], rect[1], rect[2], rect[3]
+                cut_img_path = f'{out_dir}/{key}_highlight.jpeg'
+                cut_img = cv.imread(cut_img_path)
+
+                # 貼り付け
+                out = DrawingHighlight.paste_simple(img.copy(), cut_img.copy(), x, y, alpha=0.5)
+                cv.imwrite(save_img, out)
+                print(f"貼り付け先: {save_img}")
+                print(f"切った画像: {cut_img_path}")
+        print(f"貼り付け終了: {kind}")
+
+
+    @classmethod
+    async def loop_highlight(cls, combinations: dict, base_cut_dir, target_cut_dir, out_dir):
+        for base, targets in combinations.items():
+            # targetごとに処理
+            for target in targets:
+                target_path = f"{target_cut_dir}/{target}.jpg"
+                DrawingHighlight.highlight(
+                        f"{base_cut_dir}/{base}.jpg",
+                        target_path,
+                        out_dir
+                    )
+         
 
 @router.post('/drawing-highlight/')
 async def drawing_highlight(request: Request):
@@ -141,6 +198,9 @@ async def drawing_highlight(request: Request):
     req_ope = req_status.operation
     req_user = req_status.user
     req_opid = req_status.operation_id
+
+    req_combinations = state.combinations
+    req_combinations = json.loads(req_combinations)
 
     up_base_ope = 'upload-base'
     up_target_ope = 'upload-target'
@@ -171,7 +231,7 @@ async def drawing_highlight(request: Request):
             logger.log(
                 req_status,
                 AppLogger.DEBUG,
-                "MULTI-FILE-UPLOAD START STATUS ??"
+                "DRAWING-HIGHLIGHT START STATUS ??"
             )
         case Status.DOING:
             # 差分ハイライト
@@ -179,7 +239,7 @@ async def drawing_highlight(request: Request):
                 logger.log(
                     req_status,
                     AppLogger.DEBUG,
-                    "IMAGE-SIMILARITY DOING STATUS START"
+                    "DRAWING-HIGHLIGHT DOING STATUS START"
                 )
 
                 is_exist_base_dir = os.path.exists(upload_base_file_dir)
@@ -190,17 +250,8 @@ async def drawing_highlight(request: Request):
                     app_state.create_new_app_status(
                         req_status
                     )
-                    # ハイライト
-                    print(f"base_image_path: {base_image_path}")
-                    print(f"target_image_path: {target_image_path}")
-                    print(f"out_dir: {out_dir}")
-                    await DrawingHighlight.highlight(
-                        base_image_path.as_posix(),
-                        target_image_path.as_posix(),
-                        out_dir
-                    )
                 else:
-                    error_msg = "IMAGE-SIMILARITY DIR NOT FOUND:"
+                    error_msg = "DRAWING-HIGHLIGHT DIR NOT FOUND:"
                     error_msg += f"{upload_base_file_dir} "
                     error_msg += f"or {upload_target_file_dir}"
                     req_status.status = Status.ERROR
@@ -210,12 +261,54 @@ async def drawing_highlight(request: Request):
                         error_msg
                     )
 
+                if not req_combinations:
+                    DrawingHighlight.highlight(
+                        base_image_path.as_posix(),
+                        target_image_path.as_posix(),
+                        out_dir
+                    )
+                    shutil.copy(
+                        f"{out_dir}/{base_image_path.stem}_highlight.jpeg",
+                        f"{out_dir}/base_output_img.jpg"
+                    )
+                    shutil.copy(
+                        f"{out_dir}/{target_image_path.stem}_highlight.jpeg",
+                        f"{out_dir}/target_output_img.jpg"
+                    )
+
+                if req_combinations:
+                    await DrawingHighlight.loop_highlight(
+                        req_combinations,
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/cut_base",
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/cut_target",
+                        out_dir
+                    )
+                    await DrawingHighlight.paste_cut_image(
+                        'base',
+                        base_image_path.as_posix(),
+                        out_dir,
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/responce.json"
+                    )
+                    await DrawingHighlight.paste_cut_image(
+                        'target',
+                        target_image_path.as_posix(),
+                        out_dir,
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/responce.json"
+                    )
+
+                logger.log(
+                    req_status,
+                    AppLogger.DEBUG,
+                    "DRAWING-HIGHLIGHT SAVE OUTPUT IMAGE!"
+                )
+
                 # 2)ダウンロード先ディレクトリからCSVファイル読み込み
 
                 fname_list = os.listdir(out_dir)
                 file_list = [
-                    out_dir + fname for fname in fname_list if fname.endswith('.jpg')
+                    f"{out_dir}/{fname}" for fname in fname_list if fname.endswith('.jpg')
                 ]
+                print(f"file_list: {file_list}")
                 # 3)ZIPに固めてダウンロードの返信を実施
                 io = BytesIO()
                 now = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -236,7 +329,7 @@ async def drawing_highlight(request: Request):
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
-                    f"IMAGE-SIMILARITY DOING STATUS error !:{e}"
+                    f"DRAWING-HIGHLIGHT DOING STATUS error !:{e}"
                 )
                 raise e
 
@@ -245,7 +338,7 @@ async def drawing_highlight(request: Request):
             logger.log(
                 req_status,
                 AppLogger.DEBUG,
-                "IMAGE-SIMILARITY END STATUS ??"
+                "DRAWING-HIGHLIGHT END STATUS ??"
             )
 
     return ret

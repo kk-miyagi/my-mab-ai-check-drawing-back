@@ -23,3 +23,6 @@ drawing-review-responce/*
 
 drawing-compare-responce/*
 !/drawing-compare-responce/.gitkeep
+
+drawing-highlight-responce/*
+!/drawing-highlight-responce/.gitkeep

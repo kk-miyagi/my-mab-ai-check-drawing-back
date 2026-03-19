@@ -5,6 +5,7 @@ from app_logger import AppLogger
 import os
 import cv2
 import numpy as np
+import json
 from pathlib import Path
 from PIL import Image
 from test_scripts.test_similarity_image import calc_image_similarity
@@ -78,6 +79,7 @@ class ImageSimilarity:
 
         if len(contours) == 0:
             print("指定色の四角形が見つかりませんでした。")
+            return []
         else:
             print(f"contours size: {len(contours)}")
 
@@ -253,6 +255,11 @@ async def image_similarity(request: Request):
                 ret["target_rects"] = out_target_rects
                 ret["similarities"] = similarities
                 print(ret)
+
+                with open(
+                    f"{out_dir}/responce.json", "w", encoding="utf-8"
+                ) as f:
+                    json.dump(ret, f, indent=2)
 
             except Exception as e:
                 logger.log(
