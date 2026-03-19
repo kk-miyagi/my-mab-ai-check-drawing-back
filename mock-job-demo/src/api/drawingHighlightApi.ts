@@ -23,6 +23,7 @@ export const drawingHighlightApi = {
     form.append('operation', payload.operation);
     form.append('operation_id', payload.operation_id);
     form.append('status', payload.status);
+    form.append('combinations', JSON.stringify(payload.combinations));
     return postForm(DRAWING_HIGHLIGHT_ENDPOINT, form, 'blob')
   }
 
