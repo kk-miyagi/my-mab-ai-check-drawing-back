@@ -79,6 +79,7 @@ class ImageSimilarity:
 
         if len(contours) == 0:
             print("指定色の四角形が見つかりませんでした。")
+            return []
         else:
             print(f"contours size: {len(contours)}")
 
