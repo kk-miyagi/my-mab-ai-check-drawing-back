@@ -1,4 +1,5 @@
 from fastapi import Request, APIRouter
+from fastapi.responses import StreamingResponse
 from state.app_status import AppStatus, Status
 from app_router import AppRoute
 from app_logger import AppLogger
@@ -8,6 +9,10 @@ import numpy as np
 import json
 from pathlib import Path
 from PIL import Image
+from pdf2image import convert_from_path
+from io import BytesIO
+import zipfile
+from datetime import datetime
 from test_scripts.test_similarity_image import calc_image_similarity
 
 router = APIRouter(prefix='/api', route_class=AppRoute)
@@ -146,6 +151,33 @@ class ImageSimilarity:
     def get_similarity(base_image_path, target_image_dir):
         data = calc_image_similarity(base_image_path, target_image_dir)
         return data
+    
+    def pdf_to_jpeg(file_path):
+        """PDFを画像に変換する"""
+        file_name = Path(file_path)
+
+        images = convert_from_path(file_name)
+
+        # 各ページを画像として保存する
+        files = []
+        for i, image in enumerate(images):
+            new_file_name = file_name.with_stem(f"{file_name.stem}_{i}")
+            save_path = new_file_name.with_suffix(".jpg")
+            image.save(save_path, 'JPEG')
+            files.append(save_path.as_posix())
+        return files
+    
+    def loop_pdf_to_jpeg(file_dir) -> list:
+        pdf_dir = Path(file_dir)
+        pdf_files = list(pdf_dir.glob("*.pdf"))
+        if len(pdf_files) > 0:
+            image_files = [ImageSimilarity.pdf_to_jpeg(file) for file in pdf_files]
+            image_files = [x for row in image_files for x in row]
+            print(f'save: {image_files}')
+            return image_files
+        else:
+            print("PDFファイルではないようなので、変換せず後続処理を実行")
+            return []
 
 
 @router.post('/image-similarity/')
@@ -169,6 +201,12 @@ async def image_similarity(request: Request):
 
     upload_target_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
     upload_target_file_dir += f"_{up_target_ope}_{req_opid}"
+
+    base_file_list = ImageSimilarity.loop_pdf_to_jpeg(upload_base_file_dir)
+    target_file_list = ImageSimilarity.loop_pdf_to_jpeg(upload_target_file_dir)
+    is_pdf = False
+    if len(base_file_list) > 0 or len(target_file_list) > 0:
+        is_pdf = True
 
     image_extensions = {".jpg", ".jpeg", ".png"}
     base_image_name = [
@@ -276,5 +314,22 @@ async def image_similarity(request: Request):
                 AppLogger.DEBUG,
                 "IMAGE-SIMILARITY END STATUS ??"
             )
+            if is_pdf:
+                io = BytesIO()
+                now = datetime.now().strftime('%Y%m%d%H%M%S')
+                zip_filename = f"drawing-compare_{now}.zip"
+                file_list = base_file_list + target_file_list
+                with zipfile.ZipFile(
+                        io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
+                    for fpath in file_list:
+                        zip.write(fpath)
+                return StreamingResponse(
+                    iter([io.getvalue()]),
+                    media_type="application/x-zip-compressed",
+                    headers={
+                    "Content-Disposition": f"attachment;filename={zip_filename}"
+                    }
+                )
+
 
     return ret
