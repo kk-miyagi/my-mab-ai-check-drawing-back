@@ -35,6 +35,15 @@ export const drawingCompareApi = {
     return postForm(GET_IMAGE_SIMILARITY, form)
   },
 
+  async getImageSimilarityEnd(payload: GetImageSimilarityRequest) {
+    const form = new FormData();
+    form.append('user', payload.user);
+    form.append('epic', payload.epic);
+    form.append('operation', payload.operation);
+    form.append('operation_id', payload.operation_id);
+    form.append('status', payload.status);
+    return postForm(GET_IMAGE_SIMILARITY, form, 'blob')
+  },
 
 
   async drawingCompareStart(payload: DrawingCompareRequest): Promise<DrawingCompareResponse> {
