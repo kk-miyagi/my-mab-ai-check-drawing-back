@@ -84,6 +84,37 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       const baseRects = res.base_rects
       const targetRects = res.target_rects
       const similarities = res.similarities
+
+      console.log(baseRects, targetRects, similarities)
+
+      if (Object.keys(baseRects).length === 0 && Object.keys(targetRects).length === 0) {
+        setIsLoading(false);
+        window.alert("2枚の図面に矩形領域が無いようです。図面を確認して再度アップロードしてください。")
+        navigate("/drawing-compare-upload-base")
+        return
+      }
+
+      if (Object.keys(baseRects).length > 0 && Object.keys(targetRects).length === 0) {
+        setIsLoading(false);
+        window.alert("自社図面に矩形領域が無いようです。図面を確認して再度アップロードしてください。")
+        navigate("/drawing-compare-upload-base")
+        return
+      }
+
+      if (Object.keys(baseRects).length === 0 && Object.keys(targetRects).length > 0) {
+        setIsLoading(false);
+        window.alert("客先図面に矩形領域が無いようです。図面を確認して再度アップロードしてください。")
+        navigate("/drawing-compare-upload-base")
+        return
+      }
+
+      if (Object.keys(baseRects).length > 0 && Object.keys(targetRects).length > 0 && Object.keys(similarities).length === 0 ) {
+        setIsLoading(false);
+        window.alert("図面の類似度計算に失敗しました。")
+        navigate("/drawing-compare-upload-base")
+        return
+      }
+
       if (isPdf) {
         const zipJpegFile = await drawingCompareApi.getImageSimilarityEnd(requestSimilarityPayloadEnd)
         const zip = await JSZip.loadAsync(zipJpegFile);
