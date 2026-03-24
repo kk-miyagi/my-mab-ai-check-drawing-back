@@ -31,22 +31,22 @@ export function HeaderSection({
         <div className="icon-wrapper">
           <Grid size={20} />
         </div>
-        <h1>図面比較システム</h1>
+        <h1>図面比較</h1>
       </div>
 
       <div className="step-indicator">
         <div className={`step-item ${phase === 'define' ? 'active' : ''}`}>
-          <div className="step-number">1</div>
+          {/* <div className="step-number">1</div> */}
           <span>領域確認</span>
         </div>
         <ChevronRight size={16} className="text-slate-400" />
         <div className={`step-item ${phase === 'select' || phase === 'suggest' ? 'active' : ''}`}>
-          <div className="step-number">2</div>
+          {/* <div className="step-number">2</div> */}
           <span>比較元選択</span>
         </div>
-        <ChevronRight size={16} className="text-slate-400" />
+        {/* <ChevronRight size={16} className="text-slate-400" /> */}
         <div className={`step-item ${phase === 'suggest' ? 'active' : ''}`}>
-          <div className="step-number">3</div>
+          {/* <div className="step-number">3</div> */}
           <span>候補確認</span>
         </div>
       </div>

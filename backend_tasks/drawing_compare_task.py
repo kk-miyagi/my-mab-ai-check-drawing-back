@@ -15,7 +15,7 @@ from utils.gemini_response import (
     get_raw_response,
 )
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'poc-shared-mab-ai-adv-util-sa.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'mab-ai-check-drawing-sa-key.json'
 model = GenerativeModel("gemini-2.5-pro")
 
 def check_draw_list(draw_list, compare_list, draw_kind, out_dir):

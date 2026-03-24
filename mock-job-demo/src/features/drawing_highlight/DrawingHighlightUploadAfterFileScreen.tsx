@@ -4,6 +4,9 @@ import { Loader2 } from 'lucide-react';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
+import { drawingHighlightApi } from '../../api/drawingHighlightApi.ts';
+import { PdfPreview } from '../../components/PdfPreview.tsx';
+import JSZip from 'jszip';
 
 const DEFAULT_EPIC = 'drawing-highlight';
 const DEFAULT_OPERATION = 'upload-target';
@@ -18,6 +21,7 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
 
   const [compareImageFile, setCompareImageFile] = useState<File[]>([]);
   const [compareImagepreview, setCompareImagePreview] = useState<string | null>(null);
+  const [isPdf, setIsPdf] = useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -25,11 +29,17 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const selectedFile = files[0];
+      if (selectedFile.type === 'application/pdf') {
+        setIsPdf(true);
+      } else {
+        setIsPdf(false);
+      }
       setCompareImageFile([selectedFile]);
       setCompareImagePreview(URL.createObjectURL(selectedFile));
     } else {
       setCompareImageFile([]);
       setCompareImagePreview(null);
+      setIsPdf(false);
     }
   };
 
@@ -62,6 +72,13 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
       operation_id: toPersist.operationId,
       status: toPersist.status,
     }
+    const requestSimilarityPayloadEnd = {
+      user: 'demo-user',
+      epic: toPersist.lastEpic,
+      operation: toPersist.lastOperation,
+      operation_id: toPersist.operationId,
+      status: 'end',
+    }
     try {
       const res = await drawingCompareApi.getImageSimilarity(requestSimilarityPayload)
       const baseRects = res.base_rects
@@ -70,9 +87,36 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
 
       if (Object.keys(similarities).length === 0) {
         // 実行中画面に遷移して、対象のAPIを叩く
-        navigate("/")
+        navigate("/drawing-highlight-processing")
+        const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingHighlight) as string);
+        toPersist.lastOperation = "drawing-highlight"
+        toPersist.status = "doing"
+        window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
+        const requestPayload  = {
+          user: 'demo-user',
+          epic: toPersist.lastEpic,
+          operation: toPersist.lastOperation ,
+          operation_id: toPersist.operationId,
+          status: toPersist.status,
+          combinations: {}
+        };
+        const res = drawingHighlightApi.DrawingHighligh(requestPayload)
+        navigate("/drawing-highlight-result", { state: { res }})
       } else {
-        navigate("/drawing-highlight",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
+        if (isPdf) {
+          const zipJpegFile = await drawingCompareApi.getImageSimilarityEnd(requestSimilarityPayloadEnd)
+          const zip = await JSZip.loadAsync(zipJpegFile);
+          const baseImgFile = zip.file(/demo-user_drawing-highlight_upload-base/)[0]
+          const imgBaseBlob = await baseImgFile.async('blob');
+          const targetImgFile = zip.file(/demo-user_drawing-highlight_upload-target/)[0]
+          const imgTargetBlob = await targetImgFile.async('blob');
+
+          const baseImageFile = [new File([imgBaseBlob], baseImgFile.name.split("/").pop(), { type: imgBaseBlob.type })]
+          const compareImageFile = [new File([imgTargetBlob], targetImgFile.name.split("/").pop(), { type: imgTargetBlob.type })]
+          navigate("/drawing-highlight",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
+        } else {
+          navigate("/drawing-highlight",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
+        }
       }
     } catch (err) {
       setIsLoading(false);
@@ -99,15 +143,18 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
           <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" accept="image/*" onChange={handleSetCompareImageFile} />
+            <input type="file" accept="image/*, application/pdf" onChange={handleSetCompareImageFile} />
           </label>
         </div>
       </div>
 
-      {compareImagepreview && (
+      {compareImagepreview && !isPdf && (
         <div style={{ marginBottom: '15px' }}>
           <img src={compareImagepreview} alt='プレビュー' style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
         </div>
+      )}
+      {compareImagepreview && isPdf && (
+        <PdfPreview preview={compareImagepreview} />
       )}
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
