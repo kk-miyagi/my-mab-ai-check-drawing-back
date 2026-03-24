@@ -666,7 +666,7 @@ export const DrawingCompare: React.FC = () => {
           <CanvasPane
             role="source"
             phase={phase}
-            title="比較元図面 (Source)"
+            title="基準側(客先)図面"
             instruction={instructionSource}
             imageSrc={images.source}
             rects={rects}
@@ -686,7 +686,7 @@ export const DrawingCompare: React.FC = () => {
           <CanvasPane
             role="target"
             phase={phase}
-            title="比較先図面 (Target)"
+            title="比較側(自社)図面"
             instruction={instructionTarget}
             imageSrc={images.target}
             rects={rects}

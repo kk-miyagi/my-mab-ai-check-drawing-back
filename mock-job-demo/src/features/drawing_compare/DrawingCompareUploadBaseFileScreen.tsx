@@ -106,7 +106,7 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
         <Link to="/hub">前に戻る</Link>
       </div>
 
-      <h3>基準側図面</h3>
+      <h3>基準側(客先)図面</h3>
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
           <label style={{ display: 'grid', gap: 4 }}>
