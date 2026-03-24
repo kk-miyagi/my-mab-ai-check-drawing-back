@@ -150,7 +150,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
         <h1>図面比較</h1>
       </div>
 
-      <h3>比較側図面</h3>
+      <h3>比較側(自社)図面</h3>
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
           <label style={{ display: 'grid', gap: 4 }}>

@@ -46,7 +46,7 @@ export function SuggestionScreen({
 
       <div className="suggestion-main">
         <div className="suggestion-pane">
-          <div className="pane-header">切り取った比較元</div>
+          <div className="pane-header">切り取った修正前図面</div>
           <div className="pane-body preview-large">
             {/* 候補の文脈になるよう、必ず Source の切り抜きを表示。 */}
             {sourcePreview ? (
@@ -61,7 +61,7 @@ export function SuggestionScreen({
         </div>
 
         <div className="suggestion-pane">
-          <div className="pane-header">類似候補から選択</div>
+          <div className="pane-header">切り取った修正後図面: 類似候補から選択</div>
           <div className="pane-body">
             {loading && (
               <div className="placeholder">
@@ -86,7 +86,7 @@ export function SuggestionScreen({
                         className={`candidate-tab ${activeId === item.id ? 'active' : ''} ${tabSelected ? 'selected' : ''}`}
                         onClick={() => setActiveId(item.id)}
                       >
-                        <span className="tab-label">{label}</span>
+                        {/* <span className="tab-label">{label}</span> */}
                         <span className="score-pill">{item.score}</span>
                         {tabSelected && <CheckCircle2 size={14} />}
                       </button>

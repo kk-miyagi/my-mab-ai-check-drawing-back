@@ -668,7 +668,7 @@ export const DrawingHighlight: React.FC = () => {
           <CanvasPane
             role="source"
             phase={phase}
-            title="比較元図面 (Source)"
+            title="修正前図面"
             instruction={instructionSource}
             imageSrc={images.source}
             rects={rects}
@@ -688,7 +688,7 @@ export const DrawingHighlight: React.FC = () => {
           <CanvasPane
             role="target"
             phase={phase}
-            title="比較先図面 (Target)"
+            title="修正後図面"
             instruction={instructionTarget}
             imageSrc={images.target}
             rects={rects}
