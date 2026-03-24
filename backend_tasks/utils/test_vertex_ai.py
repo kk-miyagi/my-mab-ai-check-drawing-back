@@ -13,7 +13,7 @@ from gemini_response import (
     get_raw_response,
 )
 # サービスアカウントキーファイルのパスを設定
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'poc-shared-mab-ai-adv-util-sa.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'mab-ai-check-drawing-sa-key.json'
 
 client = get_default_client()
 MODEL_NAME = DEFAULT_MODEL_NAME

@@ -398,7 +398,7 @@ def _generate_tile_dimension_rows(
 # サービスアカウントキーファイルのパスを設定
 os.environ[
         'GOOGLE_APPLICATION_CREDENTIALS'
-] = 'poc-shared-mab-ai-adv-util-sa.json'
+] = 'mab-ai-check-drawing-sa-key.json'
 
 
 def _coerce_csv_string(payload: object) -> Optional[str]:

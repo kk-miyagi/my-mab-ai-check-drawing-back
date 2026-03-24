@@ -22,7 +22,7 @@ except ImportError:  # pragma: no cover - optional dependency
     extract_first_json = None  # type: ignore
 
 # サービスアカウントキーファイルのパスを設定
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'poc-shared-mab-ai-adv-util-sa.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'mab-ai-check-drawing-sa-key.json'
 
 client = vision.ImageAnnotatorClient()
 
