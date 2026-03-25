@@ -78,6 +78,8 @@ class DrawingHighlight:
 
         img_1_h, img_1_w = img_1.shape[:2]
         img_2_h, img_2_w = img_2.shape[:2]
+        print(f"img_1 shape({img_1_w}, {img_1_h})")
+        print(f"img_2 shape({img_2_w}, {img_2_h})")
 
         min_h = min(img_1_h, img_2_h)
         min_w = min(img_1_w, img_2_w)
@@ -111,10 +113,36 @@ class DrawingHighlight:
                 f"{out_dir}/{before_file_name}_move_check_1_after.jpeg",
                 f"{out_dir}/{after_file_name}_move_check_2_after.jpeg",
         )
-        img_1_re_moved = cv.resize(img_1_hl, (img_1_w, img_1_h))
+        hl_1_h, hl_1_w = img_1_hl.shape[:2]
+        hl_2_h, hl_2_w = img_2_hl.shape[:2]
 
-        re_M = np.float32([[-1, 0, x], [0, -1, y]])
-        img_2_re_moved = cv.warpAffine(img_2_hl, re_M, (img_2_w, img_2_h))
+        print(f"hl img_1 shape({hl_1_w}, {hl_1_h})")
+        print(f"hl img_2 shape({hl_2_w}, {hl_2_h})")
+        re_M = np.float32([[1, 0, x], [0, 1, y]])
+
+        img_1_re_moved = cv.copyMakeBorder(
+                img_1_hl,
+                0,
+                abs(hl_1_h - img_1_h),
+                0,
+                abs(hl_1_w - img_1_w),
+                cv.BORDER_CONSTANT,
+                value=[255, 255, 255]
+        )
+        img_2_af_moved = cv.warpAffine(img_2_hl, re_M, (hl_2_w, hl_2_h))
+        img_2_re_moved = cv.copyMakeBorder(
+                img_2_af_moved,
+                0,
+                abs(hl_2_h - img_2_af_moved.shape[0]),
+                0,
+                abs(hl_2_w - img_2_af_moved.shape[1]),
+                cv.BORDER_CONSTANT,
+                value=[255, 255, 255]
+        )
+        img_1_re_h, img_1_re_w = img_1_re_moved.shape[:2]
+        img_2_re_h, img_2_re_w = img_2_re_moved.shape[:2]
+        print(f"re moved img1 hl shape({img_1_re_w}, {img_1_re_h})")
+        print(f"re moved img2 hl shape({img_2_re_w}, {img_2_re_h})")
 
         cv.imwrite(
                 f"{out_dir}/{before_file_name}_highlight.jpeg",
