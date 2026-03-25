@@ -57,9 +57,11 @@ class DrawingHighlight:
             roi2 = img2_marked[y:y+h, x:x+w]
             # 黒字部分（暗い画素）を赤に（閾値80は調整可）
             black_pixels1 = (
-                    cv.cvtColor(roi1, cv.COLOR_BGR2GRAY) < 80) & (mask_roi == 255)
+                    cv.cvtColor(
+                        roi1, cv.COLOR_BGR2GRAY) < 80) & (mask_roi == 255)
             black_pixels2 = (
-                    cv.cvtColor(roi2, cv.COLOR_BGR2GRAY) < 80) & (mask_roi == 255)
+                    cv.cvtColor(
+                        roi2, cv.COLOR_BGR2GRAY) < 80) & (mask_roi == 255)
             roi1[black_pixels1] = [0, 0, 255]
             roi2[black_pixels2] = [0, 0, 255]
             img1_marked[y:y+h, x:x+w] = roi1
@@ -111,7 +113,7 @@ class DrawingHighlight:
         )
         img_1_re_moved = cv.resize(img_1_hl, (img_1_w, img_1_h))
 
-        re_M = np.float32([[1, 0, x], [0, 1, y]])
+        re_M = np.float32([[-1, 0, x], [0, -1, y]])
         img_2_re_moved = cv.warpAffine(img_2_hl, re_M, (img_2_w, img_2_h))
 
         cv.imwrite(
@@ -152,20 +154,21 @@ class DrawingHighlight:
                 img = cv.imread(save_img)
 
                 # 切った画像
-                x, y, w, h = rect[0], rect[1], rect[2], rect[3]
+                x, y, _, _ = rect[0], rect[1], rect[2], rect[3]
                 cut_img_path = f'{out_dir}/{key}_highlight.jpeg'
                 cut_img = cv.imread(cut_img_path)
 
                 # 貼り付け
-                out = DrawingHighlight.paste_simple(img.copy(), cut_img.copy(), x, y, alpha=0.5)
+                out = DrawingHighlight.paste_simple(
+                        img.copy(), cut_img.copy(), x, y, alpha=0.5)
                 cv.imwrite(save_img, out)
                 print(f"貼り付け先: {save_img}")
                 print(f"切った画像: {cut_img_path}")
         print(f"貼り付け終了: {kind}")
 
-
     @classmethod
-    async def loop_highlight(cls, combinations: dict, base_cut_dir, target_cut_dir, out_dir):
+    async def loop_highlight(
+            cls, combinations: dict, base_cut_dir, target_cut_dir, out_dir):
         for base, targets in combinations.items():
             # targetごとに処理
             for target in targets:
@@ -175,7 +178,7 @@ class DrawingHighlight:
                         target_path,
                         out_dir
                     )
-         
+
 
 @router.post('/drawing-highlight/')
 async def drawing_highlight(request: Request):
@@ -297,7 +300,8 @@ async def drawing_highlight(request: Request):
 
                 fname_list = os.listdir(out_dir)
                 file_list = [
-                    f"{out_dir}/{fname}" for fname in fname_list if fname.endswith('.jpg')
+                    f"{out_dir}/{fname}" for fname in fname_list
+                    if fname.endswith('.jpg')
                 ]
                 print(f"file_list: {file_list}")
                 # 3)ZIPに固めてダウンロードの返信を実施
@@ -312,7 +316,7 @@ async def drawing_highlight(request: Request):
                     iter([io.getvalue()]),
                     media_type="application/x-zip-compressed",
                     headers={
-                    "Content-Disposition": f"attachment;filename={zip_filename}"
+                        "Content-Disposition": f"attachment;filename={zip_filename}"
                     }
                 )
 
