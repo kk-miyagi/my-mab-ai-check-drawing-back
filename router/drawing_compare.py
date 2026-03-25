@@ -80,11 +80,16 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
                 with open(out_json_path, 'w', encoding='utf-8') as f:
                     json.dump(req_combinations, f, ensure_ascii=False, indent=2)
             else:
-                req_status.status = Status.ERROR
-                logger.log(
+                # app_status 作成
+                app_state.create_new_app_status(
+                    req_status
+                )
+
+                # 別プロセスにてラベル付与実行
+                BackendTasks.set_backend_runner(
                     req_status,
-                    AppLogger.ERROR,
-                    "DRAWING-COMPARE COMBINATIONS NOT FOUND"
+                    DrawingCompareRunner(req_combinations),
+                    background_tasks
                 )
                 return AppRoute.create_responce_from_status(
                     req_status

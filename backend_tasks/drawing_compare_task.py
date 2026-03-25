@@ -225,22 +225,28 @@ if __name__ == "__main__":
     target_draw_list = get_draw_list(target_image_path)
     save_gemini_responce(target_draw_list, f"{run_dir}/llm_target_draw_list.csv")
 
-    # 組み合わせでループ
     save_cols = ["項目","客先図面の記載内容","客先図面の記載位置","社内用図面の記載内容","社内用図面の記載位置","差分内容","判定結果","判定理由"]
     all_rows = []
-    for base, targets in combinations.items():
-        # base: base_1とかtargetsはリスト状態
-        target_paths = [f"{target_cut_dir}/{t}.jpg" for t in targets]
-        base_position = get_image_position(base_image_path, f"{base_cut_dir}/{base}.jpg")
+    if combinations:
+        # 組み合わせでループ
+        for base, targets in combinations.items():
+            # base: base_1とかtargetsはリスト状態
+            target_paths = [f"{target_cut_dir}/{t}.jpg" for t in targets]
+            base_position = get_image_position(base_image_path, f"{base_cut_dir}/{base}.jpg")
 
-        # targetごとに処理
-        for target in targets:
-            target_path = f"{target_cut_dir}/{target}.jpg"
-            # 比較処理
-            res = get_drawing_compare(f"{base_cut_dir}/{base}.jpg", target_path)
-            target_position = get_image_position(target_image_path, target_path)
-            rows = change_output(res, base_position, target_position)
-            all_rows.extend(rows)
+            # targetごとに処理
+            for target in targets:
+                target_path = f"{target_cut_dir}/{target}.jpg"
+                # 比較処理
+                res = get_drawing_compare(f"{base_cut_dir}/{base}.jpg", target_path)
+                target_position = get_image_position(target_image_path, target_path)
+                rows = change_output(res, base_position, target_position)
+                all_rows.extend(rows)
+    else:
+        res = get_drawing_compare(base_image_path, target_image_path)
+        reader = csv.DictReader(io.StringIO(res, newline=""))
+        rows = list(reader)
+        all_rows.extend(rows)
 
     up_base_file_name = Path(base_image_path).stem
     up_base_file_name = re.search(r"\d+_bf_file_(.*)", up_base_file_name).group(1)
