@@ -132,10 +132,10 @@ class DrawingHighlight:
         img_2_af_moved = cv.warpAffine(img_2_hl, re_M, (hl_2_w, hl_2_h))
         img_2_re_moved = cv.copyMakeBorder(
                 img_2_af_moved,
+                abs(img_2_h - img_2_af_moved.shape[0]),
                 0,
-                abs(hl_2_h - img_2_af_moved.shape[0]),
                 0,
-                abs(hl_2_w - img_2_af_moved.shape[1]),
+                abs(img_2_w - img_2_af_moved.shape[1]),
                 cv.BORDER_CONSTANT,
                 value=[255, 255, 255]
         )
