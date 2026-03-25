@@ -88,9 +88,19 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       console.log(baseRects, targetRects, similarities)
 
       if (Object.keys(baseRects).length === 0 && Object.keys(targetRects).length === 0) {
-        setIsLoading(false);
-        window.alert("2枚の図面に矩形領域が無いようです。図面を確認して再度アップロードしてください。")
-        navigate("/drawing-compare-upload-base")
+        navigate("/drawing-compare-processing")
+        toPersist.lastOperation = "batch-drawing-compare"
+        toPersist.status = "start"
+        window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
+        const requestPayload  = {
+          user: 'demo-user',
+          epic: toPersist.lastEpic,
+          operation: toPersist.lastOperation ,
+          operation_id: toPersist.operationId,
+          status: toPersist.status,
+          combinations: {}
+        };
+        drawingCompareApi.drawingCompareStart(requestPayload)
         return
       }
 
