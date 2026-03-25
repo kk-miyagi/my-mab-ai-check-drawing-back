@@ -98,7 +98,13 @@ class DrawingHighlight:
 
         M = np.float32([[1, 0, -x], [0, 1, -y]])
         img_1_moved = gray_1
-        img_2_moved = cv.warpAffine(gray_2, M, (w_2, h_2))
+        img_2_moved = cv.warpAffine(
+            gray_2,
+            M,
+            (w_2, h_2),
+            borderMode = cv.BORDER_CONSTANT,
+            borderValue = (255, )
+        )
 
         before_file_name = Path(before_img).stem
         after_file_name = Path(after_img).stem
@@ -129,7 +135,12 @@ class DrawingHighlight:
                 cv.BORDER_CONSTANT,
                 value=[255, 255, 255]
         )
-        img_2_af_moved = cv.warpAffine(img_2_hl, re_M, (hl_2_w, hl_2_h))
+        img_2_af_moved = cv.warpAffine(
+            img_2_hl,
+            re_M,
+            (hl_2_w, hl_2_h),
+            borderMode = cv.BORDER_CONSTANT,
+            borderValue = (255, 255, 255))
         img_2_re_moved = cv.copyMakeBorder(
                 img_2_af_moved,
                 abs(img_2_h - img_2_af_moved.shape[0]),
@@ -188,7 +199,7 @@ class DrawingHighlight:
 
                 # 貼り付け
                 out = DrawingHighlight.paste_simple(
-                        img.copy(), cut_img.copy(), x, y, alpha=0.5)
+                        img.copy(), cut_img.copy(), x, y)
                 cv.imwrite(save_img, out)
                 print(f"貼り付け先: {save_img}")
                 print(f"切った画像: {cut_img_path}")
