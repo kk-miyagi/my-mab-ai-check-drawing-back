@@ -7,7 +7,6 @@ import os
 import cv2 as cv
 import numpy as np
 from pathlib import Path
-from PIL import Image
 from io import BytesIO
 import zipfile
 from datetime import datetime
@@ -27,9 +26,7 @@ class DrawingHighlight:
         # 画像ファイルの読み込み（JPEG形式）
         img1 = cv.imread(img1_filename)
         img2 = cv.imread(img2_filename)
-        # サイズを揃える
-    #   img1, img2 = pad_to_same_size(img1, img2)
-        img1 = cv.resize(img1, (img2.shape[1], img2.shape[0]))
+
         # グレースケール変換
         gray1 = cv.cvtColor(img1, cv.COLOR_BGR2GRAY)
         gray2 = cv.cvtColor(img2, cv.COLOR_BGR2GRAY)
@@ -77,38 +74,27 @@ class DrawingHighlight:
         img_1 = cv.imread(before_img)
         img_2 = cv.imread(after_img)
 
-        area_1 = img_1.shape[0] * img_1.shape[1]
-        area_2 = img_2.shape[0] * img_2.shape[1]
+        img_1_h, img_1_w = img_1.shape[:2]
+        img_2_h, img_2_w = img_2.shape[:2]
 
-        if area_1 >= area_2:
-            img_1 = cv.resize(img_1, (img_2.shape[1], img_2.shape[0]))
-        else:
-            img_2 = cv.resize(img_2, (img_1.shape[1], img_1.shape[0]))
+        min_h = min(img_1_h, img_2_h)
+        min_w = min(img_1_w, img_2_w)
 
-        gray_1 = cv.cvtColor(img_1, cv.COLOR_BGR2GRAY).astype(np.float32)
-        gray_2 = cv.cvtColor(img_2, cv.COLOR_BGR2GRAY).astype(np.float32)
+        img_r_1 = img_1[0:min_h, 0:min_w]
+        img_r_2 = img_2[0:min_h, 0:min_w]
+
+        gray_1 = cv.cvtColor(img_r_1, cv.COLOR_BGR2GRAY).astype(np.float32)
+        gray_2 = cv.cvtColor(img_r_2, cv.COLOR_BGR2GRAY).astype(np.float32)
 
         (x, y), r = cv.phaseCorrelate(gray_1, gray_2)
         print(f"({x}, {y}), {r}")
 
         h_1, w_1 = gray_1.shape[:2]
+        h_2, w_2 = gray_2.shape[:2]
 
-        if x < 0:
-            x11, x12 = abs(int(x)), w_1
-            x21, x22 = 0, w_1 - abs(int(x))
-        else:
-            x21, x22 = abs(int(x)), w_1
-            x11, x12 = 0, w_1 - abs(int(x))
-
-        if y < 0:
-            y11, y12 = abs(int(y)), h_1
-            y21, y22 = 0, h_1 - abs(int(y))
-        else:
-            y21, y22 = abs(int(y)), h_1
-            y11, y12 = 0, h_1 - abs(int(y))
-
-        img_1_moved = cv.convertScaleAbs(gray_1[y11:y12, x11:x12])
-        img_2_moved = cv.convertScaleAbs(gray_2[y21:y22, x21:x22])
+        M = np.float32([[1, 0, -x], [0, 1, -y]])
+        img_1_moved = gray_1
+        img_2_moved = cv.warpAffine(gray_2, M, (w_2, h_2))
 
         before_file_name = Path(before_img).stem
         after_file_name = Path(after_img).stem
@@ -123,12 +109,17 @@ class DrawingHighlight:
                 f"{out_dir}/{before_file_name}_move_check_1_after.jpeg",
                 f"{out_dir}/{after_file_name}_move_check_2_after.jpeg",
         )
+        img_1_re_moved = cv.resize(img_1_hl, (img_1_w, img_1_h))
+
+        re_M = np.float32([[1, 0, x], [0, 1, y]])
+        img_2_re_moved = cv.warpAffine(img_2_hl, re_M, (img_2_w, img_2_h))
+
         cv.imwrite(
                 f"{out_dir}/{before_file_name}_highlight.jpeg",
-                img_1_hl)
+                img_1_re_moved)
         cv.imwrite(
                 f"{out_dir}/{after_file_name}_highlight.jpeg",
-                img_2_hl)
+                img_2_re_moved)
 
     @classmethod
     def paste_simple(cls, dst_bgr, patch_bgr, x, y, alpha=1.0):
