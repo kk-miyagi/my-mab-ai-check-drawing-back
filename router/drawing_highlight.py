@@ -91,12 +91,13 @@ class DrawingHighlight:
         gray_2 = cv.cvtColor(img_r_2, cv.COLOR_BGR2GRAY).astype(np.float32)
 
         (x, y), r = cv.phaseCorrelate(gray_1, gray_2)
-        print(f"({x}, {y}), {r}")
 
         if abs(x) < 1:
             x = 0
         if abs(y) < 1:
             y = 0
+
+        print(f"({x}, {y}), {r}")
 
         h_1, w_1 = gray_1.shape[:2]
         h_2, w_2 = gray_2.shape[:2]
