@@ -93,6 +93,11 @@ class DrawingHighlight:
         (x, y), r = cv.phaseCorrelate(gray_1, gray_2)
         print(f"({x}, {y}), {r}")
 
+        if abs(x) < 1:
+            x = 0
+        if abs(y) < 1:
+            y = 0
+
         h_1, w_1 = gray_1.shape[:2]
         h_2, w_2 = gray_2.shape[:2]
 
@@ -102,8 +107,8 @@ class DrawingHighlight:
             gray_2,
             M,
             (w_2, h_2),
-            borderMode = cv.BORDER_CONSTANT,
-            borderValue = (255, )
+            borderMode=cv.BORDER_CONSTANT,
+            borderValue=(255, )
         )
 
         before_file_name = Path(before_img).stem
@@ -139,8 +144,8 @@ class DrawingHighlight:
             img_2_hl,
             re_M,
             (hl_2_w, hl_2_h),
-            borderMode = cv.BORDER_CONSTANT,
-            borderValue = (255, 255, 255))
+            borderMode=cv.BORDER_CONSTANT,
+            borderValue=(255, 255, 255))
         img_2_re_moved = cv.copyMakeBorder(
                 img_2_af_moved,
                 abs(img_2_h - img_2_af_moved.shape[0]),
