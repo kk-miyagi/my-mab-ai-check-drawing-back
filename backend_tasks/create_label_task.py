@@ -1963,8 +1963,7 @@ def demission_group(
             return
         csv_payload = get_raw_response(raw_MAB_csvres)
 
-    print_csv_payload = csv_payload.encode(sys.stdout.encoding)
-    print(f"社内出力:\n{print_csv_payload}")
+    print(f"社内出力:\n{csv_payload}")
 
     effective_padding = max(0, int(tile_region_padding))
     highlight_mab_dimensions(
