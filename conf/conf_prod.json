@@ -1,6 +1,6 @@
 {
     "APP_STATUS":{
-       "expire": 604800
+       "expire": 86400 
     },
     "LOGGER":{
 	"logger_name": "app_main",
@@ -9,7 +9,7 @@
 	"log_file_name": "./logs/app_main.log", 
 	"log_interval": 1,
 	"log_when": "D",
-	"log_encoding": "shift_jis"
+	"log_encoding": "utf-8"
     },
     "BATCH_LOGGER":{
 	"logger_name": "app_batch",
@@ -28,6 +28,9 @@
 	"demo-create-label": []
     },
     "BACKEND_TASKS": {
-	"create-label_batch-create-label": "bash ./shell/create_label.sh"
+	"create-label_batch-create-label": "bash ./shell/create_label.sh",
+	"update-label_batch-update-label": "bash ./shell/update_label.sh",
+	"drawing-review_batch-drawing-review": "bash ./shell/drawing_review.sh",
+	"drawing-compare_batch-drawing-compare": "bash ./shell/drawing_compare.sh"
     }
 }
