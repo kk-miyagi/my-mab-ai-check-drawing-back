@@ -1,6 +1,22 @@
 import uuid
-from datetime import datetime as dt
+import time
 from state.app_status import AppStatus
+
+
+def get_all_keys(self):
+    ret = None
+    with self.lock:
+        status_dic = self.app_state.APP_STATUS_SESSION_KEY
+        ret = status_dic.keys()
+    return ret
+
+
+def get_app_status(self, key):
+    ret = None
+    with self.lock:
+        status_dic = self.app_state.APP_STATUS_SESSION_KEY
+        ret = status_dic[key]
+    return ret
 
 
 def create_app_status(self):
@@ -30,7 +46,7 @@ def create_new_app_status(self, status):
         ret_id = status.operation_id
         if AppStatus._is_none_and_black(ret_id):
             ret_id = str(uuid.uuid4())
-        ret_time = int(dt.now().timestamp())
+        ret_time = time.time()
         ret = AppStatus(
                  status.user,
                  status.epic,
@@ -55,3 +71,15 @@ def update_app_status(self, status):
             state_status = status_dic[update_key]
             state_status.status = status.status
             status_dic[update_key] = state_status
+
+
+def delete_app_status(self, delete_key):
+    with self.lock:
+        status_dic = self.app_state.APP_STATUS_SESSION_KEY
+        delete_status = None
+        for key in status_dic.keys():
+            if delete_key == key:
+                delete_status = status_dic[key]
+                continue
+        if delete_status is not None:
+            status_dic.pop(delete_key)

@@ -94,20 +94,6 @@ class AppStatus:
         )
 
     @classmethod
-    def delete_session_status(cls, status, app_session):
-        if not hasattr(app_session, 'APP_STATUS_SESSION_KEY'):
-            raise ValueError()
-        status_dic = app_session.APP_STATUS_SESSION_KEY
-        delete_status = None
-        for key in status_dic.keys():
-            if key == status.get_hash_key():
-                delete_key = key
-                delete_status = status
-                continue
-        if delete_status is not None:
-            status_dic.pop(delete_key)
-
-    @classmethod
     def _is_none_and_black(cls, val):
         return (val is None) or len(val.strip()) == 0
 

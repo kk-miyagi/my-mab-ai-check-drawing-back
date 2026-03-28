@@ -1,38 +1,9 @@
 from utils.test_vision_ocr import perform_document_text_detection
+from utils.image_operation import get_black_and_white_colors
 from pathlib import Path
 import cv2
-import numpy as np
 import sys
 import uuid
-
-
-def get_black_and_white_colors(img, hsv):
-
-    # 黒色の範囲 (低明度)
-    lower_black = np.array([0, 0, 0])
-    upper_black = np.array([180, 255, 50])  # 明度(V)が低い部分を黒とみなす
-    mask_black = cv2.inRange(hsv, lower_black, upper_black)
-
-    # 白色の範囲 (低彩度 & 高明度)
-    lower_white = np.array([0, 0, 200])
-    upper_white = np.array([180, 50, 255])  # 彩度(S)が低く、明度(V)が高い部分を白とみなす
-    mask_white = cv2.inRange(hsv, lower_white, upper_white)
-
-    # 黒と白のマスクを結合
-    mask_bw = cv2.bitwise_or(mask_black, mask_white)
-
-    # 黒白以外のマスクを作成（反転）
-    mask_color = cv2.bitwise_not(mask_bw)
-
-    # マスクを適用して色部分を抽出
-    result = cv2.bitwise_and(img, img, mask=mask_color)
-
-    hs = result.T[0].flatten()
-    ss = result.T[1].flatten()
-    vs = result.T[2].flatten()
-    tmp_values = np.array([20, 20, 20])
-    return (np.array([hs.min(), ss.min(), vs.min()]) + tmp_values,
-            np.array([hs.max(), ss.max(), vs.max()]) + tmp_values)
 
 
 def main(input_img: str, delete_file_flg: bool = False):
@@ -41,7 +12,12 @@ def main(input_img: str, delete_file_flg: bool = False):
     hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
 
     # 黒と白以外色の範囲を取得
-    lower_color, upper_color = get_black_and_white_colors(cv_image, hsv)
+    lower_color, upper_color = get_black_and_white_colors(
+            cv_image,
+            hsv,
+            [20, 20, 20]
+    )
+    # TODO 赤いオブジェクトを取得
     print(f"lower:{lower_color}\n upper:{upper_color}")
     # 指定色のマスク作成
     mask = cv2.inRange(hsv, lower_color, upper_color)

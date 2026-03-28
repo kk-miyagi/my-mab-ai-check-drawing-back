@@ -2,6 +2,7 @@ from fastapi.responses import JSONResponse
 from app_manager import Manager, ManagerException
 from state.app_status import AppStatus
 from app_logger import AppLogger
+import time
 
 
 class AppStatusManager(Manager):
@@ -49,9 +50,21 @@ class AppStatusManager(Manager):
                     f"app status error :{self.INVALID_STATUS_ERROR}"
                 )
                 raise ManagerException(self.INVALID_STATUS_ERROR)
-        # TODO expire logic
-
-
+        # expire logic
+        curr_time = time.time()
+        expire_time = state.getConf().expire
+        for key in state.get_all_keys():
+            t = state.get_app_status(key).create_time
+            mess = "app status expire check start: "
+            mess += f"curr:{curr_time} create:{t} expire: {expire_time}"
+            logger.log(
+                AppLogger.DEBUG,
+                mess)
+            if curr_time - t > expire_time:
+                state.delete_app_status(key)
+                logger.log(
+                    AppLogger.INFO,
+                    f"app status expired key:{key}")
 
     def get_child_except_responce(
             self, exp, request):
