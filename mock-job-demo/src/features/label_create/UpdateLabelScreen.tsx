@@ -1,6 +1,5 @@
 import React, { useEffect, useState, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useEpicInit } from '../../hooks/useEpicInit';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
@@ -15,7 +14,6 @@ type Row = Record<string, string | number | boolean | null>;
 export const UpdateLabelScreen: React.FC = () => {
   console.log(JSON.parse(window.localStorage.getItem(localStorageKey.default) as string))
   const navigate = useNavigate();
-  const { sendEnd, error: initError } = useEpicInit(DEFAULT_EPIC);
 
   // image
   const [imageFile, setImageFile] = useState<File[]>([]);
@@ -125,7 +123,6 @@ export const UpdateLabelScreen: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>ラベル付与_修正内容反映後用</h1>
       </div>
-      {initError && <p style={{ color: 'red' }}>初期化エラー: {initError}</p>}
       <ul>
         <li>修正内容を反映した図面とCSVをそれぞれ1枚ずつアップロードしてください。</li>
         <li>想定

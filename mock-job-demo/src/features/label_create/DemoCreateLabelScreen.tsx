@@ -1,6 +1,5 @@
 import React, { useEffect, useState, ChangeEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useEpicInit } from '../../hooks/useEpicInit';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import type { OperationIssueRequest } from '../../types/uploadServer.ts';
@@ -16,7 +15,6 @@ export const DemoCreateLabelScreen: React.FC = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
-  const { sendEnd, error: initError } = useEpicInit(DEFAULT_EPIC);
 
   const handleSetFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -123,9 +121,8 @@ export const DemoCreateLabelScreen: React.FC = () => {
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>(デモ)ラベル付与</h1>
-        <Link to="/hub" onClick={async (e) => {e.preventDefault();await sendEnd();navigate('/hub');}}>前に戻る</Link>
+        <Link to="/hub">前に戻る</Link>
       </div>
-      {initError && <p style={{ color: 'red' }}>初期化エラー: {initError}</p>}
       <ul>
         <li>ラベル付与を行いたい図面を1枚アップロードしてください。</li>
         <li>想定
