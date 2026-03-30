@@ -1,9 +1,9 @@
-# __pycache__
 mab-ai-check-drawing-sa-key.json
 __pycache__/
 *.swp
 node_modules/
-multi-fileupload/
+multi-fileupload/*
+!/multi-fileupload/.gitkeep
 dist/
 *.jpg
 *.jpeg
@@ -15,8 +15,8 @@ logs/*
 .venv/
 
 backend_tasks/logs/*.json
-create-label-responce/**/*.json
-create-label-responce/**/*.txt
+create-label-responce/*
+!/create-label-responce/.gitkeep
 
 drawing-review-responce/*
 !/drawing-review-responce/.gitkeep
