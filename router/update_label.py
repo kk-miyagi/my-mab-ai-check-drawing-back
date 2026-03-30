@@ -12,7 +12,6 @@ import zipfile
 router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
-# TODO create labelとの共通化
 class UpdateLabelRunner(BackendTaskRunner):
 
     _IN_BASE_DIR = './multi-fileupload'
