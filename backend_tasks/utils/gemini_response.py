@@ -6,7 +6,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def _json_safe(value: object) -> object:
@@ -131,6 +130,7 @@ def extract_views(payload):
 
 def _log_gemini_error(
     category: str,
+    log_dir: str,
     *,
     payload: Optional[Dict[str, object]] = None,
     prompts: Optional[List[str]] = None,
@@ -139,8 +139,6 @@ def _log_gemini_error(
     extra: Optional[Dict[str, object]] = None,
 ) -> Optional[Path]:
     try:
-        log_dir = REPO_ROOT / "logs"
-        log_dir.mkdir(parents=True, exist_ok=True)
         now = datetime.now()
         timestamp = now.strftime("%Y%m%d_%H%M%S_%f")
         log_path = log_dir / f"gemini_error_{timestamp}.json"

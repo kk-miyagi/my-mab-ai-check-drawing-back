@@ -874,6 +874,7 @@ def _call_gemini_for_dimension_match(
         print(f"LLMによる寸法マッチング呼び出しでエラーが発生しました: {error_message}")
         log_path = _log_gemini_error(
             "dimension_match_call",
+            log_dir,
             payload=payload,
             prompts=prompts,
             response=result,
@@ -919,6 +920,7 @@ def _call_gemini_for_dimension_match(
         print("Gemini応答を辞書として解釈できませんでした。")
         log_path = _log_gemini_error(
             "dimension_match_parse",
+            log_dir,
             payload=payload,
             prompts=prompts,
             response=result,
@@ -940,6 +942,7 @@ def _call_gemini_for_dimension_match(
         print(data)
         log_path = _log_gemini_error(
             "dimension_match_missing_matches",
+            log_dir,
             payload=payload,
             prompts=prompts,
             response=data,
