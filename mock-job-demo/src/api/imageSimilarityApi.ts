@@ -1,9 +1,9 @@
 import { http } from "./http";
 import { ENDPOINTS } from "./endpoints";
 import { AxiosRequestConfig } from "axios";
-import type { DrawingCompareRequest, DrawingCompareEndRequest, DrawingCompareResponse } from "../types/drawingCompare.ts";
+import type { GetImageSimilarityRequest, GetImageSimilarityResponse } from "../types/imageSimilarity.ts";
 
-const DRAWING_COMPARE_ENDPOINT = ENDPOINTS.drawingCompare;
+const GET_IMAGE_SIMILARITY = ENDPOINTS.getImageSimilarity;
 
 async function postForm<TResponse>(path: string, formData: FormData, responseType:  AxiosRequestConfig["responseType"] = 'json'): Promise<TResponse> {
   const { data } = await http.post<TResponse>(path, formData, {
@@ -13,27 +13,26 @@ async function postForm<TResponse>(path: string, formData: FormData, responseTyp
   return data;
 }
 
-export const drawingCompareApi = {
+export const imageSimilarityApi = {
 
-  async drawingCompareStart(payload: DrawingCompareRequest): Promise<DrawingCompareResponse> {
+  async getImageSimilarity(payload: GetImageSimilarityRequest): Promise<GetImageSimilarityResponse> {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
     form.append('operation', payload.operation);
     form.append('operation_id', payload.operation_id);
     form.append('status', payload.status);
-    form.append('combinations', JSON.stringify(payload.combinations));
-    return postForm(DRAWING_COMPARE_ENDPOINT, form);
+    return postForm(GET_IMAGE_SIMILARITY, form)
   },
 
-  async drawingCompareEnd(payload: DrawingCompareEndRequest) {
+  async getImageSimilarityEnd(payload: GetImageSimilarityRequest) {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
     form.append('operation', payload.operation);
     form.append('operation_id', payload.operation_id);
     form.append('status', payload.status);
-    return postForm(DRAWING_COMPARE_ENDPOINT, form, 'blob');
+    return postForm(GET_IMAGE_SIMILARITY, form, 'blob')
   },
 
 }
