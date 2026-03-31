@@ -8,6 +8,7 @@ import type {
   RectRole,
 } from '../types.ts';
 import { useEffect, useState } from 'react';
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 interface CanvasPaneProps {
   role: RectRole;
   phase: Phase;
@@ -106,7 +107,9 @@ export function CanvasPane({
             className={`image-container phase-${phase}`}
             // onMouseDown={onBackgroundMouseDown}
           >
-            <img ref={imageRef} src={imageSrc} alt={role} className="image-content" draggable={false} />
+            <TransformWrapper>
+              <TransformComponent>
+                <img ref={imageRef} src={imageSrc} alt={role} className="image-content" draggable={false} />
 
             {visibleRects.map((rect, index) => {
               let classNames = 'rect';
@@ -178,6 +181,8 @@ export function CanvasPane({
                 }}
               />
             )}
+              </TransformComponent>
+            </TransformWrapper>
           </div>
         )}
       </div>
