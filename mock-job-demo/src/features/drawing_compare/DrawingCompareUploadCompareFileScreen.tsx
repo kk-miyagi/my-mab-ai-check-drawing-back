@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
+import { imageSimilarityApi } from '../../api/imageSimilarityApi.ts';
 import { PdfPreview } from '../../components/PdfPreview.tsx';
 import JSZip from 'jszip';
 
@@ -80,7 +81,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       status: 'end',
     }
     try {
-      const res = await drawingCompareApi.getImageSimilarity(requestSimilarityPayload)
+      const res = await imageSimilarityApi.getImageSimilarity(requestSimilarityPayload)
       const baseRects = res.base_rects
       const targetRects = res.target_rects
       const similarities = res.similarities
@@ -126,7 +127,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       }
 
       if (isPdf) {
-        const zipJpegFile = await drawingCompareApi.getImageSimilarityEnd(requestSimilarityPayloadEnd)
+        const zipJpegFile = await imageSimilarityApi.getImageSimilarityEnd(requestSimilarityPayloadEnd)
         const zip = await JSZip.loadAsync(zipJpegFile);
         const baseImgFile = zip.file(/demo-user_drawing-compare_upload-base/)[0]
         const imgBaseBlob = await baseImgFile.async('blob');

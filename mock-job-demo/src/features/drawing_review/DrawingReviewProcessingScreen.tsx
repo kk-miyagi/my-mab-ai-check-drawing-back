@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { usePolling } from '../../hooks/usePolling.ts';
 import { CheckStatusRequest } from '../../types/checkStatus.ts';
-import { drawingReviewApi } from '../../api/drawingReviewApi.ts';
+import { checkStatusApi } from '../../api/checkStatusApi.ts';
 
 export const DrawingReviewProcessingScreen: React.FC = () => {
   const raw = window.localStorage.getItem(localStorageKey.drawingReview) as string;
@@ -31,7 +31,7 @@ export const DrawingReviewProcessingScreen: React.FC = () => {
 
   usePolling(
     async () => {
-      const res = await drawingReviewApi.checkStatus(payload);
+      const res = await checkStatusApi.checkStatus(payload);
       return res;
     },
     (r) => r.status === 'end',

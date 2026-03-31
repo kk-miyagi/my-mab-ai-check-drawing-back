@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { localStorageKey } from '../../constants/localStorageKey';
-import { createLabelApi } from '../../api/createLabelApi.ts';
 import { usePolling } from '../../hooks/usePolling.ts';
-import { CheckStatusRequest } from '../../types/uploadServer.ts';
+import { CheckStatusRequest } from '../../types/checkStatus.ts';
+import { checkStatusApi } from '../../api/checkStatusApi.ts';
 
 export const UpdateLabelProcessingScreen: React.FC = () => {
   const raw = window.localStorage.getItem(localStorageKey.default) as string;
@@ -31,7 +31,7 @@ export const UpdateLabelProcessingScreen: React.FC = () => {
 
   usePolling(
     async () => {
-      const res = await createLabelApi.checkStatus(payload);
+      const res = await checkStatusApi.checkStatus(payload);
       return res;
     },
     (r) => r.status === 'end',
