@@ -4,7 +4,7 @@ import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import type { OperationIssueRequest } from '../../types/uploadServer.ts';
 import type { PersistedState } from '../../types/uploadContext.ts';
-import { issueOperationId } from '../../components/upload/issueOperationId.ts';
+import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
 
@@ -64,7 +64,7 @@ export const DemoCreateLabelScreen: React.FC = () => {
       operation_id: null,
       status: 'start',
     };
-    const issueResult = await issueOperationId(metaPayload);
+    const issueResult = await issueOperationIdApi(metaPayload);
     toPersist.operationId = issueResult.operation_id
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { PersistedState } from '../../types/uploadContext.ts';
 import { OperationIssueRequest } from '../../types/upload.ts';
-import { issueOperationId } from '../../components/upload/issueOperationId.ts';
+import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import { PdfPreview } from '../../components/PdfPreview.tsx';
 
@@ -69,7 +69,7 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
       operation_id: null,
       status: 'start',
     };
-    const issueResult = await issueOperationId(metaPayload);
+    const issueResult = await issueOperationIdApi(metaPayload);
     toPersist.operationId = issueResult.operation_id
     window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
 
