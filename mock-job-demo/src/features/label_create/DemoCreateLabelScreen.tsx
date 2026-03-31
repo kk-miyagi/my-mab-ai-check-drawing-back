@@ -29,7 +29,6 @@ export const DemoCreateLabelScreen: React.FC = () => {
   };
 
   const handleStart = async () => {
-    console.log("[ファイルアップロード]")
 
     // ローカルストレージの初期化
     const toPersist: PersistedState = {
@@ -81,14 +80,10 @@ export const DemoCreateLabelScreen: React.FC = () => {
     const response = await uploadApi.uploadPair(requestPayload);
     toPersist.status = 'end'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-    console.log("[ラベル付与]画像アップロード_レスポンス ", response)
-    console.log("[ラベル付与]画像アップロード_ローカルストレージ更新 ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
-
 
     toPersist.status = 'start'
     toPersist.lastOperation = 'batch-create-label'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-    console.log("[ラベル付与]バッチ処理_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
 
     // 実行中画面に切り替え
     navigate('/demo-create-label-processing');
@@ -106,7 +101,6 @@ export const DemoCreateLabelScreen: React.FC = () => {
       toPersist.status = res.status
       window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
     }
-    console.log("[ラベル付与]バッチ処理実行中_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
   }
 
   useEffect(() => {

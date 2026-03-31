@@ -112,9 +112,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
       files: excelFile,
     };
     const response = await uploadApi.uploadPair(requestPayload);
-    console.log("/multi-file-uploadのレスポンス:", response)
 
-    console.log("sheetsの中身", sheets)
     await navigate("/drawing-review", { state: { sheets }})
 
   }

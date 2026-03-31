@@ -80,7 +80,7 @@ export const DrawingHighlightResultScreen: React.FC = () => {
           setTargetImageFileName(filename)
         }
       } catch (e) {
-        console.log("エラー", e)
+        // TODO
       }
     })();
   }, [])

@@ -39,8 +39,6 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
 
   // ローカルストレージの削除ボタン用
   const handleRemoveItem = () => {
-    window.localStorage.removeItem(localStorageKey.default);
-    console.log('ローカルストレージを削除しました。');
     navigate('/hub')
   };
 
@@ -83,7 +81,7 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
           setImageFileName(filename)
         }
         const csvFile = zip.file(/\.csv$/)[0]
-        console.log(csvFile)
+
         if (csvFile) {
           const text = await csvFile.async("string");
           const csvBlob = await csvFile.async('blob');
@@ -112,7 +110,7 @@ export const DemoCreateLabelResultScreen: React.FC = () => {
         
 
       } catch (e) {
-        console.log("エラー")
+        // TODO
       }
     })();
   }, []);
