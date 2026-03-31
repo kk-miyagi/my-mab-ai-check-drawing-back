@@ -12,7 +12,6 @@ const DEFAULT_OPERATION = 'batch-update-label';
 type Row = Record<string, string | number | boolean | null>;
 
 export const UpdateLabelScreen: React.FC = () => {
-  console.log(JSON.parse(window.localStorage.getItem(localStorageKey.default) as string))
   const navigate = useNavigate();
 
   // image
@@ -47,7 +46,6 @@ export const UpdateLabelScreen: React.FC = () => {
       
       const selectedFile = files[0];
       const text = await selectedFile.text()
-      console.log(selectedFile.text())
       const result = Papa.parse<Row>(text, {
         header: true,
         skipEmptyLines: true,
@@ -64,8 +62,6 @@ export const UpdateLabelScreen: React.FC = () => {
 
 
   const handleStart = async () => {
-    console.log("[ファイルアップロード]")
-
     // ローカルストレージの取得
     const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.default) as string);
 
@@ -84,7 +80,6 @@ export const UpdateLabelScreen: React.FC = () => {
     };
 
     const response = await uploadApi.uploadPair(requestPayload);
-    console.log("multi-file-uploadのレスポンス:", response)
 
     toPersist.status = 'start'
     toPersist.lastOperation = DEFAULT_OPERATION
@@ -103,7 +98,6 @@ export const UpdateLabelScreen: React.FC = () => {
         operation_id: toPersist.operationId,
         status: toPersist.status,
       });
-      console.log("/update-labelのレスポンス:", res)
     } catch (err) {
       window.alert("バッチ処理起動に失敗したため、画面を切り替えます")
       navigate("/update-label")

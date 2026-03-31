@@ -97,7 +97,7 @@ export const DrawingReviewResultScreen: React.FC = () => {
         }
 
       } catch (e) {
-        console.log("エラー")
+        // TODO
       }
     })();
   }, []);

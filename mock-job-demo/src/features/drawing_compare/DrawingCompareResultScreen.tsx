@@ -64,11 +64,10 @@ export const DrawingCompareResultScreen: React.FC = () => {
           status: parsed.status
         });
         const data = await res as Blob
-        console.log(data)
         const zip = await JSZip.loadAsync(data);
 
         const csvFile = zip.file(/\.csv$/)[0]
-        console.log(csvFile)
+
         if (csvFile) {
           const text = await csvFile.async("string");
           const csvBlob = await csvFile.async('blob');
@@ -97,7 +96,7 @@ export const DrawingCompareResultScreen: React.FC = () => {
         
 
       } catch (e) {
-        console.log("エラー")
+        //TODO
       }
     })();
   }, []);

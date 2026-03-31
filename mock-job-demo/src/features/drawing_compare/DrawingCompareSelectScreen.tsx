@@ -41,7 +41,6 @@ export const DrawingCompareSelectScreen: React.FC = () => {
 
       img.onload = () => {
         Object.keys(crops).forEach((i) => {
-          console.log(i)
           ctx.drawImage(
             img,
             crops[i].x,

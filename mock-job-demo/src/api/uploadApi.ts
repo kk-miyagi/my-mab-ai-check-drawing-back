@@ -1,7 +1,7 @@
 // Helper for uploading file pairs. ID issuance is handled in issueOperationId.ts.
 // Uses VITE_USE_MOCK_API (default true) to toggle between mock and real calls.
 
-import { issueOperationId } from '../components/upload/issueOperationId';
+import { issueOperationIdApi } from './issueOperationIdApi';
 import { http } from './http';
 import { ENDPOINTS } from './endpoints';
 import type {
@@ -34,7 +34,7 @@ async function postForm<TResponse>(path: string, formData: FormData): Promise<TR
 }
 
 export const uploadApi = {
-  issueOperationId,
+  issueOperationIdApi,
 
   async uploadPair(payload: UploadPairRequest): Promise<UploadResponse> {
     if (USE_MOCK_API) {

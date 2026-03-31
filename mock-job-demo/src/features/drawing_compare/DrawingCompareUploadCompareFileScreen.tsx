@@ -86,7 +86,6 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
       const targetRects = res.target_rects
       const similarities = res.similarities
 
-      console.log(baseRects, targetRects, similarities)
 
       if (Object.keys(baseRects).length === 0 && Object.keys(targetRects).length === 0) {
         navigate("/drawing-compare-processing")

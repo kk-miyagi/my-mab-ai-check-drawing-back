@@ -4,7 +4,7 @@ import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import type { OperationIssueRequest } from '../../types/uploadServer.ts';
 import type { PersistedState } from '../../types/uploadContext.ts';
-import { issueOperationId } from '../../components/upload/issueOperationId.ts';
+import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
 
@@ -29,7 +29,6 @@ export const DemoCreateLabelScreen: React.FC = () => {
   };
 
   const handleStart = async () => {
-    console.log("[ファイルアップロード]")
 
     // ローカルストレージの初期化
     const toPersist: PersistedState = {
@@ -64,7 +63,7 @@ export const DemoCreateLabelScreen: React.FC = () => {
       operation_id: null,
       status: 'start',
     };
-    const issueResult = await issueOperationId(metaPayload);
+    const issueResult = await issueOperationIdApi(metaPayload);
     toPersist.operationId = issueResult.operation_id
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
@@ -81,14 +80,10 @@ export const DemoCreateLabelScreen: React.FC = () => {
     const response = await uploadApi.uploadPair(requestPayload);
     toPersist.status = 'end'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-    console.log("[ラベル付与]画像アップロード_レスポンス ", response)
-    console.log("[ラベル付与]画像アップロード_ローカルストレージ更新 ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
-
 
     toPersist.status = 'start'
     toPersist.lastOperation = 'batch-create-label'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-    console.log("[ラベル付与]バッチ処理_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
 
     // 実行中画面に切り替え
     navigate('/demo-create-label-processing');
@@ -106,7 +101,6 @@ export const DemoCreateLabelScreen: React.FC = () => {
       toPersist.status = res.status
       window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
     }
-    console.log("[ラベル付与]バッチ処理実行中_ローカルストレージ ", JSON.parse(window.localStorage.getItem(localStorageKey.default) as string));
   }
 
   useEffect(() => {

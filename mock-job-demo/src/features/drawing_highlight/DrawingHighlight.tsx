@@ -51,9 +51,7 @@ export const DrawingHighlight: React.FC = () => {
   // 図面の組み合わせ
   const [combinations, setCombinations] = useState<Combinations>({})
 
-  // console.log(baseRects)
   // Object.keys(baseRects).forEach((i) =>{
-  //   console.log(i.)
   // })
 
   // 図面のプレビュー
@@ -118,7 +116,6 @@ export const DrawingHighlight: React.FC = () => {
 
       setImages((prev) => ({ ...prev, [role]: result }));
       setRects((prev) => prev.filter((rect) => rect.role !== role));
-      console.log(1)
       setSelectedId(null);
       setCurrentSourceId(null);
       setSourcePreview(null);
@@ -149,8 +146,6 @@ export const DrawingHighlight: React.FC = () => {
     // クリック地点から矩形ドラフトを開始。
     const pos = getRelativePos(role, event);
     const posImage = getRelativePosOnImage(role, event);
-    console.log(pos, posImage)
-    console.log("ここでdrawingになる")
     setSelectedId(null);
     setActiveCanvas(role);
     setInteractionMode('drawing');
@@ -244,7 +239,6 @@ export const DrawingHighlight: React.FC = () => {
         startPosImage,
         currentPosImage
       )[0];
-      console.log(2)
       setRects((prev) =>
         prev.map((rect) =>
           rect.id === selectedId
@@ -290,7 +284,6 @@ export const DrawingHighlight: React.FC = () => {
         startPosImage,
         currentPosImage
       )[0];
-      console.log(3)
       setRects((prev) =>
         prev.map((rect) =>
           rect.id === selectedId
@@ -359,7 +352,6 @@ export const DrawingHighlight: React.FC = () => {
     if (!images.source || !images.target) return;
     initializedRef.current = true;
     handleSetRect();
-    console.log(images.source, images.target, initializedRef.current)
   }, [images])
 
   // 矩形領域を最初に作成すると動くようだ
@@ -372,7 +364,6 @@ export const DrawingHighlight: React.FC = () => {
           draftRect as DraftRect,
           (draftImageRect as DraftRect) ?? (draftRect as DraftRect)
         );
-        console.log(4, nextRect)
         setRects((prev) => [...prev, nextRect]);
         setSelectedId(nextRect.id);
       }
@@ -399,7 +390,6 @@ export const DrawingHighlight: React.FC = () => {
       alert('先に左側の比較元 (Source) をクリックして選択してください');
       return;
     }
-    console.log(5)
     setRects((prev) => linkManagerRef.current.toggle(prev, currentSourceId, id));
   };
 
@@ -465,7 +455,6 @@ export const DrawingHighlight: React.FC = () => {
   const handleRunComparison = () => {
     const sourceRect = rects.filter((rect) => rect.role === 'source');
     const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
-    console.log(result)
     navigate("/drawing-highlight-processing")
 
     // バッチ
@@ -482,7 +471,6 @@ export const DrawingHighlight: React.FC = () => {
       combinations: combinations
     };
     const res = drawingHighlightApi.DrawingHighligh(requestPayload)
-    console.log("かえってきているか？", res)
     navigate("/drawing-highlight-result", { state: { res }})
   };
 
@@ -518,7 +506,6 @@ export const DrawingHighlight: React.FC = () => {
       const allowedIds = new Set(Object.keys(t));
 
       const targets = targetRects.filter((r) => r.role === 'target' && allowedIds.has(r.id));
-      console.log(targets)
       const candidates = targets.slice(0, targets.length);
 
       const result: SimilarSuggestion[] = [];
@@ -628,10 +615,7 @@ export const DrawingHighlight: React.FC = () => {
       setCombinations(prev => ({...prev, [values.id]: values.linkedTargetIds}))
     })
   }, [rects]);
-  
-  useEffect(() =>{
-    console.log("combinations: ", combinations)
-  }, [combinations])
+
 
   return (
     <div

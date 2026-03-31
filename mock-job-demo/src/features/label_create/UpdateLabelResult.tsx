@@ -116,7 +116,7 @@ export const UpdateLabelResultScreen: React.FC = () => {
         
 
       } catch (e) {
-        console.log("エラー")
+        // TODO
       }
     })();
   }, []);

@@ -4,7 +4,7 @@ import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import type { OperationIssueRequest } from '../../types/uploadServer.ts';
 import type { PersistedState } from '../../types/uploadContext.ts';
-import { issueOperationId } from '../../components/upload/issueOperationId.ts';
+import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
 
@@ -29,7 +29,6 @@ export const CreateLabelScreen: React.FC = () => {
   };
 
   const handleStart = async () => {
-    console.log("[ファイルアップロード]")
 
     // ローカルストレージの初期化
     const toPersist: PersistedState = {
@@ -64,7 +63,7 @@ export const CreateLabelScreen: React.FC = () => {
       operation_id: null,
       status: 'start',
     };
-    const issueResult = await issueOperationId(metaPayload);
+    const issueResult = await issueOperationIdApi(metaPayload);
     toPersist.operationId = issueResult.operation_id
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
 
@@ -79,7 +78,6 @@ export const CreateLabelScreen: React.FC = () => {
       files: file,
     };
     const response = await uploadApi.uploadPair(requestPayload);
-    console.log("/multi-file-uploadのレスポンス:", response)
 
     toPersist.status = 'start'
     window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
@@ -97,7 +95,6 @@ export const CreateLabelScreen: React.FC = () => {
         operation_id: issueResult.operation_id,
         status: toPersist.status,
       });
-      console.log("/create-labelのレスポンス:", res)
     } catch (err) {
       window.alert("バッチ処理起動に失敗したため、画面を切り替えます")
       navigate("/create-label")
