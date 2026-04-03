@@ -15,7 +15,6 @@ import { DrawingReviewProcessingScreen } from '../features/drawing_review/Drawin
 import { DrawingReviewResultScreen } from '../features/drawing_review/DrawingReviewResultScreen';
 import { DrawingCompareUploadBaseFileScreen } from '../features/drawing_compare/DrawingCompareUploadBaseFileScreen';
 import { DrawingCompareUploadCompareFileScreen } from '../features/drawing_compare/DrawingCompareUploadCompareFileScreen';
-import { DrawingCompareSelectScreen } from '../features/drawing_compare/DrawingCompareSelectScreen';
 import { DrawingCompareProcessingScreen } from '../features/drawing_compare/DrawingCompareProcessingScreen';
 import { DrawingHighlightUploadBeforeFileScreen } from '../features/drawing_highlight/DrawingHighlightUploadBeforeFileScreen';
 import { DrawingHighlightUploadAfterFileScreen } from '../features/drawing_highlight/DrawingHighlightUploadAfterFileScreen';
@@ -42,7 +41,6 @@ export const AppRouter = () => {
       <Route path="/drawing-review-upload-excel" element={<DrawingReviewUploadExcelScreen />} />
       <Route path="/drawing-compare-upload-base" element={<DrawingCompareUploadBaseFileScreen />} />
       <Route path="/drawing-compare-upload-target" element={<DrawingCompareUploadCompareFileScreen />} />
-      <Route path="/drawing-compare-select" element={<DrawingCompareSelectScreen />} />
       <Route path="/drawing-compare" element={<DrawingCompare />} />
       <Route path="/drawing-compare-processing" element={<DrawingCompareProcessingScreen />} />
       <Route path="/drawing-compare-result" element={<DrawingCompareResultScreen />} />
