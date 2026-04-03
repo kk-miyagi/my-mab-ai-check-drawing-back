@@ -7,6 +7,7 @@ import type { OperationIssueRequest, UploadPairRequest } from '../../types/uploa
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
+import { PdfPreview } from '../../components/PdfPreview.tsx';
 
 const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'batch-create-label';
@@ -15,16 +16,23 @@ export const CreateLabelScreen: React.FC = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isPdf, setIsPdf] = useState<boolean>(false);
 
   const handleSetFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const selectedFile = files[0];
+      if (selectedFile.type === 'application/pdf') {
+        setIsPdf(true);
+      } else {
+        setIsPdf(false);
+      }
       setFile([selectedFile]);
       setPreview(URL.createObjectURL(selectedFile));
     } else {
       setFile([]);
       setPreview(null);
+      setIsPdf(false);
     }
   };
 
@@ -104,7 +112,7 @@ export const CreateLabelScreen: React.FC = () => {
         <li>想定
           <ul>
             <li>図面に矩形領域線を追記。</li>
-            <li>図面が画像形式ファイル(JPAGやPNGなど)。</li>
+            <li>図面がPDFファイルもしくは画像形式ファイル(JPAGやPNGなど)</li>
           </ul>
         </li>
       </ul>
@@ -112,16 +120,19 @@ export const CreateLabelScreen: React.FC = () => {
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
           <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" accept="image/*" onChange={handleSetFile} />
+            <input type="file" accept="image/*, application/pdf" onChange={handleSetFile} />
           </label>
         </div>
       </div>
 
-      {preview && (
+      {preview && !isPdf && (
         <div style={{ marginBottom: '15px' }}>
           <img src={preview} alt='プレビュー' style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
         </div>
       )}
+      {preview && isPdf && (
+        <PdfPreview preview={preview} />
+      )}   
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
         <button className="primary" onClick={handleStart}  disabled={file.length === 0}>処理開始</button>
