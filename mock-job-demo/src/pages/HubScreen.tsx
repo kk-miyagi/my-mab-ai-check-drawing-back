@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { localStorageKey } from '../constants/localStorageKey';
 
-export const HubScreen: React.FC = () => {  
+export const HubScreen: React.FC = () => {
+  console.log("ホーム")
   for (const key of Object.values(localStorageKey)) {
     const value = window.localStorage.getItem(key);
     console.log(key, value);

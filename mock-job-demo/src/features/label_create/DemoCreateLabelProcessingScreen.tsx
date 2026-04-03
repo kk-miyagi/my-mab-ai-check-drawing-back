@@ -1,20 +1,31 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { localStorageKey } from '../../constants/localStorageKey';
+import { LocalStorageData } from '../../types/storage.ts';
 import { usePolling } from '../../hooks/usePolling.ts';
 import { CheckStatusRequest } from '../../types/checkStatus.ts';
 import { checkStatusApi } from '../../api/checkStatusApi.ts';
 
 export const DemoCreateLabelProcessingScreen: React.FC = () => {
-  const raw = window.localStorage.getItem(localStorageKey.default) as string;
-  const parsed = JSON.parse(raw);
-
   const navigate = useNavigate();
+
+  const getLocalStorage = window.localStorage.getItem(localStorageKey.demoCreateLabel);
+  if (!getLocalStorage) {
+    window.alert("処理に失敗したため、画面を切り替えます");
+    navigate("/create-label");
+    return
+  }
+  const localStorageData: LocalStorageData = JSON.parse(getLocalStorage);
+
+  if (!localStorageData.operationId) {
+    return
+  }
+
   const payload: CheckStatusRequest = {
-    user: 'demo-user',
-    epic: parsed.lastEpic,
-    operation: parsed.lastOperation,
-    operation_id: parsed.operationId,
+    user: localStorageData.user,
+    epic: localStorageData.epic,
+    operation: localStorageData.operation,
+    operation_id: localStorageData.operationId,
     status: 'doing',
   };
 

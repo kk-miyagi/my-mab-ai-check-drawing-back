@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Papa from 'papaparse';
 import { localStorageKey } from '../../constants/localStorageKey';
+import { LocalStorageData } from '../../types/storage.ts';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import JSZip from 'jszip';
 import { useNavigate } from 'react-router-dom';
@@ -34,9 +35,6 @@ export const UpdateLabelResultScreen: React.FC = () => {
   const [csvFileName, setCsvFileName] = useState<string>();
   const navigate = useNavigate();
 
-  const raw = window.localStorage.getItem(localStorageKey.default) as string;
-  const parsed = JSON.parse(raw);
-
   // ローカルストレージの削除ボタン用
   const handleRemoveItem = () => {
     navigate('/hub')
@@ -59,22 +57,31 @@ export const UpdateLabelResultScreen: React.FC = () => {
   };
 
   const handleMove = async () => {
-    parsed.status = 'start'
-    parsed.lastOperation = 'open-update-label-screen'
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
     navigate('/update-label')
   }
 
   useEffect(() => {
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(parsed));
+    const getLocalStorage = window.localStorage.getItem(localStorageKey.createLabel)
+    if (!getLocalStorage) {
+      return
+    }
+    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
+    if (!localStorageData.operationId) {
+      return
+    }
+
+    window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
     (async () => {
       try {
+        if (!localStorageData.operationId) {
+          return
+        }
         const res = await createLabelApi.updateLabelEnd({
-          user: 'demo-user',
-          epic: parsed.lastEpic,
-          operation: parsed.lastOperation,
-          operation_id: parsed.operationId,
-          status: parsed.status
+          user: localStorageData.user,
+          epic: localStorageData.epic,
+          operation: localStorageData.operation,
+          operation_id: localStorageData.operationId,
+          status: localStorageData.status,
         });
         const data = await res as Blob
         const zip = await JSZip.loadAsync(data);

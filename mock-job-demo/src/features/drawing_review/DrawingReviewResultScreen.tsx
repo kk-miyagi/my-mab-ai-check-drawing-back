@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
 import JSZip from 'jszip';
 import { localStorageKey } from '../../constants/localStorageKey';
+import { LocalStorageData } from '../../types/storage.ts';
 import { drawingReviewApi } from '../../api/drawingReviewApi';
 import * as XLSX from 'xlsx';
 
@@ -35,9 +36,6 @@ export const DrawingReviewResultScreen: React.FC = () => {
   const [sheets, setSheets] = useState<SheetData[]>([]);
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
-  const raw = window.localStorage.getItem(localStorageKey.drawingReview) as string;
-  const parsed = JSON.parse(raw);
-
   const handleDownload = async () => {
     try {
       const [excelBlob] = await Promise.all([
@@ -61,14 +59,26 @@ export const DrawingReviewResultScreen: React.FC = () => {
   }
 
   useEffect(() => {
+    const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingReview)
+    if (!getLocalStorage) {
+      return
+    }
+    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
+    if (!localStorageData.operationId) {
+      return
+    }
+
     (async () => {
       try {
+        if (!localStorageData.operationId) {
+          return
+        }
         const res = await drawingReviewApi.drawingReviewEnd({
-          user: 'demo-user',
-          epic: parsed.lastEpic,
-          operation: parsed.lastOperation,
-          operation_id: parsed.operationId,
-          status: parsed.status
+          user: localStorageData.user,
+          epic: localStorageData.epic,
+          operation: localStorageData.operation,
+          operation_id: localStorageData.operationId,
+          status: localStorageData.status,
         });
         const data = await res as Blob
         const zip = await JSZip.loadAsync(data);

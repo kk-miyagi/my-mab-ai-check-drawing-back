@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { PersistedState } from '../../types/uploadContext.ts';
+import { LocalStorageData } from '../../types/storage.ts';
 import { OperationIssueRequest } from '../../types/upload.ts';
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
@@ -65,56 +65,51 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
 
   const handleStart = async () => {
     // ローカルストレージの初期化
-    const toPersist: PersistedState = {
-      phase: 'idle',
-      progress: 0,
-      completedRequests: 0,
-      totalRequests: 0,
-      failedUploads: [],
-      logs: [],
-      operationId: null,
-      resultData: null,
-      lastEpic: null,
-      lastOperation: null,
-      status: 'start',
-      demoFlag: false
-    }
-    window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(toPersist));
-    
-    // ローカルストレージのステータスをdoingに変更
-    toPersist.phase = 'issuing_id'
-    toPersist.status = 'doing'
-    toPersist.lastEpic = DEFAULT_EPIC
-    toPersist.lastOperation = DEFAULT_OPERATION
-    window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(toPersist));
-
-    // オペレーションIDの発行
-    const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?? 'demo-user';
-    const metaPayload: OperationIssueRequest = {
-      user: DEFAULT_USER,
+    const localStorageData: LocalStorageData = {
+      user: 'demo-user',
       epic: DEFAULT_EPIC,
       operation: DEFAULT_OPERATION,
-      operation_id: null,
-      status: 'start',
-    };
-    const issueResult = await issueOperationIdApi(metaPayload);
-    toPersist.operationId = issueResult.operation_id
-    window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(toPersist));
-
-    // 画像のアップロード
-    const requestPayload = {
-      user: metaPayload.user,
-      epic: metaPayload.epic,
-      operation: metaPayload.operation,
-      operation_id: issueResult.operation_id,
-      status: toPersist.status,
-      number: 1,
-      files: excelFile,
-    };
-    const response = await uploadApi.uploadPair(requestPayload);
-
-    await navigate("/drawing-review", { state: { sheets }})
-
+      operationId: null,
+      status: 'start'
+    }
+    window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
+    
+    try {
+      // オペレーションIDの発行
+      const metaPayload: OperationIssueRequest = {
+        user: localStorageData.user,
+        epic: localStorageData.epic,
+        operation: localStorageData.operation,
+        operation_id: localStorageData.operationId,
+        status: 'start',
+      };
+      const issueResult = await issueOperationIdApi(metaPayload);
+      localStorageData.operationId = issueResult.operation_id
+      window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
+    
+      // アップロード
+      localStorageData.status = 'doing';
+      window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData))
+      const requestPayload = {
+        user: localStorageData.user,
+        epic: localStorageData.epic,
+        operation: localStorageData.operation,
+        operation_id: localStorageData.operationId,
+        status: localStorageData.status,
+        number: 1,
+        files: excelFile,
+      };
+      await uploadApi.uploadPair(requestPayload);
+      localStorageData.status = 'end';
+      window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData))
+      
+      await navigate("/drawing-review", { state: { sheets }})
+    } catch (e) {
+      localStorageData.status = 'error';
+      window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
+      window.alert("処理に失敗したため、画面を切り替えます");
+      navigate("/drawing-review-upload-excel");
+    }
   }
 
   type Row = Record<string, string | number | boolean | null>;

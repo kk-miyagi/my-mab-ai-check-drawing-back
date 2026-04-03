@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { PersistedState } from '../../types/uploadContext.ts';
+import { LocalStorageData } from '../../types/storage.ts';
 import { OperationIssueRequest } from '../../types/upload.ts';
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
@@ -37,58 +37,48 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
 
   const handleStart = async () => {
     // ローカルストレージの初期化
-    const toPersist: PersistedState = {
-      phase: 'idle',
-      progress: 0,
-      completedRequests: 0,
-      totalRequests: 0,
-      failedUploads: [],
-      logs: [],
-      operationId: null,
-      resultData: null,
-      lastEpic: null,
-      lastOperation: null,
-      status: 'start',
-      demoFlag: false
-    }
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
-    
-    // ローカルストレージのステータスをdoingに変更
-    toPersist.phase = 'issuing_id'
-    toPersist.status = 'doing'
-    toPersist.lastEpic = DEFAULT_EPIC
-    toPersist.lastOperation = DEFAULT_OPERATION
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
-
-    // オペレーションIDの発行
-    const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?? 'demo-user';
-    const metaPayload: OperationIssueRequest = {
-      user: DEFAULT_USER,
+    const localStorageData: LocalStorageData = {
+      user: 'demo-user',
       epic: DEFAULT_EPIC,
       operation: DEFAULT_OPERATION,
-      operation_id: null,
-      status: 'start',
-    };
-    const issueResult = await issueOperationIdApi(metaPayload);
-    toPersist.operationId = issueResult.operation_id
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
+      operationId: null,
+      status: 'start'
+    }
+    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
 
-    toPersist.status = 'doing'
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(toPersist));
+    try {
+      // オペレーションIDの発行
+      const metaPayload: OperationIssueRequest = {
+        user: localStorageData.user,
+        epic: localStorageData.epic,
+        operation: localStorageData.operation,
+        operation_id: localStorageData.operationId,
+        status: 'start',
+      };
+      const issueResult = await issueOperationIdApi(metaPayload);
+      localStorageData.operationId = issueResult.operation_id
+      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
 
-    // アップロード
-    const requestPayload = {
-      user: 'demo-user',
-      epic: toPersist.lastEpic,
-      operation: DEFAULT_OPERATION,
-      operation_id: toPersist.operationId,
-      status: toPersist.status,
-      number: 1,
-      files: baseImageFile,
-    };
-    const response = await uploadApi.uploadPair(requestPayload);
-    navigate("/drawing-compare-upload-target", { state: { baseImageFile }})
-
+      // アップロード
+      localStorageData.status = 'doing'
+      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
+      const requestPayload = {
+        user: localStorageData.user,
+        epic: localStorageData.epic,
+        operation: localStorageData.operation,
+        operation_id: localStorageData.operationId,
+        status: localStorageData.status,
+        number: 1,
+        files: baseImageFile,
+      };
+      await uploadApi.uploadPair(requestPayload);
+      navigate("/drawing-compare-upload-target", { state: { baseImageFile }})
+    } catch (e) {
+      localStorageData.status = 'error'
+      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
+      window.alert("処理に失敗したため、画面を切り替えます")
+      navigate("/drawing-compare-upload-base")
+    }
   }
 
   useEffect(() => {

@@ -1,32 +1,45 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
+import { LocalStorageData } from '../../types/storage.ts';
 import { usePolling } from '../../hooks/usePolling.ts';
 import { CheckStatusRequest } from '../../types/checkStatus.ts';
 import { checkStatusApi } from '../../api/checkStatusApi.ts';
 
 export const DrawingCompareProcessingScreen: React.FC = () => {
-  const raw = window.localStorage.getItem(localStorageKey.drawingCompare) as string;
-  const parsed = JSON.parse(raw);
-
   const navigate = useNavigate();
+
+  const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingCompare)
+  if (!getLocalStorage) {
+    window.alert("処理に失敗したため、画面を切り替えます")
+    navigate("/drawing-compare-upload-base")
+    return
+  }
+  const localStorageData: LocalStorageData = JSON.parse(getLocalStorage);
+
+  if (!localStorageData.operationId) {
+    return
+  }
+
   const payload: CheckStatusRequest = {
-    user: 'demo-user',
-    epic: parsed.lastEpic,
-    operation: parsed.lastOperation,
-    operation_id: parsed.operationId,
+    user: localStorageData.user,
+    epic: localStorageData.epic,
+    operation: localStorageData.operation,
+    operation_id: localStorageData.operationId,
     status: 'doing',
   };
 
   const handleEnd = () => {
-    parsed.status = 'end'
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(parsed));
+    localStorageData.status = 'end'
+    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
     navigate('/drawing-compare-result')
   }
 
   const handleError = () => {
     window.alert("バッチ処理中にエラーが起こりました。画面を切り替えます")
-    navigate('/')
+    localStorageData.status = 'error'
+    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
+    navigate("/drawing-compare-upload-base")
   }
 
   usePolling(
