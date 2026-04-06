@@ -2,11 +2,12 @@ import React, { useEffect, useState, ChangeEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
-import type { OperationIssueRequest } from '../../types/uploadServer.ts';
-import type { PersistedState } from '../../types/uploadContext.ts';
+import { LocalStorageData } from '../../types/storage.ts';
+import type { OperationIssueRequest, UploadPairRequest } from '../../types/uploadServer.ts';
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
+import { PdfPreview } from '../../components/PdfPreview.tsx';
 
 const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'batch-create-label';
@@ -15,89 +16,79 @@ export const CreateLabelScreen: React.FC = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isPdf, setIsPdf] = useState<boolean>(false);
 
   const handleSetFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const selectedFile = files[0];
+      if (selectedFile.type === 'application/pdf') {
+        setIsPdf(true);
+      } else {
+        setIsPdf(false);
+      }
       setFile([selectedFile]);
       setPreview(URL.createObjectURL(selectedFile));
     } else {
       setFile([]);
       setPreview(null);
+      setIsPdf(false);
     }
   };
 
   const handleStart = async () => {
-
     // ローカルストレージの初期化
-    const toPersist: PersistedState = {
-      phase: 'idle',
-      progress: 0,
-      completedRequests: 0,
-      totalRequests: 0,
-      failedUploads: [],
-      logs: [],
-      operationId: null,
-      resultData: null,
-      lastEpic: null,
-      lastOperation: null,
-      status: 'start',
-      demoFlag: false
-    }
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-
-    // ローカルストレージのステータスをdoingに変更
-    toPersist.phase = 'issuing_id'
-    toPersist.status = 'doing'
-    toPersist.lastEpic = DEFAULT_EPIC
-    toPersist.lastOperation = DEFAULT_OPERATION
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-
-    // オペレーションIDの発行
-    const DEFAULT_USER = (import.meta.env?.VITE_UPLOAD_USER as string | undefined) ?? 'demo-user';
-    const metaPayload: OperationIssueRequest = {
-      user: DEFAULT_USER,
+    const localStorageData: LocalStorageData = {
+      user: 'demo-user',
       epic: DEFAULT_EPIC,
       operation: DEFAULT_OPERATION,
-      operation_id: null,
-      status: 'start',
-    };
-    const issueResult = await issueOperationIdApi(metaPayload);
-    toPersist.operationId = issueResult.operation_id
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
+      operationId: null,
+      status: 'start'
+    }
+    window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
 
-    // 画像のアップロード
-    const requestPayload = {
-      user: metaPayload.user,
-      epic: metaPayload.epic,
-      operation: metaPayload.operation,
-      operation_id: issueResult.operation_id,
-      status: toPersist.status,
-      number: 1,
-      files: file,
-    };
-    const response = await uploadApi.uploadPair(requestPayload);
-
-    toPersist.status = 'start'
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-
-    // 実行中画面に切り替え
-    navigate('/create-label-processing');
-
-    // バッチ処理実行
-    let res: CreateLabelResponse;
     try {
+      // オペレーションIDの発行
+      const metaPayload: OperationIssueRequest = {
+          user: localStorageData.user,
+          epic: localStorageData.epic,
+          operation: localStorageData.operation,
+          operation_id: localStorageData.operationId,
+          status: 'start',
+      };
+      const issueResult = await issueOperationIdApi(metaPayload);
+      localStorageData.operationId = issueResult.operation_id
+      window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
+
+      // 画像のアップロード
+      const requestPayload: UploadPairRequest = {
+        user: localStorageData.user,
+        epic: localStorageData.epic,
+        operation: localStorageData.operation,
+        operation_id: localStorageData.operationId,
+        status: 'doing',
+        number: 1,
+        files: file,
+      };
+      await uploadApi.uploadPair(requestPayload);
+
+      // 実行中画面に切り替え
+      navigate('/create-label-processing');
+
+      // バッチ処理実行
+      let res: CreateLabelResponse;
       res = await createLabelApi.createLabelStart({
-        user: 'demo-user',
-        epic: DEFAULT_EPIC,
-        operation: toPersist.lastOperation,
-        operation_id: issueResult.operation_id,
-        status: toPersist.status,
+        user: localStorageData.user,
+        epic: localStorageData.epic,
+        operation: localStorageData.operation,
+        operation_id: localStorageData.operationId,
+        status: localStorageData.status
       });
-    } catch (err) {
-      window.alert("バッチ処理起動に失敗したため、画面を切り替えます")
-      navigate("/create-label")
+    } catch (e) {
+      localStorageData.status = 'error';
+      window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
+      window.alert("バッチ処理起動に失敗したため、画面を切り替えます");
+      navigate("/create-label");
     }
   }
 
@@ -121,7 +112,7 @@ export const CreateLabelScreen: React.FC = () => {
         <li>想定
           <ul>
             <li>図面に矩形領域線を追記。</li>
-            <li>図面が画像形式ファイル(JPAGやPNGなど)。</li>
+            <li>図面がPDFファイルもしくは画像形式ファイル(JPAGやPNGなど)</li>
           </ul>
         </li>
       </ul>
@@ -129,16 +120,19 @@ export const CreateLabelScreen: React.FC = () => {
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
           <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" accept="image/*" onChange={handleSetFile} />
+            <input type="file" accept="image/*, application/pdf" onChange={handleSetFile} />
           </label>
         </div>
       </div>
 
-      {preview && (
+      {preview && !isPdf && (
         <div style={{ marginBottom: '15px' }}>
           <img src={preview} alt='プレビュー' style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
         </div>
       )}
+      {preview && isPdf && (
+        <PdfPreview preview={preview} />
+      )}   
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
         <button className="primary" onClick={handleStart}  disabled={file.length === 0}>処理開始</button>

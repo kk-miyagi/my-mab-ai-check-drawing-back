@@ -2,6 +2,7 @@ import React, { useState, ChangeEvent, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
+import { LocalStorageData } from '../../types/storage.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
 import { imageSimilarityApi } from '../../api/imageSimilarityApi.ts';
@@ -47,37 +48,67 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
   const handleStart = async () => {
     setIsLoading(true);
     // ローカルストレージの取得
-    const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingHighlight) as string);
-    toPersist.lastOperation = DEFAULT_OPERATION
-    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
-    // アップロード
-    const requestPayload = {
-      user: 'demo-user',
-      epic: toPersist.lastEpic,
-      operation: DEFAULT_OPERATION,
-      operation_id: toPersist.operationId,
-      status: toPersist.status,
-      number: 1,
-      files: compareImageFile,
-    };
-    await uploadApi.uploadPair(requestPayload);
+    const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingHighlight)
+    if (!getLocalStorage) {
+      window.alert("処理に失敗したため、画面を切り替えます")
+      navigate("/drawing-highlight-upload-before")
+      return
+    }
 
-    toPersist.lastOperation = 'image-similarity'
-    toPersist.status = 'doing'
-    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
+    // ローカルストレージの値を変更
+    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
+    localStorageData.epic = DEFAULT_EPIC
+    localStorageData.operation = DEFAULT_OPERATION
+    localStorageData.status = 'start'
+    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
+
+    if (!localStorageData.operationId) {
+      return
+    }
+
+    try {
+      // アップロード
+      localStorageData.status = 'doing'
+      window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
+      const requestPayload = {
+        user: localStorageData.user,
+        epic: localStorageData.epic,
+        operation: localStorageData.operation,
+        operation_id: localStorageData.operationId,
+        status: localStorageData.status,
+        number: 1,
+        files: compareImageFile,
+      };
+      await uploadApi.uploadPair(requestPayload);
+      localStorageData.status = 'end'
+      window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
+    } catch (e) {
+      localStorageData.status = 'error'
+      window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
+      window.alert("アップロードに失敗しました。再度アップロードしてください。")
+      navigate("/drawing-highlight-upload-before")
+    }
+
+    // ローカルストレージの値を変更
+    localStorageData.operation = 'image-similarity'
+    localStorageData.status = 'start'
+    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
+
     // 座標と類似度計算
+    localStorageData.status = 'doing'
+    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
     const requestSimilarityPayload = {
-      user: 'demo-user',
-      epic: toPersist.lastEpic,
-      operation: toPersist.lastOperation,
-      operation_id: toPersist.operationId,
-      status: toPersist.status,
+      user: localStorageData.user,
+      epic: localStorageData.epic,
+      operation: localStorageData.operation,
+      operation_id: localStorageData.operationId,
+      status: localStorageData.status,
     }
     const requestSimilarityPayloadEnd = {
-      user: 'demo-user',
-      epic: toPersist.lastEpic,
-      operation: toPersist.lastOperation,
-      operation_id: toPersist.operationId,
+      user: localStorageData.user,
+      epic: localStorageData.epic,
+      operation: localStorageData.operation,
+      operation_id: localStorageData.operationId,
       status: 'end',
     }
     try {
@@ -90,15 +121,15 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
         // 実行中画面に遷移して、対象のAPIを叩く
         navigate("/drawing-highlight-processing")
         const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingHighlight) as string);
-        toPersist.lastOperation = "drawing-highlight"
-        toPersist.status = "doing"
-        window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
+        localStorageData.operation = "drawing-highlight"
+        localStorageData.status = "doing"
+        window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
         const requestPayload  = {
-          user: 'demo-user',
-          epic: toPersist.lastEpic,
-          operation: toPersist.lastOperation ,
-          operation_id: toPersist.operationId,
-          status: toPersist.status,
+          user: localStorageData.user,
+          epic: localStorageData.epic,
+          operation: localStorageData.operation,
+          operation_id: localStorageData.operationId,
+          status: localStorageData.status,
           combinations: {}
         };
         const res = drawingHighlightApi.DrawingHighligh(requestPayload)
@@ -114,13 +145,19 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
 
           const baseImageFile = [new File([imgBaseBlob], baseImgFile.name.split("/").pop(), { type: imgBaseBlob.type })]
           const compareImageFile = [new File([imgTargetBlob], targetImgFile.name.split("/").pop(), { type: imgTargetBlob.type })]
+          localStorageData.status = 'end'
+          window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
           navigate("/drawing-highlight",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
         } else {
+          localStorageData.status = 'end'
+          window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
           navigate("/drawing-highlight",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
         }
       }
-    } catch (err) {
+    } catch (e) {
       setIsLoading(false);
+      localStorageData.status = 'error'
+      window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
       window.alert("処理に失敗したため、画面を切り替えます")
       navigate("/drawing-highlight-upload-before")
     }

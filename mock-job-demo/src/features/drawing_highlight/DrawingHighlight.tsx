@@ -27,6 +27,7 @@ import { HeaderSection } from './components/HeaderSection';
 import { ResultModal } from './components/ResultModal';
 import { SuggestionScreen } from './components/SuggestionScreen';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
+import { LocalStorageData } from '../../types/storage.ts';
 import { drawingHighlightApi } from '../../api/drawingHighlightApi.ts';
 import type { Combinations } from '../../types/drawingCompare.ts';
 
@@ -457,21 +458,45 @@ export const DrawingHighlight: React.FC = () => {
     const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
     navigate("/drawing-highlight-processing")
 
-    // バッチ
-    const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingHighlight) as string);
-    toPersist.lastOperation = "drawing-highlight"
-    toPersist.status = "doing"
-    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(toPersist));
-    const requestPayload  = {
-      user: 'demo-user',
-      epic: toPersist.lastEpic,
-      operation: toPersist.lastOperation ,
-      operation_id: toPersist.operationId,
-      status: toPersist.status,
-      combinations: combinations
-    };
-    const res = drawingHighlightApi.DrawingHighligh(requestPayload)
-    navigate("/drawing-highlight-result", { state: { res }})
+    // ローカルストレージの取得
+    const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingHighlight)
+    if (!getLocalStorage) {
+      window.alert("処理に失敗したため、画面を切り替えます")
+      navigate("/drawing-highlight-upload-before")
+      return
+    }
+
+    // ローカルストレージの値を変更
+    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
+    localStorageData.operation = 'drawing-highlight'
+    localStorageData.status = 'start'
+    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
+
+    if (!localStorageData.operationId) {
+      return
+    }
+
+    try {
+      localStorageData.status = "doing"
+      window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
+      const requestPayload  = {
+        user: localStorageData.user,
+        epic: localStorageData.epic,
+        operation: localStorageData.operation,
+        operation_id: localStorageData.operationId,
+        status: localStorageData.status,
+        combinations: combinations
+      };
+      const res = drawingHighlightApi.DrawingHighligh(requestPayload)
+      localStorageData.status = 'end'
+      window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
+      navigate("/drawing-highlight-result", { state: { res }})
+    } catch (e) {
+      localStorageData.status = 'error'
+      window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
+      window.alert("処理に失敗したため、画面を切り替えます")
+      navigate("/drawing-highlight-upload-before")
+    }
   };
 
   const buildSourcePreviewAndSuggestions = async (sourceId: string | null, targetRects: RectModel[] = rects) => {

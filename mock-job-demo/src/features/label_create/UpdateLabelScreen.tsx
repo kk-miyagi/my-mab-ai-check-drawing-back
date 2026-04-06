@@ -2,9 +2,11 @@ import React, { useEffect, useState, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
+import { LocalStorageData } from '../../types/storage.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
 import Papa  from 'papaparse';
+import { UploadPairRequest } from '../../types/uploadServer.ts';
 
 const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'batch-update-label';
@@ -63,42 +65,50 @@ export const UpdateLabelScreen: React.FC = () => {
 
   const handleStart = async () => {
     // ローカルストレージの取得
-    const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.default) as string);
+    const getLocalStorage = window.localStorage.getItem(localStorageKey.createLabel);
+    if (!getLocalStorage) {
+      window.alert("処理に失敗したため、画面を切り替えます");
+      navigate("/");
+      return
+    }
+    const localStorageData: LocalStorageData = JSON.parse(getLocalStorage);
+    localStorageData.epic = DEFAULT_EPIC
+    localStorageData.operation = DEFAULT_OPERATION
+    localStorageData.status = 'start'
+    window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData))
+  
+    if (!localStorageData.operationId) {
+      return
+    }
 
-    toPersist.status = 'doing'
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-
-    // 画像のアップロード
-    const requestPayload = {
-      user: 'demo-user',
-      epic: toPersist.lastEpic,
-      operation: DEFAULT_OPERATION,
-      operation_id: toPersist.operationId,
-      status: toPersist.status,
-      number: 1,
-      files: imageFile.concat(csvFile),
-    };
-
-    const response = await uploadApi.uploadPair(requestPayload);
-
-    toPersist.status = 'start'
-    toPersist.lastOperation = DEFAULT_OPERATION
-    window.localStorage.setItem(localStorageKey.default, JSON.stringify(toPersist));
-
-    // 実行中画面に切り替え
-    navigate('/update-label-processing');
-
-    // バッチ処理実行
-    let res: CreateLabelResponse;
     try {
+      // 画像のアップロード
+      const requestPayload: UploadPairRequest = {
+        user: localStorageData.user,
+        epic: localStorageData.epic,
+        operation: localStorageData.operation,
+        operation_id: localStorageData.operationId,
+        status: 'doing',
+        number: 1,
+        files: imageFile.concat(csvFile),
+      };
+      await uploadApi.uploadPair(requestPayload);
+
+      // 実行中画面に切り替え
+      navigate('/update-label-processing');
+
+      // バッチ処理実行
+      let res: CreateLabelResponse;
       res = await createLabelApi.updateLabelStart({
-        user: 'demo-user',
-        epic: DEFAULT_EPIC,
-        operation: toPersist.lastOperation,
-        operation_id: toPersist.operationId,
-        status: toPersist.status,
+        user: localStorageData.user,
+        epic: localStorageData.epic,
+        operation: localStorageData.operation,
+        operation_id: localStorageData.operationId,
+        status: localStorageData.status
       });
-    } catch (err) {
+    } catch (e) {
+      localStorageData.status = 'error';
+      window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
       window.alert("バッチ処理起動に失敗したため、画面を切り替えます")
       navigate("/update-label")
     }
