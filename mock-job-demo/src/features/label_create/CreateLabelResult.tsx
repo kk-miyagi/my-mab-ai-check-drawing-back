@@ -5,6 +5,7 @@ import { LocalStorageData } from '../../types/storage.ts';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import JSZip from 'jszip';
 import { useNavigate } from 'react-router-dom';
+import { PdfPreview } from '../../components/PdfPreview.tsx';
 
 type Row = Record<string, string | number | boolean | null>;
 
@@ -25,37 +26,49 @@ const fetchAsBlob = async (url: string): Promise<Blob> => {
   return await res.blob();
 };
 
+type PdfFile = {
+  fileName: string;
+  url: string;
+}
+
+type CsvFile = {
+  fileName: string;
+  url: string;
+}
 
 export const CreateLabelResultScreen: React.FC = () => {
+  const [pdfFiles, setPdfFiles] = useState<PdfFile[]>([]);
+  const [currentPdfFile, setCurrentPdfFile] = useState<PdfFile | null>();
+  const [csvFiles, setCsvFiles] = useState<CsvFile[]>([]);
+  const [currentCsvFile, setCurrentCsvFile] = useState<CsvFile | null>();
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
-  const [imageUrl, setImageUrl] = useState<string>();
-  const [csvUrl, setCsvUrl] = useState<string>();
-  const [imageFileName, setImageFileName] = useState<string>();
-  const [csvFileName, setCsvFileName] = useState<string>();
+
   const navigate = useNavigate();
 
-  // ローカルストレージの削除ボタン用
-  const handleRemoveItem = () => {
-    navigate('/hub')
+  // ホーム画面へ遷移
+  const handleNavigate = () => {
+    navigate('/')
   };
 
   const handleDownload = async () => {
     try {
-      const [imageBlob, csvBlob] = await Promise.all([
-        fetchAsBlob(imageUrl as string),
-        fetchAsBlob(csvUrl as string),
+      if (!currentPdfFile) return;
+      if (!currentCsvFile) return;
+      const [pdfBlob, csvBlob] = await Promise.all([
+        fetchAsBlob(currentPdfFile.url),
+        fetchAsBlob(currentCsvFile.url),
       ]);
 
       // それぞれダウンロードを発火
-      downloadBlob(imageBlob, imageFileName);
-      downloadBlob(csvBlob, csvFileName);
-    } catch (err) {
-      console.error(err);
-      alert("ダウンロードに失敗しました。ネットワークやパスを確認してください。");
+      downloadBlob(pdfBlob, currentPdfFile.fileName);
+      downloadBlob(csvBlob, currentCsvFile.fileName);
+    } catch (e) {
+      window.alert("ダウンロードに失敗しました。ネットワークやパスを確認してください。");
     }
   };
 
+  // 編集画面への遷移
   const handleMove = async () => {
     navigate('/update-label')
   }
@@ -75,6 +88,7 @@ export const CreateLabelResultScreen: React.FC = () => {
         if (!localStorageData.operationId) {
           return
         }
+
         const res = await createLabelApi.createLabelEnd({
           user: localStorageData.user,
           epic: localStorageData.epic,
@@ -82,25 +96,38 @@ export const CreateLabelResultScreen: React.FC = () => {
           operation_id: localStorageData.operationId,
           status: localStorageData.status,
         });
-        const data = await res as Blob
-        const zip = await JSZip.loadAsync(data);
-        const imgFile = zip.file(/\.jpg$/)[0]
-        if (imgFile) {
-          const imgBlob = await imgFile.async('blob');
-          const url = URL.createObjectURL(imgBlob);
-          setImageUrl(url)
-          const path = imgFile.name
-          const filename = path.split("/").pop()
-          setImageFileName(filename)
+
+        // TODO: 複数出力がある場合
+        const zip = await JSZip.loadAsync(res);
+        const pdfFile = zip.file(/\.pdf$/)[0];
+        const csvFile = zip.file(/\.csv$/)[0];
+
+        if (pdfFile) {
+          const pdfBlob = await pdfFile.async('blob');
+          const url = URL.createObjectURL(new Blob([pdfBlob], { type: "application/pdf" }));
+          const path = pdfFile.name;
+          const filename = path.split("/").pop()!;
+          const file: PdfFile = {
+            fileName: filename,
+            url: url
+          };
+          setPdfFiles([file]);
+          setCurrentPdfFile([file][0]);
         }
-        const csvFile = zip.file(/\.csv$/)[0]
+
         if (csvFile) {
-          const text = await csvFile.async("string");
           const csvBlob = await csvFile.async('blob');
-          setCsvUrl(URL.createObjectURL(csvBlob));
-          const path = csvFile.name
-          const filename = path.split("/").pop()
-          setCsvFileName(filename)
+          const url = URL.createObjectURL(csvBlob);
+          const path = csvFile.name;
+          const filename = path.split("/").pop()!;
+          const file: CsvFile = {
+            fileName: filename,
+            url: url
+          };
+          setCsvFiles([file]);
+          setCurrentCsvFile([file][0]);
+
+          const text = await csvFile.async("string");
           const result = Papa.parse<Row>(text, {
             header: true,
             skipEmptyLines: true,
@@ -115,44 +142,58 @@ export const CreateLabelResultScreen: React.FC = () => {
             }
             return picked;
           });
-
           setCsvRows(projected);
           setCsvColumns(projected.length ? Object.keys(projected[0]) : []);
         }
-        
-
       } catch (e) {
-        // TODO
+        window.alert("エラーが発生したため画面を切り替えます");
+        navigate("/");
       }
     })();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (pdfFiles.length > 0) {
+        pdfFiles.map((file) => (
+          URL.revokeObjectURL(file.url)
+        ))
+      }
+    };
+  }, [pdfFiles]);
 
   return (
     <div className="page">
       <h1>ラベル付与</h1>
       <p>ラベル付与を行った図面の確認画面です。</p>
       <h2>図面の結果</h2>
-      <img src={imageUrl} alt="ラベル付与後の図面" style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
+
+      {pdfFiles.length > 0 && currentPdfFile && (
+        <PdfPreview preview={currentPdfFile.url} />
+      )}
 
       <h2>CSVの結果</h2>
-      <div className='table-wrapper'>
-        <table>
-          <thead>
-            <tr>{csvColumns.map((c) => <th key={c}>{c}</th>)}</tr>
-          </thead>
-          <tbody className='table-row'>
-            {csvRows.map((r, i) => (
-              <tr key={i}>
-                {csvColumns.map((c) => <td key={c}>{String(r[c] ?? '')}</td>)}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      
+      {csvFiles.length > 0 && currentCsvFile && (
+        <div className='table-wrapper'>
+          <table>
+            <thead>
+              <tr>{csvColumns.map((c) => <th key={c}>{c}</th>)}</tr>
+            </thead>
+            <tbody className='table-row'>
+              {csvRows.map((r, i) => (
+                <tr key={i}>
+                  {csvColumns.map((c) => <td key={c}>{String(r[c] ?? '')}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleRemoveItem}>最初からやり直す</button>
-        <button className="primary" onClick={handleDownload}>画像とCSVを同時にダウンロード</button>
+        <button className="primary" onClick={handleNavigate}>最初からやり直す</button>
+          <button className="primary" onClick={handleDownload}>図面と設計情報を同時にダウンロード</button>
         <button className="primary" onClick={handleMove}>編集画面へ</button>
       </div>
     </div>
