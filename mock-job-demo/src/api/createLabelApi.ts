@@ -34,7 +34,7 @@ export const createLabelApi = {
     return postForm(CREATELABEL_ENDPOINT, form);
   },
 
-  async createLabelEnd(payload: CreateLabelRequest) {
+  async createLabelEnd(payload: CreateLabelRequest): Promise<Blob> {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);

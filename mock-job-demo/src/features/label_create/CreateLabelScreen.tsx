@@ -1,4 +1,5 @@
 import React, { useEffect, useState, ChangeEvent } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
@@ -8,35 +9,41 @@ import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
 import { PdfPreview } from '../../components/PdfPreview.tsx';
+import { ImagePreview } from '../../components/ImagePreview.tsx';
 
 const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'batch-create-label';
 
+type UploadedFile = {
+  file: File;
+  url: string; // プレビュー用のBlob URL
+  isPdf: boolean;
+}
+
 export const CreateLabelScreen: React.FC = () => {
   const navigate = useNavigate();
-  const [file, setFile] = useState<File[]>([]);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [isPdf, setIsPdf] = useState<boolean>(false);
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [currentFile, setCurrentFile] = useState<UploadedFile | null>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSetFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      const selectedFile = files[0];
-      if (selectedFile.type === 'application/pdf') {
-        setIsPdf(true);
-      } else {
-        setIsPdf(false);
-      }
-      setFile([selectedFile]);
-      setPreview(URL.createObjectURL(selectedFile));
+      const selectedFiles: UploadedFile[] = Array.from(files).map((file) => ({
+        file: file,
+        url: URL.createObjectURL(file),
+        isPdf: file.type === 'application/pdf' ? true : false,
+      }));
+      setFiles(selectedFiles)
+      setCurrentFile(selectedFiles[0])
     } else {
-      setFile([]);
-      setPreview(null);
-      setIsPdf(false);
+      setFiles([])
+      setCurrentFile(null)
     }
   };
 
   const handleStart = async () => {
+    setIsLoading(true);
     // ローカルストレージの初期化
     const localStorageData: LocalStorageData = {
       user: 'demo-user',
@@ -61,16 +68,19 @@ export const CreateLabelScreen: React.FC = () => {
       window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
 
       // 画像のアップロード
-      const requestPayload: UploadPairRequest = {
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: 'doing',
-        number: 1,
-        files: file,
-      };
-      await uploadApi.uploadPair(requestPayload);
+      for (let i = 0; i < files.length; i++) {
+        const file = [files[i].file]
+        const requestPayload: UploadPairRequest = {
+          user: localStorageData.user,
+          epic: localStorageData.epic,
+          operation: localStorageData.operation,
+          operation_id: localStorageData.operationId,
+          status: 'doing',
+          number: i + 1,
+          files: file
+        };
+        await uploadApi.uploadPair(requestPayload);
+      }
 
       // 実行中画面に切り替え
       navigate('/create-label-processing');
@@ -85,6 +95,7 @@ export const CreateLabelScreen: React.FC = () => {
         status: localStorageData.status
       });
     } catch (e) {
+      setIsLoading(false);
       localStorageData.status = 'error';
       window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
       window.alert("バッチ処理起動に失敗したため、画面を切り替えます");
@@ -94,11 +105,13 @@ export const CreateLabelScreen: React.FC = () => {
 
   useEffect(() => {
     return () => {
-      if (preview) {
-        URL.revokeObjectURL(preview);
+      if (files.length > 0) {
+        files.map((file) => (
+          URL.revokeObjectURL(file.url)
+        ))
       }
     };
-  }, [preview]);
+  }, [files]);
 
   return (
     <div className="page">
@@ -120,22 +133,35 @@ export const CreateLabelScreen: React.FC = () => {
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
           <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" accept="image/*, application/pdf" onChange={handleSetFile} />
+            <input type="file" multiple accept="image/*, application/pdf" onChange={handleSetFile} />
           </label>
         </div>
       </div>
 
-      {preview && !isPdf && (
-        <div style={{ marginBottom: '15px' }}>
-          <img src={preview} alt='プレビュー' style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
-        </div>
+      <div style={{ display: 'flex', gap: 10, marginTop: '15px', marginBottom: '15px', overflow: 'auto'}}>
+        {files.length > 0  && (
+          files.map((file) => (
+            <button key={file.file.name} onClick={() => setCurrentFile(file)} style={{
+              opacity: file.url === currentFile?.url ? 1 : 0.4,
+            }}>{file.file.name}</button>
+          ))
+        )}
+      </div>
+
+      {files.length > 0 && currentFile && currentFile.isPdf && (
+        <PdfPreview preview={currentFile.url} />
       )}
-      {preview && isPdf && (
-        <PdfPreview preview={preview} />
-      )}   
+      {files.length > 0 && currentFile && !currentFile.isPdf && (
+        <ImagePreview  file={currentFile.file} url={currentFile.url} />
+      )}
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart}  disabled={file.length === 0}>処理開始</button>
+        <button className="primary" onClick={handleStart}  disabled={files.length === 0 || isLoading}>
+          {isLoading && (
+            <Loader2 className="spin" size={18} />
+          )}
+          {isLoading ? '処理中...' : '処理開始'}
+        </button>
       </div>
 
     </div>

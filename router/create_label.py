@@ -6,6 +6,9 @@ from app_logger import AppLogger
 from app_backend_task import BackendTasks, BackendTaskRunner
 from datetime import datetime
 from io import BytesIO
+from pdf2image import convert_from_path
+import img2pdf
+from pathlib import Path
 import os
 import zipfile
 
@@ -30,8 +33,8 @@ class CreateLabelRunner(BackendTaskRunner):
         out_dir += f"_{self._OUT_OPE}_{req.operation_id}/"
         f_list = [f for f in os.listdir(in_dir) if f != '.gitkeep']
         img = None
-        if len(f_list) == 1:
-            img = f_list[0]
+        # TODO: 複数図面の実装次第で修正
+        img = [f for f in f_list if not f.lower().endswith(".pdf")][0]
 
         return f"{base_cmd} {in_dir} {img} {out_dir}"
 
@@ -61,6 +64,37 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 app_state.create_new_app_status(
                     req_status
                 )
+                pdf_list = [f"{upload_dir}/{f}" for f in os.listdir(upload_dir) if f.lower().endswith(".pdf")]
+                if len(pdf_list) > 0:
+                    def pdf_to_jpeg(file_path):
+                        """PDFを画像に変換する"""
+                        file_name = Path(file_path)
+
+                        images = convert_from_path(file_name)
+
+                        # 各ページを画像として保存する
+                        files = []
+                        for i, image in enumerate(images):
+                            new_file_name = file_name.with_stem(f"{file_name.stem}_{i}")
+                            save_path = new_file_name.with_suffix(".jpg")
+                            image.save(save_path, 'JPEG')
+                            files.append(save_path.as_posix())
+                        return files
+                    
+                    def loop_pdf_to_jpeg(file_dir) -> list:
+                        pdf_dir = Path(file_dir)
+                        pdf_files = list(pdf_dir.glob("*.pdf"))
+                        if len(pdf_files) > 0:
+                            image_files = [pdf_to_jpeg(file) for file in pdf_files]
+                            image_files = [x for row in image_files for x in row]
+                            print(f'save: {image_files}')
+                            return image_files
+                        else:
+                            print("PDFファイルではないようなので、変換せず後続処理を実行")
+                            return []
+
+                    loop_pdf_to_jpeg(upload_dir)
+
                 # 別プロセスにてラベル付与実行
                 BackendTasks.set_backend_runner(
                     req_status,
@@ -110,10 +144,24 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
             ope_dir += f"{req_status.operation}_{req_status.operation_id}/"
             res_dir = f"./create-label-responce/{ope_dir}"
             fname_list = os.listdir(res_dir)
+            
+            # pdfに変換
+            image_exts = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp")
+            image_files = [f"{res_dir}/{f}" for f in fname_list if f.lower().endswith(image_exts)]
+            for file in image_files:
+                file = Path(file)
+                new_file_name = Path(file).with_suffix(".pdf")
+                with open(new_file_name, "wb") as f:
+                    f.write(img2pdf.convert(file))
+
             # TODO pdfファイルとcsvファイルだけzipにまとめる
-            file_list = [
-                res_dir + fname for fname in fname_list if fname != ".gitkeep"
+            pdf_file_list = [
+                res_dir + fname for fname in fname_list if fname.lower().endswith(".pdf")
             ]
+            csv_file_list = [
+                res_dir + fname for fname in fname_list if fname.lower().endswith(".csv")
+            ]
+            file_list = pdf_file_list + csv_file_list
             # TODO File name kara 1_bf_fileを除く
             # TODO CSVの最後の列を除く
 
