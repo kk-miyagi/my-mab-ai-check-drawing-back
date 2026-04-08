@@ -13,3 +13,4 @@ pdf2image
 img2pdf
 openpyxl
 imagehash
+polars
