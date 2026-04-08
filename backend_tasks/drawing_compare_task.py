@@ -4,7 +4,9 @@ import os
 import json
 import time
 import re
+import img2pdf
 from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont
 from vertexai.generative_models import GenerativeModel
 import io
 from datetime import datetime
@@ -108,26 +110,6 @@ def get_draw_list(image):
     return draw_list
 
 
-def get_image_position(image_path, cut_image_path):
-    
-    prompt = f"""
-        図面内{image_path}を切り取り、投影図{cut_image_path}を作成しました。
-
-        ルール
-        1:切り取った投影図が図面のどこにあるのか特定してください。
-        2:出力は位置のみとしてください。
-        3:位置の範囲がわかるようであれば、範囲としてください。
-    """
-
-    raw_csvres = generate_with_multiple_contents(
-            model,
-
-            image_paths=[image_path, cut_image_path],
-            prompts=[prompt],
-        )
-    res: str = get_raw_response(raw_csvres)
-    return res
-
 def get_drawing_compare(base_image_path: str, target_image_paths: list):
     print(f"画像のパス: base: {base_image_path}, target: {target_image_paths}")
 
@@ -169,11 +151,56 @@ def change_output(res, base_position, target_position):
     reader = csv.DictReader(io.StringIO(res, newline=""))
     rows = list(reader)
     for r in rows:
-        if r["客先図面の記載位置"] != "-":
-            r["客先図面の記載位置"] = f"全体：「{base_position}」、詳細：「{r["客先図面の記載位置"]}」"
-        if r["社内用図面の記載位置"] != "-":
-            r["社内用図面の記載位置"] = f"全体：「{target_position}」、詳細：「{r["社内用図面の記載位置"]}」"
+        r["客先図面の矩形領域番号"] = base_position
+        r["社内用図面の矩形領域番号"] = target_position
     return rows
+
+def draw_texts(
+        image_path: str,
+        rects: list[int],
+        output_dir: str,
+        kind: str
+    ):
+    """画像に番号を描く"""
+    with Image.open(image_path).convert("RGB") as img:
+        drawer = ImageDraw.Draw(img)
+        W, H = img.size
+        font_size = int(min(W, H) * 0.03)
+        font_size = max(font_size, 12)
+        font = ImageFont.truetype(
+            "arial.ttf", size=font_size)
+
+        for k, rect in rects.items():
+            text_x = rect[0]
+            text_y = rect[1]
+            drawer.text(
+                (text_x, text_y),
+                k,
+                fill=(220, 20, 60),
+                font=font
+            )
+
+        output_path = f"{output_dir}/{kind}_{Path(image_path).name}"
+        img.save(output_path)
+    return None
+
+def draw_rectangles_with_labels(
+        base_image_path: str,
+        target_image_path: str,
+        image_info_path: str,
+        output_dir: str
+    ):
+    """基準側と比較側それぞれの画像に番号を描く"""
+
+    with open(image_info_path, "r", encoding="utf-8") as f:
+        image_info: dict = json.load(f)
+
+    base_rects = {k.replace("base_", ""): v for k, v in image_info["base_rects"].items()}
+    target_rects = {k.replace("target_", ""): v for k, v in image_info["target_rects"].items()}
+
+    draw_texts(base_image_path, base_rects, output_dir, "base")
+    draw_texts(target_image_path, target_rects, output_dir, "target")
+    return None
 
 if __name__ == "__main__":
     start = time.time()
@@ -225,21 +252,24 @@ if __name__ == "__main__":
     target_draw_list = get_draw_list(target_image_path)
     save_gemini_responce(target_draw_list, f"{run_dir}/llm_target_draw_list.csv")
 
-    save_cols = ["項目","客先図面の記載内容","客先図面の記載位置","社内用図面の記載内容","社内用図面の記載位置","差分内容","判定結果","判定理由"]
+    save_cols = ["項目","客先図面の記載内容","客先図面の矩形領域番号","客先図面の記載位置","社内用図面の記載内容","社内用図面の矩形領域番号","社内用図面の記載位置","差分内容","判定結果","判定理由"]
     all_rows = []
     if combinations:
         # 組み合わせでループ
         for base, targets in combinations.items():
             # base: base_1とかtargetsはリスト状態
             target_paths = [f"{target_cut_dir}/{t}.jpg" for t in targets]
-            base_position = get_image_position(base_image_path, f"{base_cut_dir}/{base}.jpg")
+
 
             # targetごとに処理
             for target in targets:
                 target_path = f"{target_cut_dir}/{target}.jpg"
                 # 比較処理
                 res = get_drawing_compare(f"{base_cut_dir}/{base}.jpg", target_path)
-                target_position = get_image_position(target_image_path, target_path)
+
+                base_position = base.replace("base_", "")
+                target_position = target.replace("target_", "")
+ 
                 rows = change_output(res, base_position, target_position)
                 all_rows.extend(rows)
     else:
@@ -260,6 +290,21 @@ if __name__ == "__main__":
     # 一覧と比較結果のチェック処理
     check_draw_list(base_draw_list, all_rows, "客先", run_dir)
     check_draw_list(target_draw_list, all_rows, "自社用", run_dir)
+
+    # 画像の保存
+    image_info_path = f"{Path(base_cut_dir).parent.as_posix()}/responce.json"
+    print(f"画像の保存先: {image_info_path}")
+    draw_rectangles_with_labels(base_image_path, target_image_path, image_info_path, out_dir)
+
+    # pdf変換
+    fname_list = os.listdir(out_dir)
+    image_exts = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp")
+    image_files = [f"{out_dir}/{f}" for f in fname_list if f.lower().endswith(image_exts)]
+    for file in image_files:
+        file = Path(file)
+        new_file_name = Path(file).with_suffix(".pdf")
+        with open(new_file_name, "wb") as f:
+            f.write(img2pdf.convert(file))
 
     end = time.time()
     print(end - start)

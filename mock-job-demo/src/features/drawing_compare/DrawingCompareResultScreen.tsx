@@ -5,6 +5,7 @@ import { LocalStorageData } from '../../types/storage.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi';
 import JSZip from 'jszip';
 import { useNavigate } from 'react-router-dom';
+import { PdfPreview } from '../../components/PdfPreview.tsx';
 
 type Row = Record<string, string | number | boolean | null>;
 
@@ -25,8 +26,25 @@ const fetchAsBlob = async (url: string): Promise<Blob> => {
   return await res.blob();
 };
 
+type PdfFile = {
+  fileName: string;
+  url: string;
+}
+
+type ImageFile = {
+  fileName: string;
+  url: string;
+}
+
+type CsvFile = {
+  fileName: string;
+  url: string;
+}
+
 
 export const DrawingCompareResultScreen: React.FC = () => {
+  const [basePdfFile, setBasePdfFile] = useState<PdfFile>();
+  const [targetPdfFile, setTargetPdfFile] = useState<PdfFile>();
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
   const [csvUrl, setCsvUrl] = useState<string>();
@@ -40,10 +58,18 @@ export const DrawingCompareResultScreen: React.FC = () => {
 
   const handleDownload = async () => {
     try {
-      const [csvBlob] = await Promise.all([
-        fetchAsBlob(csvUrl as string),
+      if (!basePdfFile) return;
+      if (!targetPdfFile) return;
+      if (!csvFileName) return;
+      if (!csvUrl) return;
+      const [baseBlob, targetBlob, csvBlob] = await Promise.all([
+        fetchAsBlob(basePdfFile.url),
+        fetchAsBlob(targetPdfFile.url),
+        fetchAsBlob(csvUrl),
       ]);
       downloadBlob(csvBlob, csvFileName);
+      downloadBlob(baseBlob, basePdfFile.fileName);
+      downloadBlob(targetBlob, targetPdfFile.fileName);
     } catch (err) {
       console.error(err);
       alert("ダウンロードに失敗しました。ネットワークやパスを確認してください。");
@@ -72,10 +98,35 @@ export const DrawingCompareResultScreen: React.FC = () => {
           operation_id: localStorageData.operationId,
           status: localStorageData.status,
         });
-        const data = await res as Blob
-        const zip = await JSZip.loadAsync(data);
 
-        const csvFile = zip.file(/\.csv$/)[0]
+        const zip = await JSZip.loadAsync(res);
+        const base = zip.file(/base.*\.pdf$/)[0];
+        const target = zip.file(/target.*\.pdf$/)[0];
+        const csvFile = zip.file(/\.csv$/)[0];
+
+        if (base) {
+          const pdfBlob = await base.async('blob');
+          const url = URL.createObjectURL(new Blob([pdfBlob], { type: "application/pdf" }));
+          const path = base.name;
+          const filename = path.split("/").pop()!;
+          const file: PdfFile = {
+            fileName: filename,
+            url: url
+          };
+          setBasePdfFile(file);
+        }
+
+        if (target) {
+          const pdfBlob = await target.async('blob');
+          const url = URL.createObjectURL(new Blob([pdfBlob], { type: "application/pdf" }));
+          const path = target.name;
+          const filename = path.split("/").pop()!;
+          const file: PdfFile = {
+            fileName: filename,
+            url: url
+          };
+          setTargetPdfFile(file);
+        }
 
         if (csvFile) {
           const text = await csvFile.async("string");
@@ -90,7 +141,7 @@ export const DrawingCompareResultScreen: React.FC = () => {
             dynamicTyping: true,
           });
           const csvData = result.data ?? [];
-          const columnsToShow = ["項目","客先図面の記載内容","客先図面の記載位置","社内用図面の記載内容","社内用図面の記載位置","差分内容","判定結果","判定理由"]
+          const columnsToShow = ["項目","客先図面の記載内容", "客先図面の矩形領域番号","客先図面の記載位置","社内用図面の記載内容", "社内用図面の矩形領域番号", "社内用図面の記載位置","差分内容","判定結果","判定理由"]
           const projected = csvData.map((row) => {
             const picked: Row = {};
             for (const key of columnsToShow) {
@@ -114,6 +165,14 @@ export const DrawingCompareResultScreen: React.FC = () => {
     <div className="page">
       <h1>図面比較</h1>
 
+      <h2>基準側(客先)図面</h2>
+      {basePdfFile && (
+        <PdfPreview preview={basePdfFile.url} />
+      )}
+      <h2>比較側(自社)図面</h2>
+      {targetPdfFile && (
+        <PdfPreview preview={targetPdfFile.url} />
+      )}
       <h2>比較結果</h2>
       <div className='table-wrapper'>
         <table>

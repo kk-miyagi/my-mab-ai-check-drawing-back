@@ -150,8 +150,9 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
             ope_dir += f"{req_status.operation}_{req_status.operation_id}/"
             res_dir = f"./drawing-compare-responce/{ope_dir}"
             fname_list = os.listdir(res_dir)
+            extensions = ('.csv', '.jpg', 'pdf')
             file_list = [
-                res_dir + fname for fname in fname_list if fname.endswith('.csv')
+                res_dir + fname for fname in fname_list if fname.endswith(extensions)
             ]
             # 3)ZIPに固めてダウンロードの返信を実施
             io = BytesIO()
