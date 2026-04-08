@@ -26,7 +26,7 @@ export const drawingCompareApi = {
     return postForm(DRAWING_COMPARE_ENDPOINT, form);
   },
 
-  async drawingCompareEnd(payload: DrawingCompareEndRequest) {
+  async drawingCompareEnd(payload: DrawingCompareEndRequest): Promise<Blob> {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
