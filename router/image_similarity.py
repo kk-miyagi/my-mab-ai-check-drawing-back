@@ -62,6 +62,32 @@ class ImageSimilarity:
             else:
                 return bx1 < ax1 and by1 < ay1 and bx2 > ax2 and by2 > ay2
 
+        def sort_left_top(boxes, y_threshold=50):
+            """左上から並べる
+            1. 上から順に並べる
+            2. yが近いものを同じ行としてグループ化
+            3. 2でグループ化したものを左から右に並べる
+            3. 1つの配列にまとめて返す
+            """
+            boxes = sorted(boxes, key=lambda b: b[1])  # まずyでソート
+            rows = []
+
+            for box in boxes:
+                placed = False
+                for row in rows:
+                    # yが近ければ同じ行
+                    if abs(row[0][1] - box[1]) <= y_threshold:
+                        row.append(box)
+                        placed = True
+                        break
+                if not placed:
+                    rows.append([box])
+            # 行内をxでソートしてフラット化
+            result = []
+            for row in rows:
+                result.extend(sorted(row, key=lambda b: b[0]))
+            return result
+
         image = cv2.imread(img_path)
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -110,10 +136,12 @@ class ImageSimilarity:
             ):
                 output_rects.append(list(contours_list[i]))
 
-        print(f"output_rects size: {len(output_rects)}")
-        print(f"座標一覧: {output_rects}")
+        # 左上からソート
+        sorted_rects = sort_left_top(output_rects)
+        print(f"output_rects size: {len(sorted_rects)}")
+        print(f"座標一覧: {sorted_rects}")
 
-        return output_rects
+        return sorted_rects
 
     async def list_to_prefixed_dict(items, prefix="base", start=1):
         return {
