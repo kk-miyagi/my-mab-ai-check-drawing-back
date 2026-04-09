@@ -55,7 +55,12 @@ export function CanvasPane({
   // crops,
 }: CanvasPaneProps) {
   // この pane の role に属する矩形のみ描画。
-  const visibleRects = rects.filter((r) => r.role === role);
+  // idでソートする
+  const visibleRects = rects.filter((r) => r.role === role).sort((a, b) => {
+    const numA = Number(a.id.split("_")[1]);
+    const numB = Number(b.id.split("_")[1]);
+    return numA - numB
+  })
 
   const [scale, setScale] = useState<{ x: number; y: number } | null>(null);
 
