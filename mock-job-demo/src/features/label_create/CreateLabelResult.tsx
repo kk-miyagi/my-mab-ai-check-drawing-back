@@ -36,11 +36,18 @@ type CsvFile = {
   url: string;
 }
 
+type ImageFile = {
+  fileName: string;
+  url: string;
+}
+
 export const CreateLabelResultScreen: React.FC = () => {
   const [pdfFiles, setPdfFiles] = useState<PdfFile[]>([]);
   const [currentPdfFile, setCurrentPdfFile] = useState<PdfFile | null>();
   const [csvFiles, setCsvFiles] = useState<CsvFile[]>([]);
   const [currentCsvFile, setCurrentCsvFile] = useState<CsvFile | null>();
+  const [imageFiles, setImageFiles] = useState<ImageFile[]>([]);
+  const [currentImageFile, setCurrentImageFile] = useState<ImageFile | null>();
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
 
@@ -70,7 +77,7 @@ export const CreateLabelResultScreen: React.FC = () => {
 
   // 編集画面への遷移
   const handleMove = async () => {
-    navigate('/update-label')
+    navigate('/update-label', { state: { currentImageFile }})
   }
 
   useEffect(() => {
@@ -101,6 +108,7 @@ export const CreateLabelResultScreen: React.FC = () => {
         const zip = await JSZip.loadAsync(res);
         const pdfFile = zip.file(/\.pdf$/)[0];
         const csvFile = zip.file(/\.csv$/)[0];
+        const imgFile = zip.file(/\.jpg$/)[0];
 
         if (pdfFile) {
           const pdfBlob = await pdfFile.async('blob');
@@ -113,6 +121,19 @@ export const CreateLabelResultScreen: React.FC = () => {
           };
           setPdfFiles([file]);
           setCurrentPdfFile([file][0]);
+        }
+
+        if (imgFile) {
+          const imgfBlob = await imgFile.async('blob');
+          const url = URL.createObjectURL(imgfBlob);
+          const path = imgFile.name;
+          const filename = path.split("/").pop()!;
+          const file: ImageFile = {
+            fileName: filename,
+            url: url
+          };
+          setImageFiles([file]);
+          setCurrentImageFile([file][0]);
         }
 
         if (csvFile) {
@@ -171,6 +192,7 @@ export const CreateLabelResultScreen: React.FC = () => {
       {pdfFiles.length > 0 && currentPdfFile && (
         <PdfPreview preview={currentPdfFile.url} />
       )}
+      <img src={currentImageFile?.url} />
 
       <h2>CSVの結果</h2>
       
