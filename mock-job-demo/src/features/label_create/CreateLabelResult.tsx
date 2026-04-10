@@ -192,7 +192,6 @@ export const CreateLabelResultScreen: React.FC = () => {
       {pdfFiles.length > 0 && currentPdfFile && (
         <PdfPreview preview={currentPdfFile.url} />
       )}
-      <img src={currentImageFile?.url} />
 
       <h2>CSVの結果</h2>
       
