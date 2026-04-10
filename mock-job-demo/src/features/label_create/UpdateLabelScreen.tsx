@@ -1,5 +1,5 @@
 import React, { useEffect, useState, ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { LocalStorageData } from '../../types/storage.ts';
@@ -14,6 +14,10 @@ const DEFAULT_OPERATION = 'batch-update-label';
 type Row = Record<string, string | number | boolean | null>;
 
 export const UpdateLabelScreen: React.FC = () => {
+  const location = useLocation();
+  const data = location.state;
+  const currentImageFile = data.currentImageFile;
+
   const navigate = useNavigate();
 
   // image

@@ -154,14 +154,11 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 with open(new_file_name, "wb") as f:
                     f.write(img2pdf.convert(file))
 
-            # TODO pdfファイルとcsvファイルだけzipにまとめる
-            pdf_file_list = [
-                res_dir + fname for fname in fname_list if fname.lower().endswith(".pdf")
+            # pdfファイルとcsvファイルとjpgファイルだけzipにまとめる
+            extensions = ('.csv', '.jpg', 'pdf')
+            file_list = [
+                res_dir + fname for fname in fname_list if fname.endswith(extensions)
             ]
-            csv_file_list = [
-                res_dir + fname for fname in fname_list if fname.lower().endswith(".csv")
-            ]
-            file_list = pdf_file_list + csv_file_list
             # TODO File name kara 1_bf_fileを除く
             # TODO CSVの最後の列を除く
 
