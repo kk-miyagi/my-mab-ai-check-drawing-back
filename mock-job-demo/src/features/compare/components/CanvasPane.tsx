@@ -6,9 +6,8 @@ import type {
   Phase,
   RectModel,
   RectRole,
-} from '../types.ts';
-import { useEffect, useState } from 'react';
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+} from '../types';
+
 interface CanvasPaneProps {
   role: RectRole;
   phase: Phase;
@@ -22,7 +21,7 @@ interface CanvasPaneProps {
   containerRef: React.RefObject<HTMLDivElement>;
   imageRef: React.RefObject<HTMLImageElement>;
   isDrafting: boolean;
-  // onBackgroundMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onBackgroundMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void;
   onRectMouseDown: (event: React.MouseEvent<HTMLDivElement>, id: string) => void;
   onHandleMouseDown: (
     event: React.MouseEvent<HTMLDivElement>,
@@ -31,7 +30,6 @@ interface CanvasPaneProps {
   ) => void;
   onRequestUpload: () => void;
   onSelectSample: () => void;
-  // crops: {}[]
 }
 
 export function CanvasPane({
@@ -47,44 +45,14 @@ export function CanvasPane({
   containerRef,
   imageRef,
   isDrafting,
-  // onBackgroundMouseDown,
+  onBackgroundMouseDown,
   onRectMouseDown,
   onHandleMouseDown,
   onRequestUpload,
   onSelectSample,
-  // crops,
 }: CanvasPaneProps) {
   // この pane の role に属する矩形のみ描画。
-  // idでソートする
-  const visibleRects = rects.filter((r) => r.role === role).sort((a, b) => {
-    const numA = Number(a.id.split("_")[1]);
-    const numB = Number(b.id.split("_")[1]);
-    return numA - numB
-  })
-
-  const [scale, setScale] = useState<{ x: number; y: number } | null>(null);
-
-
-  const handleImageLoad = () => {
-    const img = imageRef.current;
-    if (!img) return;
-    setScale({
-      x: img.clientWidth / img.naturalWidth,
-      y: img.clientHeight / img.naturalHeight,
-    });
-  }
-
-  // useEffect(() => {
-  //   const img = imageRef.current;
-  //   if (!img) return;
-
-  //   handleImageLoad();
-
-  //   const observer = new ResizeObserver(handleImageLoad);
-  //   observer.observe(img);
-
-  //   return () => observer.disconnect();
-  // }, [imageSrc]);
+  const visibleRects = rects.filter((r) => r.role === role);
 
   return (
     <div className="canvas-wrapper">
@@ -110,11 +78,9 @@ export function CanvasPane({
           <div
             ref={containerRef}
             className={`image-container phase-${phase}`}
-            // onMouseDown={onBackgroundMouseDown}
+            onMouseDown={onBackgroundMouseDown}
           >
-            <TransformWrapper>
-              <TransformComponent>
-                <img ref={imageRef} src={imageSrc} alt={role} className="image-content" draggable={false} />
+            <img ref={imageRef} src={imageSrc} alt={role} className="image-content" draggable={false} />
 
             {visibleRects.map((rect, index) => {
               let classNames = 'rect';
@@ -132,7 +98,7 @@ export function CanvasPane({
                   if ('linkedTargetIds' in rect && rect.linkedTargetIds.length > 0) showLinkBadge = true;
                 } else if (rect.role === 'target') {
                   const currentSource = rects.find((r) => r.role === 'source' && r.id === currentSourceId);
-                  if (currentSource?.role === 'source' && currentSource.linkedTargetIds.includes(rect.id)) {
+                  if (currentSource && currentSource.linkedTargetIds.includes(rect.id)) {
                     classNames += ' target-linked';
                   }
                 }
@@ -186,8 +152,6 @@ export function CanvasPane({
                 }}
               />
             )}
-              </TransformComponent>
-            </TransformWrapper>
           </div>
         )}
       </div>

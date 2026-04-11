@@ -8,6 +8,11 @@ import './index.css';
 export const App: React.FC = () => {
   const initialEntry = (() => {
     if (typeof window === 'undefined') return '/hub';
+
+    // MemoryRouter はブラウザURLを自動で拾わないため、直アクセス時は現在URLを優先する。
+    const browserPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (browserPath && browserPath !== '/') return browserPath;
+
     const return_screen = getRedirectUrl();
     if (return_screen) return return_screen;
     return '/hub';

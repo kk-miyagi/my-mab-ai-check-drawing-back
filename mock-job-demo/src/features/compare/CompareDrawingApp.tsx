@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'
 import { Link2, MousePointer2 } from 'lucide-react';
 import './styles.css';
 import type {
@@ -12,13 +11,12 @@ import type {
   RectModel,
   RectRole,
   SimilarSuggestion,
-} from './types.ts';
+} from './types';
 import { Geometry } from './services/Geometry';
 import { RectFactory } from './services/RectFactory';
 import { RectManipulator } from './services/RectManipulator';
 import { LinkManager } from './services/LinkManager';
 import { Cropper } from './services/Cropper';
-import { ChageRect } from './services/ChageRect';
 // モック用の疑似的に類似度を出すコード実際は API 経由でサーバー側処理を呼び出す。
 import { fetchSuggestions } from './services/SuggestionApi';
 import { CanvasPane } from './components/CanvasPane';
@@ -26,51 +24,13 @@ import { Sidebar } from './components/Sidebar';
 import { HeaderSection } from './components/HeaderSection';
 import { ResultModal } from './components/ResultModal';
 import { SuggestionScreen } from './components/SuggestionScreen';
-import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { LocalStorageData } from '../../types/storage.ts';
-import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
-import type { Combinations } from '../../types/drawingCompare.ts';
-
-type RectTuple = [number, number, number, number];
-type SimilarityMap = Record<string, Record<string, number>>;
-
-interface DrawingCompareLocationState {
-  baseImageFile: File[];
-  compareImageFile: File[];
-  baseRects: Record<string, RectTuple>;
-  targetRects: Record<string, RectTuple>;
-  similarities: SimilarityMap;
-}
 
 const SAMPLE_IMAGES = {
   source: 'https://placehold.co/800x600/f1f5f9/94a3b8?text=Source+Drawing+A',
   target: 'https://placehold.co/800x600/e2e8f0/64748b?text=Target+Drawing+B',
 };
 
-export const DrawingCompare: React.FC = () => {
-
-  // アップロードした図面
-  const location = useLocation();
-  const data = location.state as DrawingCompareLocationState;
-  const baseImageFile = data.baseImageFile;
-  const compareImageFile = data.compareImageFile;
-
-  // 座標と類似度
-  const baseRects = data.baseRects;
-  const targetRects = data.targetRects;
-  const similarities = data.similarities;
-
-  // 図面の組み合わせ
-  const [combinations, setCombinations] = useState<Combinations>({})
-
-  // Object.keys(baseRects).forEach((i) =>{
-  // })
-
-  // 図面のプレビュー
-  useEffect(() => {
-    setImages({ source: URL.createObjectURL(baseImageFile[0]), target: URL.createObjectURL(compareImageFile[0]) })
-  }, [])
-
+export function CompareDrawingApp() {
   // サービスは ref に保持して再レンダーでも同じインスタンスを使う。
   const geometryRef = useRef(new Geometry());
   const factoryRef = useRef(new RectFactory());
@@ -109,7 +69,7 @@ export const DrawingCompare: React.FC = () => {
   const getImageElement = (role: RectRole) => (role === 'source' ? sourceImageRef.current : targetImageRef.current);
 
   const getRelativePos = (role: RectRole, event: React.MouseEvent) =>
-    geometryRef.current.toPercent(getContainer(role), event.clientX, event.clientY);
+    geometryRef.current.toPercent(getImageElement(role), event.clientX, event.clientY);
 
   // 画像実寸（表示サイズ）基準の%座標を取得しておき、クロップ用の座標ずれを防ぐ。
   const getRelativePosOnImage = (role: RectRole, event: React.MouseEvent) =>
@@ -175,20 +135,20 @@ export const DrawingCompare: React.FC = () => {
     event.stopPropagation();
     event.preventDefault();
 
-    // if (phase === 'define') {
-    //   // define フェーズでは矩形クリックで移動開始。
-    //   setSelectedId(id);
-    //   setActiveCanvas(role);
-    //   setInteractionMode('moving');
+    if (phase === 'define') {
+      // define フェーズでは矩形クリックで移動開始。
+      setSelectedId(id);
+      setActiveCanvas(role);
+      setInteractionMode('moving');
 
-    //   const pos = getRelativePos(role, event);
-    //   const posImage = getRelativePosOnImage(role, event);
-    //   setStartPos(pos);
-    //   setStartPosImage(posImage);
-    //   const targetRect = rects.find((rect) => rect.id === id) || null;
-    //   setInitialRectState(targetRect);
-    //   return;
-    // }
+      const pos = getRelativePos(role, event);
+      const posImage = getRelativePosOnImage(role, event);
+      setStartPos(pos);
+      setStartPosImage(posImage);
+      const targetRect = rects.find((rect) => rect.id === id) || null;
+      setInitialRectState(targetRect);
+      return;
+    }
 
     if (phase === 'select') {
       handleSelectPhaseClick(role, id);
@@ -220,7 +180,7 @@ export const DrawingCompare: React.FC = () => {
   const handleMouseMove = (event: React.MouseEvent) => {
     if (phase !== 'define' || interactionMode === 'idle' || !activeCanvas) return;
 
-    const currentPos = geometryRef.current.toPercent(getContainer(activeCanvas), event.clientX, event.clientY);
+    const currentPos = geometryRef.current.toPercent(getImageElement(activeCanvas), event.clientX, event.clientY);
     const currentPosImage = geometryRef.current.toPercent(getImageElement(activeCanvas), event.clientX, event.clientY);
 
     if (interactionMode === 'drawing') {
@@ -251,6 +211,7 @@ export const DrawingCompare: React.FC = () => {
         startPosImage,
         currentPosImage
       )[0];
+
       setRects((prev) =>
         prev.map((rect) =>
           rect.id === selectedId
@@ -296,6 +257,7 @@ export const DrawingCompare: React.FC = () => {
         startPosImage,
         currentPosImage
       )[0];
+
       setRects((prev) =>
         prev.map((rect) =>
           rect.id === selectedId
@@ -318,59 +280,6 @@ export const DrawingCompare: React.FC = () => {
     }
   };
 
-  const handleSetRect = () => {
-    if (!images.source || !images.target) return;
-
-    setRects([])
-    const changeRect = new ChageRect()
-
-    Object.entries(baseRects).forEach(([key, values]) => {
-      (async () => {
-        const [x, y, width, height] = values;
-        const res = await changeRect.crop(images.source as string, { x, y, width, height })
-        setRects(prev => [
-          ...prev,
-          {
-            id: key,
-            role: 'source',
-            x: res.x,
-            y: res.y,
-            width: res.width,
-            height: res.height,
-            imageCoords: { x, y, width, height },
-            linkedTargetIds: []
-          }
-        ])
-      })()
-    })
-    Object.entries(targetRects).forEach(([key, values]) => {
-      (async () => {
-        const [x, y, width, height] = values;
-        const res = await changeRect.crop(images.target as string, { x, y, width, height })
-        setRects(prev => [
-          ...prev,
-          {
-            id: key,
-            role: 'target',
-            x: res.x,
-            y: res.y,
-            width: res.width,
-            height: res.height,
-            imageCoords: { x, y, width, height }
-          }
-        ])
-      })()
-    })
-  } 
-  const initializedRef = useRef(false);
-  useEffect(() => {
-    if (initializedRef.current) return;
-    if (!images.source || !images.target) return;
-    initializedRef.current = true;
-    handleSetRect();
-  }, [images])
-
-  // 矩形領域を最初に作成すると動くようだ
   const handleMouseUp = () => {
     if (phase === 'define' && interactionMode === 'drawing' && activeCanvas) {
       if (manipulatorRef.current.shouldPersist(draftRect)) {
@@ -406,6 +315,7 @@ export const DrawingCompare: React.FC = () => {
       alert('先に左側の比較元 (Source) をクリックして選択してください');
       return;
     }
+
     setRects((prev) => linkManagerRef.current.toggle(prev, currentSourceId, id));
   };
 
@@ -465,50 +375,7 @@ export const DrawingCompare: React.FC = () => {
     setSelectedSuggestionIds([]);
   };
 
-  const navigate = useNavigate();
-
-  // const handleRunComparison = () => setShowResult(true);
-  const handleRunComparison = () => {
-    const sourceRect = rects.filter((rect) => rect.role === 'source');
-    const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
-    navigate("/drawing-compare-processing")
-
-    // ローカルストレージの取得
-    const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingCompare)
-    if (!getLocalStorage) {
-      window.alert("処理に失敗したため、画面を切り替えます")
-      navigate("/drawing-compare-upload-base")
-      return
-    }
-
-    // ローカルストレージの値を変更
-    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
-    localStorageData.operation = 'batch-drawing-compare'
-    localStorageData.status = 'start'
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-
-    if (!localStorageData.operationId) {
-      return
-    }
-
-    try {
-      // バッチ
-      const requestPayload  = {
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: localStorageData.status,
-        combinations: combinations
-      };
-      drawingCompareApi.drawingCompareStart(requestPayload)
-    } catch (e) {
-      localStorageData.status = 'error'
-      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-      window.alert("処理に失敗したため、画面を切り替えます")
-      navigate("/drawing-compare-upload-base")
-    }
-  };
+  const handleRunComparison = () => setShowResult(true);
 
   const buildSourcePreviewAndSuggestions = async (sourceId: string | null, targetRects: RectModel[] = rects) => {
     if (!sourceId) {
@@ -527,9 +394,7 @@ export const DrawingCompare: React.FC = () => {
 
     try {
       setLoadingSuggestions(true);
-      // なぜかここ修正が必要だった。
-      // const cropRect = sourceRect.imageCoords ?? sourceRect;
-      const cropRect = {x: sourceRect.x, y: sourceRect.y, width: sourceRect.width, height: sourceRect.height};
+      const cropRect = sourceRect.imageCoords ?? sourceRect;
       const preview = await cropperRef.current.crop(images.source, cropRect);
       setSourcePreview(preview);
 
@@ -538,34 +403,13 @@ export const DrawingCompare: React.FC = () => {
         return;
       }
 
-      const sourceSimilarities = similarities[sourceId] ?? {};
-      const allowedIds = new Set(Object.keys(sourceSimilarities));
-
-      const targets = targetRects.filter((r) => r.role === 'target' && allowedIds.has(r.id));
-      const candidates = targets.slice(0, targets.length);
-
-      const result: SimilarSuggestion[] = [];
-
-      for (const rect of candidates) {
-        const labelIndex = targets.findIndex((t) => t.id === rect.id);
-        const score = sourceSimilarities[rect.id] ?? 0
-
-        // const cropRect = rect.imageCoords ?? rect;
-        // なぜかここ修正が必要だった。
-        const cropRect = {x: rect.x, y: rect.y, width: rect.width, height: rect.height};
-        const image = await cropperRef.current.crop(images.target, cropRect);
-        result.push({
-          id: `t-${rect.id}`,
-          targetId: rect.id,
-          label: labelIndex >= 0 ? `Target #${rect.id}` : undefined,
-          score,
-          rect: { x: cropRect.x, y: cropRect.y, width: cropRect.width, height: cropRect.height },
-          image,
-        });
-      }
-      result.sort((a, b) => a.score - b.score);
-
-      setSuggestions(result);
+      const generated = await fetchSuggestions({
+        sourceRect: cropRect,
+        targetImg: images.target,
+        targetRects,
+        cropper: cropperRef.current,
+      });
+      setSuggestions(generated);
     } finally {
       setLoadingSuggestions(false);
     }
@@ -618,8 +462,7 @@ export const DrawingCompare: React.FC = () => {
 
   const hasSources = rects.some((rect) => rect.role === 'source');
   const hasTargets = rects.some((rect) => rect.role === 'target');
-  // const canProceed = hasSources && hasTargets && !!images.source && !!images.target;
-  const canProceed = true;
+  const canProceed = hasSources && hasTargets && !!images.source && !!images.target;
   const canCompare = rects.some(
     (rect) => rect.role === 'source' && rect.linkedTargetIds.length > 0
   );
@@ -644,21 +487,10 @@ export const DrawingCompare: React.FC = () => {
       </div>
     ) : undefined;
 
-  useEffect(() => {
-    setCombinations({})
-    const sourceRects = rects.filter(
-      (r): r is Extract<RectModel, { role: 'source' }> => r.role === 'source' && r.linkedTargetIds.length > 0
-    );
-    sourceRects.forEach((source) => {
-      setCombinations(prev => ({ ...prev, [source.id]: source.linkedTargetIds }))
-    })
-  }, [rects]);
-
-
   return (
     <div
       className="app-container"
-      // onMouseMove={handleMouseMove}
+      onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
@@ -690,7 +522,7 @@ export const DrawingCompare: React.FC = () => {
           <CanvasPane
             role="source"
             phase={phase}
-            title="基準側(客先)図面"
+            title="比較元図面 (Source)"
             instruction={instructionSource}
             imageSrc={images.source}
             rects={rects}
@@ -700,7 +532,7 @@ export const DrawingCompare: React.FC = () => {
             containerRef={sourceContainerRef}
             imageRef={sourceImageRef}
             isDrafting={interactionMode === 'drawing' && activeCanvas === 'source'}
-            // onBackgroundMouseDown={handleBackgroundMouseDown('source')}
+            onBackgroundMouseDown={handleBackgroundMouseDown('source')}
             onRectMouseDown={handleRectMouseDown('source')}
             onHandleMouseDown={handleHandleMouseDown('source')}
             onRequestUpload={() => sourceInputRef.current?.click()}
@@ -710,7 +542,7 @@ export const DrawingCompare: React.FC = () => {
           <CanvasPane
             role="target"
             phase={phase}
-            title="比較側(自社)図面"
+            title="比較先図面 (Target)"
             instruction={instructionTarget}
             imageSrc={images.target}
             rects={rects}
@@ -720,14 +552,14 @@ export const DrawingCompare: React.FC = () => {
             containerRef={targetContainerRef}
             imageRef={targetImageRef}
             isDrafting={interactionMode === 'drawing' && activeCanvas === 'target'}
-            // onBackgroundMouseDown={handleBackgroundMouseDown('target')}
+            onBackgroundMouseDown={handleBackgroundMouseDown('target')}
             onRectMouseDown={handleRectMouseDown('target')}
             onHandleMouseDown={handleHandleMouseDown('target')}
             onRequestUpload={() => targetInputRef.current?.click()}
             onSelectSample={() => handleSelectSample('target')}
           />
 
-          {/* <Sidebar
+          <Sidebar
             phase={phase}
             rects={rects}
             selectedId={selectedId}
@@ -736,7 +568,7 @@ export const DrawingCompare: React.FC = () => {
             onSelectSourceForLink={handleSelectSourceFromSidebar}
             onToggleTargetLink={(id) => handleSelectPhaseClick('target', id)}
             onDelete={handleDelete}
-          /> */}
+          />
         </div>
       )}
 
@@ -748,14 +580,22 @@ export const DrawingCompare: React.FC = () => {
         onClose={() => setShowResult(false)}
       />
 
-      {/* <p>{rects.length}</p>
-      <p>phase: {phase}</p>
-      <p>{interactionMode}</p>
-      {phase === 'define' && interactionMode === 'idle' && (
-      <button onClick={handleSetRect}>現状ここで矩形を画面に出す。最終的には画面が切り替わったタイミングで矩形を出せるようにする</button>
-      )} */}
-
+      <input
+        type="file"
+        ref={sourceInputRef}
+        onChange={(event) => handleUpload('source', event)}
+        className="hidden"
+        accept="image/*"
+      />
+      <input
+        type="file"
+        ref={targetInputRef}
+        onChange={(event) => handleUpload('target', event)}
+        className="hidden"
+        accept="image/*"
+      />
     </div>
   );
 }
 
+export default CompareDrawingApp;
