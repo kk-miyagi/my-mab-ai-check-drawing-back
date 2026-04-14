@@ -16,7 +16,9 @@ type Row = Record<string, string | number | boolean | null>;
 export const UpdateLabelScreen: React.FC = () => {
   const location = useLocation();
   const data = location.state;
-  const currentImageFile = data.currentImageFile;
+  // ラベル付与済みの図面と矩形の座標
+  const labelImage = data.labelImage;
+  const rects = data.rects
 
   const navigate = useNavigate();
 
