@@ -67,6 +67,15 @@ class DrawingHighlight:
             img1_marked[y:y+h, x:x+w] = roi1
             img2_marked[y:y+h, x:x+w] = roi2
 
+            img1_yellow = img1_marked.copy()
+            img2_yellow = img2_marked.copy()
+            alpha = 0.7
+            cv.rectangle(img1_yellow, (x, y), (x+w, y+h), (0, 255, 255), -1)
+            cv.rectangle(img2_yellow, (x, y), (x+w, y+h), (0, 255, 255), -1)
+
+            cv.addWeighted(img1_marked, alpha, img1_yellow, 1-alpha, 0, img1_marked)
+            cv.addWeighted(img2_marked, alpha, img2_yellow, 1-alpha, 0, img2_marked)
+
         print("ハイライト終了")
 
         return img1_marked, img2_marked
