@@ -17,8 +17,9 @@ export const UpdateLabelScreen: React.FC = () => {
   const location = useLocation();
   const data = location.state;
   // ラベル付与済みの図面と矩形の座標
-  // const labelImage = data.labelImage;
-  // const rects = data.rects
+  // const labelImg = data.labelImg;
+  // const rects = data.rects;
+  // const labelData = data.labelData;
 
   const navigate = useNavigate();
 

@@ -1,6 +1,6 @@
 import { http } from './http';
 import { ENDPOINTS } from './endpoints';
-import type { CreateLabelRequest, CreateLabelResponse } from '../types/createLabel';
+import type { CreateLabelRequest, CreateLabelResponse, UpdateLabelInitRequest } from '../types/createLabel';
 import { AxiosRequestConfig } from "axios";
 
 const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined) ?? 'true') === 'true';
@@ -8,6 +8,7 @@ const USE_MOCK_API = ((import.meta.env?.VITE_USE_MOCK_API as string | undefined)
 const CREATELABEL_ENDPOINT = ENDPOINTS.createLabel;
 const DEMO_CREATELABEL_ENDPOINT = ENDPOINTS.demoCreateLabel;
 const UPDATELABEL_ENDPOINT = ENDPOINTS.updateLabel;
+const UPDATE_LABEL_INIT_ENDPOINT = ENDPOINTS.updateLabelInit;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -42,6 +43,16 @@ export const createLabelApi = {
     form.append('operation_id', payload.operation_id);
     form.append('status', payload.status);
     return postForm(CREATELABEL_ENDPOINT, form, 'blob');
+  },
+
+  async updateLabelInit(payload: UpdateLabelInitRequest): Promise<Blob> {
+    const form = new FormData();
+    form.append('user', payload.user);
+    form.append('epic', payload.epic);
+    form.append('operation', payload.operation);
+    form.append('operation_id', payload.operation_id);
+    form.append('status', payload.status);
+    return postForm(UPDATE_LABEL_INIT_ENDPOINT, form, 'blob');
   },
 
   async updateLabelStart(payload: CreateLabelRequest): Promise<CreateLabelResponse> {

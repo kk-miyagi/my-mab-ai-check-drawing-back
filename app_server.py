@@ -22,6 +22,7 @@ import router.drawing_review as drawing_review
 import router.image_similarity as image_similarity
 import router.drawing_compare as drawing_compare
 import router.drawing_highlight as drawing_highlight
+import router.update_label_init as update_label_init
 import threading
 
 
@@ -166,6 +167,7 @@ class AppServer():
         self.app.include_router(image_similarity.router)
         self.app.include_router(drawing_compare.router)
         self.app.include_router(drawing_highlight.router)
+        self.app.include_router(update_label_init.router)
 
     def start(self, env_str):
         import uvicorn

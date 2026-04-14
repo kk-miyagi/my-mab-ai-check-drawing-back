@@ -7,6 +7,7 @@ export const ENDPOINTS = {
   checkStatus: `${PREFIX}/check-status/`,
   createLabel: `${PREFIX}/create-label/`,
   updateLabel: `${PREFIX}/update-label/`,
+  updateLabelInit: `${PREFIX}/update-label-init/`,
   demoCreateLabel: `${PREFIX}/demo-create-label/`,
   drawingReview: `${PREFIX}/drawing-review/`,
   drawingCompare: `${PREFIX}/drawing-compare/`,
