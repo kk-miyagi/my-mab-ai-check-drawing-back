@@ -18,3 +18,11 @@ export interface CreateLabelResponse {
 export type Phase = 'idle' | 'issuing_id' | 'uploading' | 'verifying' | 'complete' | 'error';
 
 export type CsvRow = Record<string, string>
+
+export interface UpdateLabelInitRequest {
+  user: string;
+  epic: string;
+  operation: string;
+  operation_id: string;
+  status: 'start';
+}
