@@ -23,7 +23,7 @@ import { DrawingCompareResultScreen } from '../features/drawing_compare/DrawingC
 import { DrawingHighlight } from '../features/drawing_highlight/DrawingHighlight';
 import { DrawingHighlightProcessingScreen } from '../features/drawing_highlight/DrawingHighlightProcessingScreen';
 import { DrawingHighlightResultScreen } from '../features/drawing_highlight/DrawingHighlightResultScreen';
-import { CompareDrawingApp } from '../features/compare/CompareDrawingApp';
+import { CompareDrawingApp } from '../features/label_create/CompareDrawingApp';
 
 export const AppRouter = () => {
   return (
