@@ -21,9 +21,8 @@ export const HubScreen: React.FC = () => {
               <h2 style={{ margin: 0 }}>ラベル付与</h2>
               <p style={{ margin: '4px 0 0' }}>図面をアップロードし、ラベル付与した図面とCSVファイルが出力されます</p>
             </div>
-            <Link className="primary" to="/create-label">開く</Link>
-            <Link className="primary" to="/update-label">編集する</Link>
-            <Link className="primary" to="/demo-create-label">デモを開く</Link>
+            <Link className="primary" to="/create-label">新規</Link>
+            <Link className="primary" to="/">一覧</Link>
           </div>
         </section>
 
@@ -33,7 +32,8 @@ export const HubScreen: React.FC = () => {
               <h2 style={{ margin: 0 }}>図面比較</h2>
               <p style={{ margin: '4px 0 0' }}>自社図面と外部資料の整合性チェック</p>
             </div>
-            <Link className="primary" to="/drawing-compare-upload-base">開く</Link>
+            <Link className="primary" to="/drawing-compare-upload-base">新規</Link>
+            <Link className="primary" to="/">一覧</Link>
           </div>
         </section>
 
@@ -43,7 +43,8 @@ export const HubScreen: React.FC = () => {
               <h2 style={{ margin: 0 }}>図面ハイライト</h2>
               <p style={{ margin: '4px 0 0' }}>図面の変更前後の差分をハイライト</p>
             </div>
-            <Link className="primary" to="/drawing-highlight-upload-before">開く</Link>
+            <Link className="primary" to="/drawing-highlight-upload-before">新規</Link>
+            <Link className="primary" to="/">一覧</Link>
           </div>
         </section>
 
@@ -53,7 +54,8 @@ export const HubScreen: React.FC = () => {
               <h2 style={{ margin: 0 }}>図面審査</h2>
               <p style={{ margin: '4px 0 0' }}>図面審査シートの指摘内容の反映チェック</p>
             </div>
-            <Link className="primary" to="/drawing-review-upload-excel">開く</Link>
+            <Link className="primary" to="/drawing-review-upload-excel">新規</Link>
+            <Link className="primary" to="/">一覧</Link>
           </div>
         </section>
 
