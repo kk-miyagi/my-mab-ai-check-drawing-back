@@ -24,6 +24,10 @@ import { DrawingHighlight } from '../features/drawing_highlight/DrawingHighlight
 import { DrawingHighlightProcessingScreen } from '../features/drawing_highlight/DrawingHighlightProcessingScreen';
 import { DrawingHighlightResultScreen } from '../features/drawing_highlight/DrawingHighlightResultScreen';
 import { CompareDrawingApp } from '../features/label_create/CompareDrawingApp';
+import { CreateLabelListScreen } from '../features/label_create/CreateLabelListScreen';
+import { DrawingReviewListScreen } from '../features/drawing_review/DrawingReviewListScreen';
+import { DrawingCompareListScreen } from '../features/drawing_compare/DrawingCompareListScreen';
+import { DrawingHighlightListScreen } from '../features/drawing_highlight/DrawingHighlightListScreen';
 
 export const AppRouter = () => {
   return (
@@ -54,6 +58,10 @@ export const AppRouter = () => {
       <Route path="/demo-create-label-processing" element={<DemoCreateLabelProcessingScreen />} />
       <Route path="/demo-create-label-result" element={<DemoCreateLabelResultScreen />} />
       <Route path="/demo-create-label" element={<DemoCreateLabelScreen />} />
+      <Route path="/create-label-list" element={<CreateLabelListScreen />} />
+      <Route path="/drawing-review-list" element={<DrawingReviewListScreen />} />
+      <Route path="/drawing-compare-list" element={<DrawingCompareListScreen />} />
+      <Route path="/drawing-highlight-list" element={<DrawingHighlightListScreen />} />
       <Route path="*" element={<Navigate to="/hub" replace />} />
     </Routes>
   )
