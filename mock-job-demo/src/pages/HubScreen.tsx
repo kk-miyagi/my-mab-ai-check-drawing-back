@@ -1,6 +1,38 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { localStorageKey } from '../constants/localStorageKey';
+import { Header } from '../components/Header.tsx'
+import {
+  Box,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Container,
+  Grid,
+  Stack,
+  SvgIcon,
+  Typography
+} from '@mui/material';
+import {
+  Add,
+  Brush,
+  Compare,
+  Label,
+  List,
+  Rule
+} from '@mui/icons-material';
+
+type feature = {
+  id: string;
+  title: string;
+  descripttion: string;
+  icon: typeof SvgIcon;
+  color: string;
+  accentColor: string;
+  onNew: () => void;
+  onList: () => void;
+}
 
 export const HubScreen: React.FC = () => {
   console.log("ホーム")
@@ -9,57 +41,98 @@ export const HubScreen: React.FC = () => {
     console.log(key, value);
   }
 
+  const navigate = useNavigate();
+
+  const features: feature[] = [
+    {
+      id: "label",
+      title: "ラベル付与",
+      descripttion: "図面から設計情報を抽出して図面にラベル付けします。",
+      icon: Label,
+      color: "#E6F1FB",
+      accentColor: "#185FA5",
+      onNew: () => navigate('/create-label'),
+      onList: () => navigate('/create-label-list')
+    },
+    {
+      id: "compare",
+      title: "図面比較",
+      descripttion: "客先図面と自社図面の設計情報の比較をします。",
+      icon: Compare, color: "#E1F5EE",
+      accentColor: "#0F6E56",
+      onNew: () => navigate('/drawing-compare-upload-base'),
+      onList: () => navigate('/drawing-compare-list')
+    },
+    {
+      id: "highlight",
+      title: "図面ハイライト",
+      descripttion: "変更前後の図面を画像認識で比較し、差分をハイライトします。",
+      icon: Brush,
+      color: "#FAECE7",
+      accentColor: "#993C1D",
+      onNew: () => navigate('/drawing-highlight-upload-before'),
+      onList: () => navigate('/drawing-highlight-list')
+    },
+    {
+      id: "review",
+      title: "図面審査",
+      descripttion: "図面審査シートの指摘内容が反映されているかチェックします。",
+      icon: Rule,
+      color: "#FAEEDA",
+      accentColor: "#854F0B",
+      onNew: () => navigate('/drawing-review-upload-excel'),
+      onList: () => navigate('/drawing-review-list')
+    }
+  ]
+
   return (
-    <div className="page">
-      <h1 style={{ marginTop: 0 }}>検図検証プロジェクト</h1>
-      <p>用途に合わせて画面を選択してください。</p>
-
-      <div style={{ display: 'grid', gap: 14 }}>
-        <section style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: '#f8fafc', display: 'grid', gap: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h2 style={{ margin: 0 }}>ラベル付与</h2>
-              <p style={{ margin: '4px 0 0' }}>図面をアップロードし、ラベル付与した図面とCSVファイルが出力されます</p>
-            </div>
-            <Link className="primary" to="/create-label">新規</Link>
-            <Link className="primary" to="/create-label-list">一覧</Link>
-          </div>
-        </section>
-
-        <section style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: '#f8fafc', display: 'grid', gap: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h2 style={{ margin: 0 }}>図面比較</h2>
-              <p style={{ margin: '4px 0 0' }}>自社図面と外部資料の整合性チェック</p>
-            </div>
-            <Link className="primary" to="/drawing-compare-upload-base">新規</Link>
-            <Link className="primary" to="/drawing-compare-list">一覧</Link>
-          </div>
-        </section>
-
-        <section style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: '#f8fafc', display: 'grid', gap: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h2 style={{ margin: 0 }}>図面ハイライト</h2>
-              <p style={{ margin: '4px 0 0' }}>図面の変更前後の差分をハイライト</p>
-            </div>
-            <Link className="primary" to="/drawing-highlight-upload-before">新規</Link>
-            <Link className="primary" to="/drawing-highlight-list">一覧</Link>
-          </div>
-        </section>
-
-        <section style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: '#f8fafc', display: 'grid', gap: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h2 style={{ margin: 0 }}>図面審査</h2>
-              <p style={{ margin: '4px 0 0' }}>図面審査シートの指摘内容の反映チェック</p>
-            </div>
-            <Link className="primary" to="/drawing-review-upload-excel">新規</Link>
-            <Link className="primary" to="/drawing-review-list">一覧</Link>
-          </div>
-        </section>
-
-      </div>
-    </div>
+    <Box>
+      <Header />
+      <Container>
+        <h1>ダッシュボード</h1>
+        <p>業務用途に合わせて選択してください</p>
+        <Box sx={{ width: '100%'}}>
+          <Grid container spacing={2} columns={{xs: 4, sm: 8, md: 16}}>
+            {features.map((f) =>{
+              const IconComponent = f.icon;
+              return (
+                <Grid size={{xs: 4, md: 8}} key={f.id}>
+                  <Card
+                    sx={{
+                      borderRadius:3
+                    }}
+                  >
+                    <CardContent>
+                      <Stack direction='row' spacing={2}>
+                        <Box sx={{
+                          width: 42,
+                          height: 42,
+                          borderRadius: 2,
+                          bgcolor: f.color,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0
+                        }}>
+                          <IconComponent sx={{ color: f.accentColor, gap: 4 }} />
+                        </Box>
+                        <Box>
+                          <Typography variant='h5' sx={{ fontWeight: 'bold' }}>{f.title}</Typography>
+                          <Typography variant='caption'>{f.descripttion}</Typography>
+                        </Box>
+                      </Stack>
+                    </CardContent>
+                    <CardActions sx={{ml: 2, gap: 1}}>
+                      <Button variant='contained' startIcon={<Add />} onClick={f.onNew}>新規</Button>
+                      <Button variant='outlined' startIcon={<List />} onClick={f.onList}>一覧</Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              )
+            })}
+          </Grid>
+        </Box>
+      </Container>
+    </Box>
   );
 };
