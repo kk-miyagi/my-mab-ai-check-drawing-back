@@ -17,6 +17,17 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
   const [baseImagepreview, setBaseImagePreview] = useState<string | null>(null);
   const [isPdf, setIsPdf] = useState<boolean>(false);
 
+  const [title, setTitle] = useState<string>("");
+  const [modelName, setModelName] = useState<string>("");
+
+  const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+  };
+
+  const handleModelNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setModelName(e.target.value);
+  };
+
   const handleSetBaseImageFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
@@ -104,6 +115,15 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
           </label>
         </div>
       </div>
+
+      {baseImagepreview && (
+        <div>
+          <p>タイトル</p>
+          <input type="text" value={title} onChange={handleTitleChange} placeholder="タイトル"/>
+          <p>機種名</p>
+          <input type="text" value={modelName} onChange={handleModelNameChange} placeholder="機種名"/>
+        </div>
+      )}
 
       {baseImagepreview && !isPdf && (
         <div style={{ marginBottom: '15px' }}>

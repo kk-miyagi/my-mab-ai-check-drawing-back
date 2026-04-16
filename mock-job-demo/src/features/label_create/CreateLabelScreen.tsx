@@ -14,6 +14,11 @@ import { ImagePreview } from '../../components/ImagePreview.tsx';
 const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'batch-create-label';
 
+type ModelName = {
+  name: string;
+  modelName: string;
+}
+
 type UploadedFile = {
   file: File;
   url: string; // プレビュー用のBlob URL
@@ -25,6 +30,20 @@ export const CreateLabelScreen: React.FC = () => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [currentFile, setCurrentFile] = useState<UploadedFile | null>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [title, setTitle] = useState<string>("");
+  const [modelNames, setModelNames] = useState<ModelName[]>([]);
+
+  const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+  };
+
+  const handleModelNameChange = (e: ChangeEvent<HTMLInputElement>, name: string) => {
+    const value = e.target.value;
+    setModelNames((prev) => 
+      prev.map((item) => item.name === name ? {...item, modelName: value} : item)
+    )
+  };
+
 
   const handleSetFile = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -34,8 +53,13 @@ export const CreateLabelScreen: React.FC = () => {
         url: URL.createObjectURL(file),
         isPdf: file.type === 'application/pdf' ? true : false,
       }));
+      const modelName: ModelName[] = Array.from(files).map((file) => ({
+        name: file.name,
+        modelName: ""
+      }));
       setFiles(selectedFiles)
       setCurrentFile(selectedFiles[0])
+      setModelNames(modelName)
     } else {
       setFiles([])
       setCurrentFile(null)
@@ -137,6 +161,15 @@ export const CreateLabelScreen: React.FC = () => {
           </label>
         </div>
       </div>
+
+    {files.length > 0 && currentFile && (
+      <div>
+        <p>タイトル</p>
+        <input type="text" value={title} onChange={handleTitleChange} placeholder="タイトル"/>
+        <p>機種名</p>
+        <input type="text" value={modelNames.find(f => f.name === currentFile.file.name)?.modelName} onChange={e => handleModelNameChange(e, currentFile.file.name)} placeholder="機種名" />
+      </div>
+    )}
 
       <div style={{ display: 'flex', gap: 10, marginTop: '15px', marginBottom: '15px', overflow: 'auto'}}>
         {files.length > 0  && (
