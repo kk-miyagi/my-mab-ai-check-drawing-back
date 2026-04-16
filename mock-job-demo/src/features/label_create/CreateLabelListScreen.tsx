@@ -1,21 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  AppBar,
   Box,
   Button,
   Chip,
   Container,
-  IconButton,
   Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
-  Toolbar,
-  Typography
+  TableRow
 } from '@mui/material';
 import {
   Autorenew,
@@ -24,9 +20,9 @@ import {
   ChevronRight,
   Create,
   Error,
-  Home,
   Schedule
 } from '@mui/icons-material';
+import { Header } from '../../components/Header';
 
 type ProcessStatus = 'start' | 'doing' | 'end' | 'error';
 
@@ -115,22 +111,7 @@ export const CreateLabelListScreen: React.FC = () => {
   const navigate = useNavigate();
   return (
     <Box>
-      <AppBar position="static">
-        <Toolbar variant="dense">
-          <IconButton edge="start" color="inherit" aria-label="home" onClick={() => navigate('/')}>
-            <Home />
-          </IconButton>
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{
-              color: 'inherit',
-            }}
-          >
-            検図アプリ
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <Header />
       <Container>
         <h1>ラベル付与</h1>
         <h2>処理一覧</h2>
