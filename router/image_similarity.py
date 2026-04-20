@@ -64,15 +64,22 @@ class ImageSimilarity:
 
         def sort_left_top(boxes, y_threshold=50):
             """左上から並べる
-            1. 上から順に並べる
-            2. yが近いものを同じ行としてグループ化
-            3. 2でグループ化したものを左から右に並べる
-            3. 1つの配列にまとめて返す
+            1. (0, 0)に一番距離が近い座標を求める(これが1番)
+            2. 1以外を上から順に並べる
+            3. yが近いものを同じ行としてグループ化
+            4. 2でグループ化したものを左から右に並べる
+            5. 1つの配列にまとめて返す
             """
-            boxes = sorted(boxes, key=lambda b: b[1])  # まずyでソート
+            target_box = min(
+                boxes, key=lambda b: (b[0]**2 + b[1]**2, b[1], b[0])
+            )
+            boxes_without_target = [b for b in boxes if b is not target_box]
+            
+            # まずyでソート
+            boxes_without_target = sorted(boxes_without_target, key=lambda b: b[1])
             rows = []
 
-            for box in boxes:
+            for box in boxes_without_target:
                 placed = False
                 for row in rows:
                     # yが近ければ同じ行
@@ -86,6 +93,7 @@ class ImageSimilarity:
             result = []
             for row in rows:
                 result.extend(sorted(row, key=lambda b: b[0]))
+            result = [target_box] + result
             return result
 
         image = cv2.imread(img_path)
@@ -135,7 +143,7 @@ class ImageSimilarity:
                         and j != i for j in range(len(boxes)))
             ):
                 output_rects.append(list(contours_list[i]))
-
+        print(output_rects)
         # 左上からソート
         sorted_rects = sort_left_top(output_rects)
         print(f"output_rects size: {len(sorted_rects)}")
