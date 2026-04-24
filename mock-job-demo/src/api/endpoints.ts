@@ -12,5 +12,6 @@ export const ENDPOINTS = {
   drawingReview: `${PREFIX}/drawing-review/`,
   drawingCompare: `${PREFIX}/drawing-compare/`,
   getImageSimilarity: `${PREFIX}/image-similarity/`,
-  drawingHighlight: `${PREFIX}/drawing-highlight/`
+  drawingHighlight: `${PREFIX}/drawing-highlight/`,
+  issueGroupId: `${PREFIX}/issue/group-id/`
 };
