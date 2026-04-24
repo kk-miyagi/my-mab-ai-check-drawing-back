@@ -1,9 +1,16 @@
-export interface CreateLabelRequest {
-  user: string;
-  epic: string;
+export type Operations = {
   operation: string;
   operation_id: string;
   status: 'start' | 'doing' | 'end' | string;
+}
+
+export interface CreateLabelRequest {
+  user: string;
+  epic: string;
+  group_id: string;
+  group_status: 'start' | 'doing' | 'end' | string;
+  others: Record<string, string>;
+  operations: Operations[];
 }
 
 export interface CreateLabelResponse {
