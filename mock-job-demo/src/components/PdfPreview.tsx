@@ -9,7 +9,7 @@ export const PdfPreview: React.FC<PreviewProps> = ({ preview }) => {
     <div
       style={{
         width: '100%',
-        maxHeight: '2000px',
+        maxHeight: '80vh',
         height: 'min(80vh, 2000px)',
         border: '1px solid #ddd',
         borderRadius: 8,
@@ -19,7 +19,7 @@ export const PdfPreview: React.FC<PreviewProps> = ({ preview }) => {
     >
       <iframe
         title="PDFプレビュー"
-        src={preview}
+        src={`${preview}#page=1&view=FitH`}
         style={{
           width: '100%',
           height: '100%',

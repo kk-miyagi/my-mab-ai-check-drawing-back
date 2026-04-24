@@ -15,7 +15,7 @@ export const ImagePreview: React.FC<ImageFile> = ({ file, url }) => {
           alt={file.name}
           style={{
             width: '100%',
-            maxHeight: '2000px',
+            maxHeight: '80vh',
             objectFit: 'contain'
           }}
         />
