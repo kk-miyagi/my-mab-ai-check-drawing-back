@@ -22,6 +22,10 @@ export interface CreateLabelResponse {
   message: string;
 }
 
+export type NavigateState = CreateLabelRequest & {
+  fileName: string;
+}
+
 export type Phase = 'idle' | 'issuing_id' | 'uploading' | 'verifying' | 'complete' | 'error';
 
 export type CsvRow = Record<string, string>

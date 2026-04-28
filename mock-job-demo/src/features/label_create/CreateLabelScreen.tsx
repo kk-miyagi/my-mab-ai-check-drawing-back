@@ -1,10 +1,11 @@
 import React, { ChangeEvent, useMemo, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import type { OperationIssueRequest, UploadPairRequest } from '../../types/uploadServer.ts';
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
-import type { CreateLabelRequest } from '../../types/createLabel.ts';
+import type { CreateLabelRequest, NavigateState } from '../../types/createLabel.ts';
 import {
   Box,
   Button,
@@ -45,6 +46,7 @@ const toUploadedFile = (item: UploadFileItem): UploadedFile => {
 };
 
 export const CreateLabelScreen: React.FC = () => {
+  const navigate = useNavigate();
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [currentFile, setCurrentFile] = useState<UploadedFile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false); // ローディング状態の管理(これがないと一連の処理が完了する前に再度ボタンを押せてしまう)
@@ -108,7 +110,7 @@ export const CreateLabelScreen: React.FC = () => {
   const handleStart = async () => {
     setIsLoading(true);
     const modelNameMap = new Map(modelNames.map((item) => [item.id, item.modelName]));
-
+    const requests: NavigateState[] = [];
     try {
       for (let i = 0; i < files.length; i++) {
         const groupIdPayload = {
@@ -139,7 +141,6 @@ export const CreateLabelScreen: React.FC = () => {
           files: [files[i].file],
         };
         await uploadApi.uploadPair(uploadPayload);
-        console.log('Upload Payload:', uploadPayload);
 
         // ローカルストレージへ保存
         const localStorageData: LocalStorageDataV2 = {
@@ -160,8 +161,10 @@ export const CreateLabelScreen: React.FC = () => {
           },
           operations: [{ operation: DEFAULT_OPERATION, operation_id: operationId, status: 'start' }],
         };
+        requests.push({ ...createLabelPayload, fileName: files[i].file.name });
         await createLabelApi.createLabelStart(createLabelPayload);
       }
+      await navigate('/create-label-processing', { state: { requests } });
     } catch (e) {
       window.alert('エラーが発生しました。再度お試しください。');
     } finally {

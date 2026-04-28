@@ -22,16 +22,13 @@ async function postForm<TResponse>(path: string, formData: FormData, responseTyp
 
 export const createLabelApi = {
   async createLabelStart(payload: CreateLabelRequest): Promise<CreateLabelResponse> {
-    if (USE_MOCK_API) {
-      await wait(400);
-      return { user: "demo-user", epic: "test", operation: "test", operation_id: payload.operation_id, status: 'end', message: 'test' };
-    }
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
-    form.append('operation', payload.operation);
-    form.append('operation_id', payload.operation_id);
-    form.append('status', payload.status);
+    form.append('group_id', payload.group_id);
+    form.append('group_status', payload.group_status);
+    form.append('others', JSON.stringify(payload.others));
+    form.append('operations', JSON.stringify(payload.operations));
     return postForm(CREATELABEL_ENDPOINT, form);
   },
 
@@ -39,9 +36,10 @@ export const createLabelApi = {
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
-    form.append('operation', payload.operation);
-    form.append('operation_id', payload.operation_id);
-    form.append('status', payload.status);
+    form.append('group_id', payload.group_id);
+    form.append('group_status', payload.group_status);
+    form.append('others', JSON.stringify(payload.others));
+    form.append('operations', JSON.stringify(payload.operations));
     return postForm(CREATELABEL_ENDPOINT, form, 'blob');
   },
 
