@@ -3,7 +3,12 @@ import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { getRedirectUrl } from './routers/getRedirectUrl';
 import { AppRouter } from './routers/Router';
-import './index.css';
+import {
+  CssBaseline,
+  ThemeProvider
+} from '@mui/material';
+import { theme } from './styles/theme';
+// import './index.css';
 
 export const App: React.FC = () => {
   const initialEntry = (() => {
@@ -34,6 +39,9 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <React.StrictMode>
-    <App />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <App />
+    </ThemeProvider>
   </React.StrictMode>
 );
