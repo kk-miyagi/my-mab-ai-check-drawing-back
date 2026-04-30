@@ -4,6 +4,8 @@ import Papa from 'papaparse';
 import {
   Box,
   Button,
+  Container,
+  Divider,
   Drawer,
   Paper,
   Stack,
@@ -25,6 +27,7 @@ import type { DraftRect, HandleDirection, InteractionMode, RectModel } from './c
 import { Geometry } from './compare/services/Geometry.ts';
 import { RectFactory } from './compare/services/RectFactory.ts';
 import { RectManipulator } from './compare/services/RectManipulator.ts';
+import { Header } from '../../components/Header.tsx';
 
 const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'batch-update-label';
@@ -624,7 +627,7 @@ export const UpdateLabelScreen: React.FC = () => {
         number: 1,
         files: imageFile.concat([csvToUpload]),
         // JSON文字列で矩形座標情報をサーバーに送信
-        rects: JSON.stringify(rects),
+        // rects: JSON.stringify(rects),
       };
       await uploadApi.uploadPair(requestPayload);
 
@@ -730,74 +733,40 @@ export const UpdateLabelScreen: React.FC = () => {
   const selectedRowIndex = selectedId ? rectRowMap[selectedId] : undefined;
 
   return (
-    <div
-      className="page"
-      style={{
-        maxWidth: '96vw',
-        width: '96vw',
-        margin: '20px auto',
-        padding: '20px 24px',
-        boxSizing: 'border-box',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>ラベル付与_修正内容反映後用</h1>
-      </div>
+    <Box>
+      <Header />
+      <Container>
+        <Stack spacing={2} sx={{ py: 2 }}>
+          <Typography variant="h4">ラベル付与の編集</Typography>
+          <Typography variant="body1" color="text.secondary">
+            ラベル付与の結果で修正したい内容がある場合、画面で修正を行います。<br />
+            矩形をドラッグして位置やサイズを調整したり、CSVの内容を編集したりして、修正内容を反映させてください。<br />
+            準備ができたら「開始」ボタンを押してサーバーに送信します。
+          </Typography>
 
-      <ul>
-        <li>修正内容を反映した図面とCSVをそれぞれ1枚ずつアップロードしてください。</li>
-        <li>図面上ではドラッグで矩形追加、選択中矩形の移動・リサイズ・削除ができます。</li>
-        <li>想定
-          <ul>
-            <li>CSVは.csvの拡張子であること</li>
-            <li>図面が画像形式ファイル(JPGやPNGなど)。</li>
-          </ul>
-        </li>
-      </ul>
+          <Paper elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 2, p: 1.5, backgroundColor: '#f8fafc', display: 'grid', gap: 1.25 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>画像ファイル</Typography>
+              <input type="file" accept="image/*" onChange={handleSetFile} />
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>CSVファイル</Typography>
+              <input type="file" accept=".csv" onChange={handleSetCsvFile} />
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>矩形JSON(任意)</Typography>
+              <input type="file" accept=".json,application/json" onChange={handleSetRectJsonFile} />
+          </Paper>
 
-      <Paper elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 2, p: 1.5, backgroundColor: '#f8fafc', display: 'grid', gap: 1.25 }}>
-        <Typography variant="body2" sx={{ fontWeight: 700 }}>画像ファイル</Typography>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <input type="file" accept="image/*" onChange={handleSetFile} />
-        </label>
-        <Typography variant="body2" sx={{ fontWeight: 700 }}>CSVファイル</Typography>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <input type="file" accept=".csv" onChange={handleSetCsvFile} />
-        </label>
-        <Typography variant="body2" sx={{ fontWeight: 700 }}>矩形JSON（任意）</Typography>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <input type="file" accept=".json,application/json" onChange={handleSetRectJsonFile} />
-        </label>
-      </Paper>
-
-      <h3>プレビュー</h3>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: 16,
-          alignItems: 'start',
-          position: 'relative',
-        }}
-      >
-        <div style={{ minWidth: 0, display: 'grid', gap: 12 }}>
-          <Stack direction="row" spacing={1.25} alignItems="center" useFlexGap flexWrap="wrap">
-            <strong style={{ fontSize: 14, color: '#1e293b' }}>編集キャンバス</strong>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <Button variant="contained" size="small" onClick={handleZoomOut} sx={{ minWidth: 32, px: 1 }}>−</Button>
-              <span style={{ fontSize: 12, color: '#64748b', minWidth: 50, textAlign: 'center' }}>{Math.round(zoom * 100)}%</span>
-              <Button variant="contained" size="small" onClick={handleZoomIn} sx={{ minWidth: 32, px: 1 }}>+</Button>
-            </div>
-            <Button variant="contained" size="small" onClick={handleDeleteSelected} disabled={!selectedId}>削除</Button>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={handleResetToInitialJson}
-              disabled={!initialJsonSnapshot}
-            >
-              最初に戻す
+          <Stack direction="row" divider={<Divider orientation="vertical" flexItem />} spacing={2} sx={{ justifyContent: 'flex-end', width: '100%'}}>
+            <Button variant="contained" onClick={handleRemoveItem}>ホームに戻る</Button>
+            <Button variant="contained" onClick={handleStart} disabled={imageFile.length === 0 || csvFile.length === 0}>
+              ラベル編集処理を開始する
             </Button>
+          </Stack>
+
+          <Stack direction="row" sx={{ alignItems: 'center'}} spacing={1.25}>
+            <Typography variant="subtitle2">編集キャンバス</Typography>
+            <Button variant="contained" size="small" onClick={handleZoomOut}>-</Button>
+            <Typography variant='caption'>{Math.round(zoom * 100)}%</Typography>
+            <Button variant="contained" size="small" onClick={handleZoomIn}>+</Button>
+            <Button variant="contained" size="small" onClick={handleDeleteSelected} disabled={!selectedId}>削除</Button>
+            <Button variant="outlined" size="small" onClick={handleResetToInitialJson} disabled={!initialJsonSnapshot}>最初に戻す</Button>
           </Stack>
 
           {imagePreview ? (
@@ -926,22 +895,21 @@ export const UpdateLabelScreen: React.FC = () => {
             {/* FIXME(keep): 操作説明は問い合わせ抑止のため残す。編集仕様が変わったら文言を更新する。 */}
             使い方: 画像の空き領域をドラッグで矩形追加。矩形クリックで選択、ドラッグで移動、四隅でリサイズ、削除ボタンで削除。
           </div>
-        </div>
-      </div>
 
       <Drawer
         anchor="right"
         open={showRightPanel}
         onClose={() => setShowRightPanel(false)}
-        PaperProps={{
-          sx: {
-            width: 560,
-            maxWidth: '100vw',
-            borderTopLeftRadius: 10,
-            borderBottomLeftRadius: 10,
+        slotProps={{
+          paper: {
+            sx: {
+              width: 700,
+              maxWidth: '100vw',
+              borderTopLeftRadius: 10,
+              borderBottomLeftRadius: 10,
+            },
           },
-        }}
-      >
+        }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.25, borderBottom: '1px solid #e2e8f0' }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#334155' }}>寸法情報リスト</Typography>
           <Button variant="contained" size="small" onClick={() => setShowRightPanel(false)}>閉じる</Button>
@@ -1037,15 +1005,8 @@ export const UpdateLabelScreen: React.FC = () => {
       >
         {showRightPanel ? '◀' : '▶'}
       </Button>
-
-      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <Button variant="contained" onClick={handleRemoveItem}>
-          ホームに戻る
-        </Button>
-        <Button variant="contained" onClick={handleStart} disabled={imageFile.length === 0 || csvFile.length === 0}>
-          処理開始
-        </Button>
-      </div>
-    </div>
+        </Stack>
+      </Container>
+    </Box>
   );
 };
