@@ -2,8 +2,11 @@ import type { RectModel, SimilarSuggestion } from '../types';
 import { Cropper } from './Cropper';
 
 interface FetchSuggestionsParams {
+  // source 側の矩形座標。呼び出し元では rects/currentSourceId から取り出す。
   sourceRect: RectModel;
+  // target 側の設計画像データ。呼び出し元では images.target を渡す。
   targetImg: string;
+  // target 側の矩形座標一覧。呼び出し元では rects をそのまま渡し、内部で role === 'target' を使用する。
   targetRects: RectModel[];
   cropper: Cropper;
 }
