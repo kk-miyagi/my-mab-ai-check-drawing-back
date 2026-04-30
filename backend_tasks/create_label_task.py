@@ -33,6 +33,10 @@ from utils.simple_multi_genemipronpt import (
         extract_first_json
 )
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from tools.sort_manga_panels import sort_mange_panels
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
@@ -1118,6 +1122,17 @@ def _export_matches_csv(
             reason_text = _format_reason(match)
             writer.writerow([idx, item, value, note, reason_text])
 
+    data_list = []
+    for idx, match in enumerate(matches, start=start_index):
+        item = {
+            "id": idx,
+            "row_index": match.get("row_index"),
+            "rect": match.get("rect")
+        }
+        data_list.append(item)
+    with open(Path(f"{output_dir}rects.json"), "w", encoding="utf-8") as jsonfile:
+        json.dump(data_list, jsonfile, ensure_ascii=False, indent=2)
+
     return output_path
 
 
@@ -1637,6 +1652,19 @@ def highlight_mab_dimensions(
 
     _write_json_file(run_dir / "final_matches.json", ordered_matches)
     _write_json_file(run_dir / "unmatched_entries.json", unmatched_entries)
+
+    def sort_matches(items, y_threshold=50):
+        """rectで並び替え"""
+        rects = [item["rect"] for item in items]
+        sorted_rects = sort_mange_panels(rects, y_threshold=y_threshold)
+
+        rect_to_items = {tuple(item["rect"]): item for item in items}
+        sorted_data = [rect_to_items[tuple(rect)] for rect in sorted_rects]
+
+        return sorted_data
+
+    # 画像とCSVの並び順のためにrectでソートする    
+    ordered_matches = sort_matches(ordered_matches)
 
     annotated_path = _annotate_matches(
         image_path,
