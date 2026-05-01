@@ -739,11 +739,9 @@ export const UpdateLabelScreen: React.FC = () => {
         <Stack spacing={2} sx={{ py: 2 }}>
           <Typography variant="h4">ラベル編集</Typography>
           <Typography variant="body1" color="text.secondary">
-            ラベル付与の結果で修正したい内容がある場合、画面で修正を行います。<br />
-            画像の空き領域をドラッグして矩形を追加できます。<br />
-            矩形をクリックして移動やリサイズ・「削除」ボタンで削除が行えます。<br />
+            図面の空き領域をドラッグして矩形を追加、選択して矩形の編集ができます。<br />
             右下の「▶」ボタンから寸法情報の一覧を開いて内容を編集できます。<br />
-            準備ができたら「ラベル編集処理を開始する」ボタンを押してください。
+            画面での操作が終わったら「ラベル編集処理を開始する」ボタンを押してください。
           </Typography>
 
           <Paper elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 2, p: 1.5, backgroundColor: '#f8fafc', display: 'grid', gap: 1.25 }}>
