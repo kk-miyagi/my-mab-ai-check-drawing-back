@@ -50,7 +50,7 @@ async def update_label_init(request: Request):
  
             latest_dir = max(dirs, key=lambda d: d.name.split("_")[1])
 
-            rects_json_path = (latest_dir / "final_matches.json").as_posix()
+            rects_json_path = (Path(base_dir) / "rects.json").as_posix()
 
             file_list = img_list + csv_list + [rects_json_path]
             print(f"file_list: {file_list}")
