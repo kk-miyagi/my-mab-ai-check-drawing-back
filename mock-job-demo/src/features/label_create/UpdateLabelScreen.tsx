@@ -152,7 +152,10 @@ export const UpdateLabelScreen: React.FC = () => {
       ...row,
       __rowIndex: detectRowIndex(row, index + 1),
     }));
-
+    setInitialJsonSnapshot(prev => ({
+      ...(prev ?? { rects: [], rectRowMap: {} }),
+      csvRows: cloneRows(normalizedRows),
+    }));
     setCsvRows(normalizedRows);
     setCsvColumns(filteredColumns);
     setCsvFileName(fileName);
@@ -253,7 +256,7 @@ export const UpdateLabelScreen: React.FC = () => {
   };
 
   const handleRemoveItem = () => {
-    navigate('/hub');
+    navigate('/create-label-list');
   };
 
   const getRelativePos = (event: React.MouseEvent) =>
@@ -719,7 +722,40 @@ export const UpdateLabelScreen: React.FC = () => {
     }
 
     loadedRectsRef.current = true;
-    void updateRectFromPixelTuple(imagePreview, data.rects);
+    const convertLocationRectsToSizeTuple = (
+      rawRects: Record<string, RectTuple>
+    ): Record<string, RectTuple> => {
+      const normalized: Record<string, RectTuple> = {};
+      Object.entries(rawRects).forEach(([rowKey, tuple]) => {
+        const [x1, y1, x2, y2] = tuple.map((value) => Number(value)) as RectTuple;
+        if (![x1, y1, x2, y2].every((value) => Number.isFinite(value))) return;
+        const left = Math.min(x1, x2);
+        const top = Math.min(y1, y2);
+        const width = Math.abs(x2 - x1);
+        const height = Math.abs(y2 - y1);
+        normalized[rowKey] = [left, top, width, height];
+      });
+      return normalized;
+    };
+
+    const rowByIndex = new Map(csvRows.map((row) => [row.__rowIndex, row]));
+    const normalizedLocationRects = convertLocationRectsToSizeTuple(data.rects);
+    void (async () => {
+      const loadedState = await updateRectFromPixelTuple(imagePreview, normalizedLocationRects);
+      if (!loadedState) return;
+      const rowIndexes = Object.values(loadedState.nextMap).sort((a, b) => a - b);
+      const columns = csvColumns.length > 0 ? csvColumns : DEFAULT_CSV_COLUMNS;
+      const rowByIndex = new Map(csvRows.map((row) => [row.__rowIndex, row]));
+      const restoredCsvRows = rowIndexes.map((rowIndex) => {
+        const existing = rowByIndex.get(rowIndex);
+        return existing ? { ...existing } : createEmptyRow(rowIndex, columns);
+      });
+      setInitialJsonSnapshot(prev => ({
+        rects: cloneRectList(loadedState.nextRects),
+        rectRowMap: { ...loadedState.nextMap },
+        csvRows: prev?.csvRows ?? cloneRows(restoredCsvRows),
+      }));
+    })();
   }, [imagePreview, data]);
 
   useEffect(() => {
@@ -744,18 +780,9 @@ export const UpdateLabelScreen: React.FC = () => {
             画面での操作が終わったら「ラベル編集処理を開始する」ボタンを押してください。
           </Typography>
 
-          <Paper elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 2, p: 1.5, backgroundColor: '#f8fafc', display: 'grid', gap: 1.25 }}>
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>画像ファイル</Typography>
-              <input type="file" accept="image/*" onChange={handleSetFile} />
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>CSVファイル</Typography>
-              <input type="file" accept=".csv" onChange={handleSetCsvFile} />
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>矩形JSON(任意)</Typography>
-              <input type="file" accept=".json,application/json" onChange={handleSetRectJsonFile} />
-          </Paper>
-
           <Stack direction="row" divider={<Divider orientation="vertical" flexItem />} spacing={2} sx={{ justifyContent: 'flex-end', width: '100%'}}>
-            <Button variant="contained" onClick={handleRemoveItem}>ホームに戻る</Button>
-            <Button variant="contained" onClick={handleStart} disabled={imageFile.length === 0 || csvFile.length === 0}>
+            <Button variant="contained" onClick={handleRemoveItem}>一覧に戻る</Button>
+            <Button variant="contained" disabled={imageFile.length === 0 || csvFile.length === 0}>
               ラベル編集処理を開始する
             </Button>
           </Stack>

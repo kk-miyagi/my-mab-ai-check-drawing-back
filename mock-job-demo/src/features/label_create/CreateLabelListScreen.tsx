@@ -23,6 +23,8 @@ import {
   Schedule
 } from '@mui/icons-material';
 import { Header } from '../../components/Header';
+import { UpdateLabelInitRequest } from '../../types/createLabel';
+import { updateLabelInit } from '../../hooks/updateLabelInit';
 
 type ProcessStatus = 'start' | 'doing' | 'end' | 'error';
 
@@ -52,15 +54,30 @@ type StatusConfig = {
 };
 
 const NavigateButton: React.FC<{ status: ProcessStatus, isComlete: boolean }> = ({ status, isComlete }) => {
+  const navigate = useNavigate();
+  const t : UpdateLabelInitRequest = {
+    user: "demo-user",
+    epic: "create-label",
+    operation: "update-label-init",
+    operation_id: "0cee10ef-d568-4839-bf72-8511a3dd9813",
+    status: "start"
+  }
+  const handleClick = async () => {
+    await updateLabelInit(
+      t,
+      navigate,
+      "/update-label"
+    );
+  };
   if (status === 'start' || status === 'doing' || status === 'error') {
     return;
   }
   const config = {
-    end: isComlete ? {label: '詳細', icon: <ChevronRight />} : {label: '編集', icon: <Create />}
+    end: isComlete ? {label: '詳細', icon: <ChevronRight />, nav: () => navigate('/create-label-list')} : {label: '編集', icon: <Create />, nav: () => handleClick()}
   }
-  const { label, icon } = config[status];
+  const { label, icon, nav } = config[status];
   return(
-    <Button variant="outlined" color='inherit'>{icon}{label}</Button>
+    <Button variant="outlined" color='inherit' onClick={nav}>{icon}{label}</Button>
   );
 }
 

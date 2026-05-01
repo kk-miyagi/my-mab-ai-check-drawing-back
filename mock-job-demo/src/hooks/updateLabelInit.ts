@@ -56,7 +56,7 @@ export const updateLabelInit = async (
     const jsonText = await json.async('string');
     const parseJsonText = JSON.parse(jsonText);
     rects = Object.fromEntries(
-      parseJsonText.filter(item => "row_index" in item && "rect" in item).map(item => [item.row_index, item.rect])
+      parseJsonText.filter(item => "id" in item && "rect" in item).map(item => [item.id, item.rect])
     )
   } else {
     return
