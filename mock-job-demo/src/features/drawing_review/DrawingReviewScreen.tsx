@@ -132,7 +132,7 @@ export const DrawingReviewScreen: React.FC = () => {
       window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
 
       // 実行中画面に切り替え
-      navigate("/drawing-review-processing")
+      navigate("/")
 
       let res: DrawingReviewResponse;
       res = await drawingReviewApi.drawingReviewStart({

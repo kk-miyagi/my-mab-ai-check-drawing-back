@@ -119,7 +119,7 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
 
       if (Object.keys(similarities).length === 0) {
         // 実行中画面に遷移して、対象のAPIを叩く
-        navigate("/drawing-highlight-processing")
+        navigate("/")
         const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingHighlight) as string);
         localStorageData.operation = "drawing-highlight"
         localStorageData.status = "doing"

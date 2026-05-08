@@ -164,7 +164,7 @@ export const CreateLabelScreen: React.FC = () => {
         requests.push({ ...createLabelPayload, fileName: files[i].file.name });
         await createLabelApi.createLabelStart(createLabelPayload);
       }
-      await navigate('/create-label-processing', { state: { requests } });
+      await navigate('/');
     } catch (e) {
       window.alert('エラーが発生しました。再度お試しください。');
     } finally {

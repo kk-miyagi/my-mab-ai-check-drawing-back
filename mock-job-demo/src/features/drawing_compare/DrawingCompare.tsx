@@ -471,7 +471,7 @@ export const DrawingCompare: React.FC = () => {
   const handleRunComparison = () => {
     const sourceRect = rects.filter((rect) => rect.role === 'source');
     const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
-    navigate("/drawing-compare-processing")
+    navigate("/")
 
     // ローカルストレージの取得
     const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingCompare)
