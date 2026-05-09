@@ -171,7 +171,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
         <Stack spacing={2} sx={{ py: 2 }}>
           <Typography variant="h4">図面審査</Typography>
           <Typography variant="body1" color="text.secondary">
-            処理を行いたい図面審査を選択し、タイトルと機種名を入力して「次へ」ボタンを押してください。
+            処理を行いたい図面審査シートを選択し、タイトルと機種名を入力して「次へ」ボタンを押してください。
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>

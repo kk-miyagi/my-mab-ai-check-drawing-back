@@ -286,7 +286,7 @@ export const DrawingReviewScreen: React.FC = () => {
 
           {validationMessage04.length > 0 && (
             <Alert severity='error'>
-              <AlertTitle>ファイルが重複しています。</AlertTitle>
+              <AlertTitle>図面が重複しています。</AlertTitle>
               <ul>{validationMessage04.map((i) => (<li>{i}</li>))}</ul>
             </Alert>
           )}
