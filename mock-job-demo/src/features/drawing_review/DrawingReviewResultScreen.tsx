@@ -5,6 +5,22 @@ import { localStorageKey } from '../../constants/localStorageKey';
 import { LocalStorageData } from '../../types/storage.ts';
 import { drawingReviewApi } from '../../api/drawingReviewApi';
 import * as XLSX from 'xlsx';
+import {
+  Box,
+  Button,
+  Container,
+  Stack,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Paper,
+  ToggleButton,
+  ToggleButtonGroup,
+} from '@mui/material';
+import { Header } from '../../components/Header';
 
 const downloadBlob = (blob: Blob, filename: string) => {
   const url = URL.createObjectURL(blob);
@@ -113,71 +129,69 @@ export const DrawingReviewResultScreen: React.FC = () => {
   }, []);
 
   return (
-    <div className="page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>図面審査の結果表示</h2>
-        <Link to="/hub" >ホームに戻る</Link>
-      </div>
+    <Box>
+      <Header />
+      <Container>
+        <Stack spacing={2} sx={{ py: 2 }}>
+          <Typography variant="h4">図面審査</Typography>
+          <Typography variant="body1" color="text.secondary">
+            ダウンロードボタンを押すと、図面審査シートがダウンロードされます。
+          </Typography>
 
-      {sheets.length > 0 && (
-        <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {sheets.map((s, idx) => (
-            <button
-              key={s.name}
-              onClick={() => setActiveIndex(idx)}
-              style={{
-                padding: '6px 10px',
-                border: '1px solid #ccc',
-                background: idx === activeIndex ? 'green' : '#fff',
-                cursor: 'pointer',
-              }}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              onClick={handleDownload}
             >
-              {s.name}
-            </button>
-          ))}
-        </div>
-      )}
+              ダウンロード
+            </Button>
+          </Box>
 
-      {sheets[activeIndex] && (
-        <div style={{ marginTop: 12, overflowX: 'auto' }} className='table-wrapper'>
-          <table
-            style={{
-              borderCollapse: 'collapse',
-              minWidth: 600,
-            }}
-          >
-            <tbody className='table-row'>
-              {sheets[activeIndex].rows.slice(handleSlice(sheets[activeIndex].name)).map((row, rIdx) => (
-                <tr key={rIdx}>
-                  {row.map((cell, cIdx) => (
-                    <td
-                      key={cIdx}
-                      style={{
-                        border: '1px solid #ddd',
-                        padding: '6px 10px',
-                        whiteSpace: 'nowrap',
-                      }}
-                      title={String(cell ?? '')}
-                    >
-                      {String(cell ?? "")}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* 行数・列数の簡易表示 */}
-          <p style={{ marginTop: 8, color: '#666' }}>
-            {sheets[activeIndex].name}：{sheets[activeIndex].rows.length} 行 ×{" "}
-            {Math.max(0, ...sheets[activeIndex].rows.map(r => r.length))} 列
-          </p>
-        </div>
-      )}
-
-      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleDownload}>図面審査シートをダウンロード</button>
-      </div>
-    </div>
+          {sheets.length > 0 && (
+            <>
+              <ToggleButtonGroup
+                value={activeIndex}
+                exclusive
+                onChange={(_, v) => v !== null && setActiveIndex(v)}
+                sx={{ mt: 1.5, flexWrap: 'wrap' }}
+                size="small"
+              >
+                {sheets.map((s, idx) => (
+                  <ToggleButton key={s.name} value={idx}>
+                    {s.name}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+              <Box>
+                {sheets[activeIndex] && (
+                  <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+                    <Table size="small" sx={{ minWidth: 600 }}>
+                      <TableBody>
+                        {sheets[activeIndex].rows
+                          .slice(handleSlice(sheets[activeIndex].name))
+                          .map((row, rIdx) => (
+                            <TableRow key={rIdx} hover>
+                              {row.map((cell, cIdx) => (
+                                <TableCell
+                                  key={cIdx}
+                                  title={String(cell ?? '')}
+                                  sx={{ whiteSpace: 'nowrap' }}
+                                >
+                                  {String(cell ?? '')}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Box>
+            </>
+          )}
+        </Stack>
+      </Container>
+     
+    </Box>
   );
 };
