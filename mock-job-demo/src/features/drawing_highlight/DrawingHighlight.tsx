@@ -456,7 +456,7 @@ export const DrawingHighlight: React.FC = () => {
   const handleRunComparison = () => {
     const sourceRect = rects.filter((rect) => rect.role === 'source');
     const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
-    navigate("/drawing-highlight-processing")
+    navigate("/")
 
     // ローカルストレージの取得
     const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingHighlight)

@@ -123,7 +123,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
         localStorageData.operation = 'batch-drawing-compare'
         localStorageData.status = 'start'
         window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-        navigate("/drawing-compare-processing")
+        navigate("/")
         const requestPayload  = {
           user: localStorageData.user,
           epic: localStorageData.epic,

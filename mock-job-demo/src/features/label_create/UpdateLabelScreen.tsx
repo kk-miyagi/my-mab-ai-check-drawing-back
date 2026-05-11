@@ -634,7 +634,7 @@ export const UpdateLabelScreen: React.FC = () => {
       };
       await uploadApi.uploadPair(requestPayload);
 
-      navigate('/update-label-processing');
+      navigate('/');
 
       let res: CreateLabelResponse;
       res = await createLabelApi.updateLabelStart({
