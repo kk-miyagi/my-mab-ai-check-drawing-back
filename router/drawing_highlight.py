@@ -12,6 +12,7 @@ import zipfile
 from datetime import datetime
 import json
 import shutil
+import img2pdf
 
 
 router = APIRouter(prefix='/api', route_class=AppRoute)
@@ -350,12 +351,23 @@ async def drawing_highlight(request: Request):
                     "DRAWING-HIGHLIGHT SAVE OUTPUT IMAGE!"
                 )
 
+                # pdf変換
+                image_files = [
+                    f"{out_dir}/target_output_img.jpg",
+                    f"{out_dir}/base_output_img.jpg"
+                ]
+                for file in image_files:
+                    file = Path(file)
+                    new_file_name = Path(file).with_suffix(".pdf")
+                    with open(new_file_name, "wb") as f:
+                        f.write(img2pdf.convert(file))
+
                 # 2)ダウンロード先ディレクトリからCSVファイル読み込み
 
                 fname_list = os.listdir(out_dir)
                 file_list = [
                     f"{out_dir}/{fname}" for fname in fname_list
-                    if fname.endswith('.jpg')
+                    if fname.endswith('.pdf')
                 ]
                 print(f"file_list: {file_list}")
                 # 3)ZIPに固めてダウンロードの返信を実施
