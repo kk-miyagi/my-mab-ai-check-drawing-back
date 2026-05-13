@@ -6,6 +6,26 @@ import { OperationIssueRequest } from '../../types/upload.ts';
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import * as XLSX from 'xlsx';
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  Container,
+  Stack,
+  TextField,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Paper,
+  ToggleButton,
+  ToggleButtonGroup,
+} from '@mui/material';
+import { Header } from '../../components/Header';
+import { InputExcelFile } from '../../components/InputExcelFile';
 
 const DEFAULT_EPIC = 'drawing-review';
 const DEFAULT_OPERATION = 'upload-excel';
@@ -36,13 +56,9 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
     setModelName(e.target.value);
   };
 
-  const handleSetExcelFile = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const selectedFile = files[0];
+  const handleSetExcelFile = async (selectedFile: File | null) => {
+    if (selectedFile) {
       setExcelFile([selectedFile]);
-
-      
 
       // 追加
       setSheets([]);
@@ -149,102 +165,113 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
   }, [sheets])
 
   return (
-    <div className="page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>図面審査</h1>
-        <Link to="/hub">前に戻る</Link>
-      </div>
+    <Box>
+      <Header />
+      <Container>
+        <Stack spacing={2} sx={{ py: 2 }}>
+          <Typography variant="h4">図面審査</Typography>
+          <Typography variant="body1" color="text.secondary">
+            処理を行いたい図面審査シートを選択し、タイトルと機種名を入力して「次へ」ボタンを押してください。
+          </Typography>
 
-      <h3>図面審査シートのアップロード</h3>
-
-      <div style={{ display: 'grid', gap: 12 }}>
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
-          <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" accept=".xlsx" onChange={handleSetExcelFile} />
-          </label>
-        </div>
-
-        {validation01.length > 0  && (
-        <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
-          <ul><li>指摘先の図番の末尾に「-01」が無いようです。</li><ul>{validation01.map((i) => (<li>No:{i[0]} {i[3]}</li>))}</ul></ul>
-        </div>
-        )}
-
-        {validation02.length > 0  && (
-        <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
-          <ul><li>反映先の図番の末尾に「-02」が無いようです。</li><ul>{validation02.map((i) => (<li>No:{i[0]} {i[7]}</li>))}</ul></ul>
-        </div>
-        )}
-      </div>
-
-      {sheets.length > 0 && (
-        <div>
-          <p>タイトル</p>
-          <input type="text" value={title} onChange={handleTitleChange} placeholder="タイトル"/>
-          <p>機種名</p>
-          <input type="text" value={modelName} onChange={handleModelNameChange} placeholder="機種名"/>
-        </div>
-      )}
-
-      {sheets.length > 0 && (
-        <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {sheets.map((s, idx) => (
-            <button
-              key={s.name}
-              onClick={() => setActiveIndex(idx)}
-              style={{
-                padding: '6px 10px',
-                border: '1px solid #ccc',
-                background: idx === activeIndex ? 'green' : '#fff',
-                cursor: 'pointer',
-              }}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              onClick={handleStart}
+              disabled={excelFile.length === 0 || validation01.length > 0 || validation02.length > 0}
             >
-              {s.name}
-            </button>
-          ))}
-        </div>
-      )}
+              次へ
+            </Button>
+          </Box>
 
-      {sheets[activeIndex] && (
-        <div style={{ marginTop: 12, overflowX: 'auto' }} className='table-wrapper'>
-          <table
-            style={{
-              borderCollapse: 'collapse',
-              minWidth: 600,
-            }}
-          >
-            <tbody className='table-row'>
-              {sheets[activeIndex].rows.slice(handleSlice(sheets[activeIndex].name)).map((row, rIdx) => (
-                <tr key={rIdx}>
-                  {row.map((cell, cIdx) => (
-                    <td
-                      key={cIdx}
-                      style={{
-                        border: '1px solid #ddd',
-                        padding: '6px 10px',
-                        whiteSpace: 'nowrap',
-                      }}
-                      title={String(cell ?? '')}
-                    >
-                      {String(cell ?? "")}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <InputExcelFile onFileChange={handleSetExcelFile} />
 
-          {/* 行数・列数の簡易表示 */}
-          <p style={{ marginTop: 8, color: '#666' }}>
-            {sheets[activeIndex].name}：{sheets[activeIndex].rows.length} 行 ×{" "}
-            {Math.max(0, ...sheets[activeIndex].rows.map(r => r.length))} 列
-          </p>
-        </div>
-      )}
-      
-      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart}  disabled={excelFile.length === 0 || validation01.length > 0 || validation02.length > 0}>アップロード</button>
-      </div>
-    </div>
+          {validation01.length > 0  && (
+            <Alert severity='error'>
+              <AlertTitle>指摘先の図番の末尾に「-01」が無いようです。</AlertTitle>
+              <ul>{validation01.map((i) => (<li>No:{i[0]} {i[3]}</li>))}</ul>
+            </Alert>
+          )}
+
+          {validation02.length > 0  && (
+            <Alert severity='error'>
+              <AlertTitle>反映先の図番の末尾に「-02」が無いようです。</AlertTitle>
+              <ul>{validation02.map((i) => (<li>No:{i[0]} {i[7]}</li>))}</ul>
+            </Alert>
+          )}
+
+          {sheets.length > 0 && (
+            <>
+              <ToggleButtonGroup
+                value={activeIndex}
+                exclusive
+                onChange={(_, v) => v !== null && setActiveIndex(v)}
+                sx={{ mt: 1.5, flexWrap: 'wrap' }}
+                size="small"
+              >
+                {sheets.map((s, idx) => (
+                  <ToggleButton key={s.name} value={idx}>
+                    {s.name}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+
+              <Box
+                sx={{
+                  mt: 1.5,
+                  display: 'flex',
+                  flexDirection: { xs: 'column', md: 'row' },
+                  gap: 2,
+                  alignItems: 'flex-start',
+                }}
+              >
+                {/* 左：テーブル */}
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  {sheets[activeIndex] && (
+                    <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+                      <Table size="small" sx={{ minWidth: 600 }}>
+                        <TableBody>
+                          {sheets[activeIndex].rows
+                            .slice(handleSlice(sheets[activeIndex].name))
+                            .map((row, rIdx) => (
+                              <TableRow key={rIdx} hover>
+                                {row.map((cell, cIdx) => (
+                                  <TableCell
+                                    key={cIdx}
+                                    title={String(cell ?? '')}
+                                    sx={{ whiteSpace: 'nowrap' }}
+                                  >
+                                    {String(cell ?? '')}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
+                </Box>
+
+                {/* 右：入力欄 */}
+                <Stack spacing={2} sx={{ width: { xs: '100%', md: 320 }, flexShrink: 0 }}>
+                  <TextField
+                    label="タイトル"
+                    value={title}
+                    onChange={handleTitleChange}
+                    size="small"
+                  />
+                  <TextField
+                    label="機種名"
+                    value={modelName}
+                    onChange={handleModelNameChange}
+                    size="small"
+                  />
+                </Stack>
+              </Box>
+            </>
+          )}
+        </Stack>
+      </Container>
+    </Box>
   )
 }
