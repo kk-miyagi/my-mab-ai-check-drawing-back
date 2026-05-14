@@ -162,9 +162,9 @@ export const DrawingCompareResultScreen: React.FC = () => {
       <Header />
       <Container>
         <Stack spacing={2} sx={{ py: 2 }}>
-          <Typography variant="h4">差分ハイライト</Typography>
+          <Typography variant="h4">図面比較</Typography>
           <Typography variant="body1" color="text.secondary">
-            ダウンロードボタンを押すと、結果図面がダウンロードされます。
+            ダウンロードボタンを押すと、比較結果がダウンロードされます。
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
