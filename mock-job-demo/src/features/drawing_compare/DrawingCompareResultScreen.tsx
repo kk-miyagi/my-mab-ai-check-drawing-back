@@ -4,7 +4,20 @@ import { localStorageKey } from '../../constants/localStorageKey';
 import { LocalStorageData } from '../../types/storage.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi';
 import JSZip from 'jszip';
-import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Button,
+  Container,
+  Stack,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from '@mui/material';
+import { Header } from '../../components/Header';
 import { PdfPreview } from '../../components/PdfPreview.tsx';
 
 type Row = Record<string, string | number | boolean | null>;
@@ -31,17 +44,6 @@ type PdfFile = {
   url: string;
 }
 
-type ImageFile = {
-  fileName: string;
-  url: string;
-}
-
-type CsvFile = {
-  fileName: string;
-  url: string;
-}
-
-
 export const DrawingCompareResultScreen: React.FC = () => {
   const [basePdfFile, setBasePdfFile] = useState<PdfFile>();
   const [targetPdfFile, setTargetPdfFile] = useState<PdfFile>();
@@ -49,12 +51,6 @@ export const DrawingCompareResultScreen: React.FC = () => {
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
   const [csvUrl, setCsvUrl] = useState<string>();
   const [csvFileName, setCsvFileName] = useState<string>();
-  const navigate = useNavigate();
-
-  // ローカルストレージの削除ボタン用
-  const handleRemoveItem = () => {
-    navigate('/hub')
-  };
 
   const handleDownload = async () => {
     try {
@@ -162,38 +158,66 @@ export const DrawingCompareResultScreen: React.FC = () => {
   }, []);
 
   return (
-    <div className="page">
-      <h1>図面比較</h1>
+    <Box>
+      <Header />
+      <Container>
+        <Stack spacing={2} sx={{ py: 2 }}>
+          <Typography variant="h4">差分ハイライト</Typography>
+          <Typography variant="body1" color="text.secondary">
+            ダウンロードボタンを押すと、結果図面がダウンロードされます。
+          </Typography>
 
-      <h2>基準側(客先)図面</h2>
-      {basePdfFile && (
-        <PdfPreview preview={basePdfFile.url} />
-      )}
-      <h2>比較側(自社)図面</h2>
-      {targetPdfFile && (
-        <PdfPreview preview={targetPdfFile.url} />
-      )}
-      <h2>比較結果</h2>
-      <div className='table-wrapper'>
-        <table>
-          <thead>
-            <tr>{csvColumns.map((c) => <th key={c}>{c}</th>)}</tr>
-          </thead>
-          <tbody className='table-row'>
-            {csvRows.map((r, i) => (
-              <tr key={i}>
-                {csvColumns.map((c) => <td key={c}>{String(r[c] ?? '')}</td>)}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      
-      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleRemoveItem}>最初からやり直す</button>
-        <button className="primary" onClick={handleDownload}>ダウンロード</button>
-
-      </div>
-    </div>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              onClick={handleDownload}
+            >
+              ダウンロード
+            </Button>
+          </Box>
+          <Stack direction="row" spacing={2}>
+            {basePdfFile && (
+              <>
+              <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" align="center" gutterBottom>基準側(客先)の図面</Typography>
+              <PdfPreview preview={basePdfFile.url} /></Box>
+              </>
+            )}
+          
+            {targetPdfFile && (
+              <>
+              <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" align="center" gutterBottom>比較側(自社)の図面</Typography>
+              <PdfPreview preview={targetPdfFile.url} /></Box>
+              </>
+            )}
+          </Stack>
+          <Box>
+            {csvColumns && (
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      {csvColumns.map((c) => (
+                        <TableCell key={c}>{c}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {csvRows.map((r, i) => (
+                      <TableRow key={i}>
+                        {csvColumns.map((c) => (
+                          <TableCell key={c}>{String(r[c] ?? '')}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              )}
+          </Box>
+        </Stack>
+      </Container>
+    </Box>
   );
 };
