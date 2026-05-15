@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import Papa from 'papaparse';
-import { localStorageKey } from '../../constants/localStorageKey';
-import { drawingCompareApi } from '../../api/drawingCompareApi';
 import JSZip from 'jszip';
-import { useNavigate, useLocation } from 'react-router-dom';
-
-type Row = Record<string, string | number | boolean | null>;
+import { useLocation } from 'react-router-dom';
+import {
+  Box,
+  Button,
+  Container,
+  Stack,
+  Typography,
+} from '@mui/material';
+import { Header } from '../../components/Header';
+import { PdfPreview } from '../../components/PdfPreview';
 
 const downloadBlob = (blob: Blob, filename: string) => {
   const url = URL.createObjectURL(blob);
@@ -34,12 +38,6 @@ export const DrawingHighlightResultScreen: React.FC = () => {
   const [baseImageFileName, setBaseImageFileName] = useState<string>();
   const [targetImageUrl, setTargetImageUrl] = useState<string>();
   const [targetImageFileName, setTargetImageFileName] = useState<string>();
-  const navigate = useNavigate();
-
-  // ローカルストレージの削除ボタン用
-  const handleRemoveItem = () => {
-    navigate('/hub')
-  };
 
   const handleDownload = async () => {
     try {
@@ -61,23 +59,25 @@ export const DrawingHighlightResultScreen: React.FC = () => {
     (async () => {
       try {
         const zip = await JSZip.loadAsync(data);
-        const baseImgFile = zip.file(/base_output_img\.jpg$/)[0]
-        const targetImgFile = zip.file(/target_output_img\.jpg$/)[0]
-        if (baseImgFile) {
-          const imgBlob = await baseImgFile.async('blob');
-          const url = URL.createObjectURL(imgBlob);
-          setBaseImageUrl(url)
-          const path = baseImgFile.name
-          const filename = path.split("/").pop()
-          setBaseImageFileName(filename)
-          }
-        if (targetImgFile) {
-          const imgBlob = await targetImgFile.async('blob');
-          const url = URL.createObjectURL(imgBlob);
-          setTargetImageUrl(url)
-          const path = targetImgFile.name
-          const filename = path.split("/").pop()
-          setTargetImageFileName(filename)
+        const base = zip.file(/base.*\.pdf$/)[0];
+        const target = zip.file(/target.*\.pdf$/)[0];
+
+        if (base) {
+          const pdfBlob = await base.async('blob');
+          const url = URL.createObjectURL(new Blob([pdfBlob], { type: "application/pdf" }));
+          const path = base.name;
+          const filename = path.split("/").pop()!;
+          setBaseImageUrl(url);
+          setBaseImageFileName(filename);
+        }
+
+        if (target) {
+          const pdfBlob = await target.async('blob');
+          const url = URL.createObjectURL(new Blob([pdfBlob], { type: "application/pdf" }));
+          const path = target.name;
+          const filename = path.split("/").pop()!;
+          setTargetImageUrl(url);
+          setTargetImageFileName(filename);
         }
       } catch (e) {
         // TODO
@@ -86,21 +86,44 @@ export const DrawingHighlightResultScreen: React.FC = () => {
   }, [])
 
   return (
-    <div className="page">
-      <h1>図面ハイライト</h1>
+    <Box>
+      <Header />
+      <Container>
+        <Stack spacing={2} sx={{ py: 2 }}>
+          <Typography variant="h4">差分ハイライト</Typography>
+          <Typography variant="body1" color="text.secondary">
+            ダウンロードボタンを押すと、結果図面がダウンロードされます。
+          </Typography>
 
-      <h2>結果</h2>
-      <h3>修正前</h3>
-      <img src={baseImageUrl} alt="ラベル付与後の図面" style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              onClick={handleDownload}
+            >
+              ダウンロード
+            </Button>
+          </Box>
+          <Stack direction="row" spacing={2}>
 
-      <h3>修正後</h3>
-      <img src={targetImageUrl} alt="ラベル付与後の図面" style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
-
-      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleRemoveItem}>最初からやり直す</button>
-        <button className="primary" onClick={handleDownload}>ダウンロード</button>
-
-      </div>
-    </div>
+          
+          {baseImageUrl && (
+            <>
+            <Box sx={{ flex: 1 }}>
+            <Typography variant="h6" align="center" gutterBottom>修正前の図面</Typography>
+            <PdfPreview preview={baseImageUrl} /></Box>
+            </>
+          )}
+          
+          {targetImageUrl && (
+            <>
+            <Box sx={{ flex: 1 }}>
+            <Typography variant="h6" align="center" gutterBottom>修正後の図面</Typography>
+            <PdfPreview preview={targetImageUrl} /></Box>
+            </>
+          )}
+          </Stack>
+        </Stack>
+      </Container>
+    </Box>
   );
 };
