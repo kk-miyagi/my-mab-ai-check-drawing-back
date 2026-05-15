@@ -15,7 +15,7 @@ import {
   Typography
 } from '@mui/material';
 import { Header } from '../../components/Header';
-import { GroupIdApi } from '../../api/groupIdApi.ts';
+import { groupIdApi } from '../../api/groupIdApi.ts';
 import { InputFiles, UploadFileItem } from '../../components/InputFiles';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { LocalStorageDataV2 } from '../../types/storage.ts';
@@ -116,10 +116,13 @@ export const CreateLabelScreen: React.FC = () => {
         const groupIdPayload = {
           user: 'demo-user',
           epic: DEFAULT_EPIC,
-          operation: DEFAULT_OPERATION,
+          group_id: null,
+          group_status: 'start',
+          others: null,
+          operations: null,
         };
-        const groupIdResponse = await GroupIdApi(groupIdPayload);
-        const groupId = groupIdResponse.groupId;
+        const groupIdResponse = await groupIdApi(groupIdPayload);
+        const groupId = groupIdResponse.group_id;
 
         const operationIdPayload: OperationIssueRequest = {
           user: 'demo-user',
