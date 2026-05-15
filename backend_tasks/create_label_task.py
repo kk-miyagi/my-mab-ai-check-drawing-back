@@ -13,7 +13,7 @@ from dataclasses import asdict, dataclass
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
 from collections import defaultdict
 from PIL import Image, ImageDraw, ImageFont
-from vertexai.generative_models import GenerativeModel
+from google import genai
 from utils.dimension_models import AggregatedToken, OCRParagraph, OCRToken
 from utils.gemini_response import (
     _json_safe,
@@ -27,7 +27,6 @@ from utils.test_vision_ocr import (
     perform_document_text_detection,
 )
 from utils.template_match_locator import locate_tiles
-import vertexai
 from utils.simple_multi_genemipronpt import (
         generate_with_multiple_contents,
         extract_first_json
@@ -137,22 +136,24 @@ class GeminiRegionManager:
         ]
         self.project = _resolve_vertex_project()
         self._region_index = 0
+        self._client: Optional[genai.Client] = None
 
     @property
     def available(self) -> bool:
         return all(
             component is not None
             for component in (
-                vertexai,
-                GenerativeModel,
-                generate_with_multiple_contents
+                genai,
+                generate_with_multiple_contents,
             )
         )
 
     def _init_vertex(self, region: str) -> None:
-        if vertexai is None:
-            raise RuntimeError("vertexai SDK is not available")
-        vertexai.init(project=self.project, location=region)
+        try:
+            self._client = genai.Client(vertexai=True, project=self.project, location=region)
+        except Exception as exc:
+            self._client = None
+            raise RuntimeError(f"failed to initialize genai client for region {region}: {exc}")
 
     def _advance_region(self) -> None:
         if not self.regions:
@@ -172,15 +173,15 @@ class GeminiRegionManager:
             region = self.regions[self._region_index]
             try:
                 self._init_vertex(region)
-                # type: ignore[misc]
-                model_instance = GenerativeModel(self.model_name)
+                # genai.Client を生成してモデル名と共に渡す
+                model_instance = self._client
             except Exception as exc:
                 last_response = {"error": str(exc)}
                 self._advance_region()
                 continue
             # type: ignore[misc]
             response = generate_with_multiple_contents(
-                    model_instance, **kwargs)
+                    model_instance, model_name=self.model_name, **kwargs)
             if not _is_rate_limit_error(response):
                 return response
 
@@ -192,9 +193,9 @@ class GeminiRegionManager:
 
 
 _gemini_manager: Optional[GeminiRegionManager] = None
-if GenerativeModel is not None and generate_with_multiple_contents is not None:
+if genai is not None and generate_with_multiple_contents is not None:
     _gemini_manager = GeminiRegionManager(
-            "gemini-2.5-pro", GEMINI_REGION_SEQUENCE)
+        "gemini-2.5-pro", GEMINI_REGION_SEQUENCE)
     if not _gemini_manager.available:
         _gemini_manager = None
 

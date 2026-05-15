@@ -7,7 +7,6 @@ import re
 import img2pdf
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
-from vertexai.generative_models import GenerativeModel
 import io
 from datetime import datetime
 from utils.simple_multi_genemipronpt import (
@@ -18,7 +17,7 @@ from utils.gemini_response import (
 )
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'mab-ai-check-drawing-sa-key.json'
-model = GenerativeModel("gemini-2.5-pro")
+model = "gemini-2.5-pro"
 
 def check_draw_list(draw_list, compare_list, draw_kind, out_dir):
     """一覧と比較結果を確認"""
