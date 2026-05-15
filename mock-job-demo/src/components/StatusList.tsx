@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
+  Chip,
   Container,
   Paper,
   Snackbar,
@@ -15,8 +16,50 @@ import {
   Typography,
   Stack
 } from '@mui/material';
+import {
+  Autorenew,
+  CheckCircle,
+  CheckCircleOutlineOutlined,
+  Error,
+  Schedule
+} from '@mui/icons-material';
 import { Header } from './Header';
 import { statusListApi } from '../api/statusListApi';
+
+type ProcessStatus = 'start' | 'doing' | 'end' | 'error';
+
+type StatusConfig = {
+  label: string;
+  color?: 'default' | 'info' | 'success' | 'error' | 'warning';
+  icon: React.ReactElement;
+  sx?: object;
+};
+
+export const StatusBadge: React.FC<{ status: ProcessStatus, epic: string, isComplete?: boolean }> = ({ status, epic, isComplete }) => {
+  const endConfig = epic === 'create-label'
+    ? (isComplete
+        ? { label: '完了', color: 'success' as const, icon: <CheckCircle /> }
+        : { label: '編集待ち', color: 'warning' as const, icon: <CheckCircleOutlineOutlined /> })
+    : { label: '完了', color: 'success' as const, icon: <CheckCircle /> };
+
+  const config: Record<ProcessStatus, StatusConfig> = {
+    start: { label: '開始', icon: <Schedule /> },
+    doing: { label: '実行中', color: 'info', icon: <Autorenew /> },
+    end: endConfig,
+    error: { label: 'エラー', color: 'error', icon: <Error /> },
+  };
+
+  const { label, color, icon, sx } = config[status];
+
+  return (
+    <Chip
+      icon={icon}
+      label={label}
+      color={color}
+      variant={sx ? 'outlined' : 'filled'}
+    />
+  );
+}
 
 type StatusListProps = {
   epic: string;

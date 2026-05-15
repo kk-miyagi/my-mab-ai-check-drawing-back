@@ -1,16 +1,7 @@
 import React from 'react';
-import {
-  Button,
-  Chip,
-} from '@mui/material';
-import {
-  Autorenew,
-  CheckCircle,
-  ChevronRight,
-  Error,
-  Schedule
-} from '@mui/icons-material';
-import { StatusList } from '../../components/StatusList';
+import { Button } from '@mui/material';
+import { ChevronRight } from '@mui/icons-material';
+import { StatusList, StatusBadge } from '../../components/StatusList';
 
 type ProcessStatus = 'start' | 'doing' | 'end' | 'error';
 
@@ -20,13 +11,6 @@ interface ProcessItem {
   createdAt: string;
   status: ProcessStatus;
 }
-
-type StatusConfig = {
-  label: string;
-  color?: 'default' | 'info' | 'success' | 'error' | 'warning';
-  icon: React.ReactElement;
-  sx?: object;
-};
 
 const NavigateButton: React.FC<{ status: ProcessStatus }> = ({ status }) => {
   if (status === 'start' || status === 'doing' || status === 'error') {
@@ -41,43 +25,6 @@ const NavigateButton: React.FC<{ status: ProcessStatus }> = ({ status }) => {
   );
 }
 
-const StatusBadge: React.FC<{ status: ProcessStatus }> = ({ status }) => {
-  const config: Record<ProcessStatus, StatusConfig> = {
-    start: {
-      label: '開始',
-      icon: <Schedule />,
-    },
-    doing: {
-      label: '実行中',
-      color: 'info',
-      icon: <Autorenew />,
-    },
-    end: {
-      label: '完了',
-      color: 'success',
-      icon: <CheckCircle />,
-    },
-    error: {
-      label: 'エラー',
-      color: 'error',
-      icon: <Error />,
-    },
-  };
-
-
-  const { label, color, icon, sx } = config[status];
-
-  return (
-    <Chip
-      icon={icon}
-      label={label}
-      color={color}
-      variant={sx ? 'outlined' : 'filled'}
-    />
-  );
-
-}
-
 export const DrawingCompareListScreen: React.FC = () => {
   const columns: Array<{
     id: string;
@@ -90,7 +37,7 @@ export const DrawingCompareListScreen: React.FC = () => {
     {
       id: 'status',
       label: 'ステータス',
-      render: (r) => <StatusBadge status={(r as ProcessItem).status} />,
+      render: (r) => <StatusBadge status={(r as ProcessItem).status} epic="drawing-compare" />,
     },
     {
       id: 'action',
