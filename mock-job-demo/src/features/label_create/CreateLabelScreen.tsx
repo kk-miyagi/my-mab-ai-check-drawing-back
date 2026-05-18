@@ -116,7 +116,7 @@ export const CreateLabelScreen: React.FC = () => {
         const groupIdPayload = {
           user: 'demo-user',
           epic: DEFAULT_EPIC,
-          group_id: null,
+          group_id: 'new',
           group_status: 'start',
           others: null,
           operations: null,
