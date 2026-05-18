@@ -23,14 +23,14 @@ class UpdateLabelRunner(BackendTaskRunner):
 
     def get_cmd(self, base_cmd, app_state, req_status):
         req = req_status
+        ope = req.operations[0]
         in_dir = f"{self._IN_BASE_DIR}/"
+        in_dir += f"{req.user}_{self._EPIC}_{req.group_id}_{self._IN_OPE}"
+        in_dir += f"{self._IN_OPE}_{ope.operation_id}/"
 
-        in_dir += f"{req.user}_{self._EPIC}_{req.group_id}/"
-        in_dir += f"_{self._IN_OPE}_{req.operations[0].operation_id}"
         out_dir = f"{self._OUT_BASE_DIR}/"
-        out_dir += f"{req.user}_{self._EPIC}"
-        out_dir += f"_{req.group_id}_{self._OUT_OPE}"
-        out_dir += f"_{req.operations[0].operation_id}/"
+        out_dir += f"{req.user}_{self._EPIC}_{req.group_id}"
+        out_dir += f"_{self._OUT_OPE}_{ope.operation_id}/"
         f_list = [f for f in os.listdir(in_dir) if f != '.gitkeep']
         img = None
         if len(f_list) == 1:
@@ -50,10 +50,9 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
     up_ope = 'batch-update-label'
 
     req_user = req_status.user
+    req_opid = req_status.operations[0].operation_id
     req_grid = req_status.group_id
-    req_opid = req_status.operation_id
-    upload_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}"
-    upload_dir += f"_{up_ope}_{req_opid}"
+    upload_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}_{up_ope}_{req_opid}"
     match req_status.status:
         case Status.START:
             logger.log(
@@ -111,10 +110,9 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     req_status
                 )
             # 2)ダウンロード先ディレクトリから図面ファイル、CSVファイル読み込み
-            ope_dir = f"{req_status.user}_{req_status.epic}_"
-            ope_dir += f"_{req_status.group_id}"
-            ope_dir += f"_{req_status.operations[0].operation}"
-            ope_dir += f"_{req_status.operations[0].operation_id}/"
+            ope = req_status.operations[0]
+            ope_dir = f"{req_status.user}_{req_status.epic}_{req_status.group_id}_"
+            ope_dir += f"{ope.operation}_{ope.operation_id}/"
             res_dir = f"./update-label-responce/{ope_dir}"
             fname_list = os.listdir(res_dir)
             file_list = [

@@ -116,7 +116,7 @@ export const CreateLabelScreen: React.FC = () => {
         const groupIdPayload = {
           user: 'demo-user',
           epic: DEFAULT_EPIC,
-          group_id: null,
+          group_id: 'new',
           group_status: 'start',
           others: null,
           operations: null,
@@ -127,9 +127,10 @@ export const CreateLabelScreen: React.FC = () => {
         const operationIdPayload: OperationIssueRequest = {
           user: 'demo-user',
           epic: DEFAULT_EPIC,
-          operation: DEFAULT_OPERATION,
-          operation_id: null,
-          status: 'start',
+          group_id: groupId,
+          group_status: 'start',
+          others: null,
+          operations: [{ operation: DEFAULT_OPERATION, operation_id: null, status: 'start' }]
         };
         const operationIdResponse = await issueOperationIdApi(operationIdPayload);
         const operationId = operationIdResponse.operation_id;
@@ -137,11 +138,10 @@ export const CreateLabelScreen: React.FC = () => {
         const uploadPayload: UploadPairRequest = {
           user: 'demo-user',
           epic: DEFAULT_EPIC,
-          operation: DEFAULT_OPERATION,
-          operation_id: operationId,
-          status: 'doing',
-          number: 1,
-          files: [files[i].file],
+          group_id: groupId,
+          group_status: 'start',
+          others: {'number': 1, 'files': [files[i].file]},
+          operations: [{ operation: DEFAULT_OPERATION, operation_id: operationId, status: 'doing' }]
         };
         await uploadApi.uploadPair(uploadPayload);
 

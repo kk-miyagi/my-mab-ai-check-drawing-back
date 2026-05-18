@@ -18,7 +18,7 @@ async def issue_operation_id(request: Request):
         logger.log(
             req_status,
             AppLogger.DEBUG,
-            "epic-init START STATUS do"
+            "epic-init START STATUS"
         )
         state_status = app_state.create_new_app_state(
                 req_status,

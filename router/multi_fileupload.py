@@ -63,10 +63,8 @@ async def multi_fileupload(request: Request):
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
     req_status = AppStatus.create_from_state(state)
-    # TODO operation_idがない場合はエラーにするか？
     match req_status.status:
         case Status.START:
-            # TODO 一応想定外だがどうするか？
             logger.log(
                     req_status,
                     AppLogger.DEBUG,

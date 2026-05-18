@@ -26,11 +26,13 @@ class CreateLabelRunner(BackendTaskRunner):
         req = req_status
         in_dir_excel = f"{self._IN_BASE_DIR}/"
         in_dir_images = f"{self._IN_BASE_DIR}/"
-        in_dir_excel += f"{req.user}_{self._EPIC}_{self._IN_OPE_EXCEL}_{req.operation_id}/"
-        in_dir_images += f"{req.user}_{self._EPIC}_{self._IN_OPE_IMAGES}_{req.operation_id}/"
+        in_dir_excel += f"{req.user}_{self._EPIC}_{req.group_id}"
+        in_dir_excel += f"_{self._IN_OPE_EXCEL}_{req.operations[0].operation_id}/"
+        in_dir_images += f"{req.user}_{self._EPIC}_{req.group_id}"
+        in_dir_images += f"_{self._IN_OPE_IMAGES}_{req.operations[0].operation_id}/"
         out_dir = f"{self._OUT_BASE_DIR}/"
-        out_dir += f"{req.user}_{self._EPIC}"
-        out_dir += f"_{self._OUT_OPE}_{req.operation_id}/"
+        out_dir += f"{req.user}_{self._EPIC}_{req.group_id}"
+        out_dir += f"_{self._OUT_OPE}_{req.operations[0].operation_id}/"
         # f_list = [f for f in os.listdir(in_dir) if f != '.gitkeep']
         # img = None
         # if len(f_list) == 1:
@@ -51,9 +53,10 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
     up_image_ope = 'upload-images'
 
     req_user = req_status.user
-    req_opid = req_status.operation_id
-    upload_excel_dir = f"./multi-fileupload/{req_user}_{up_epic}_{up_excel_ope}_{req_opid}"
-    upload_image_dir = f"./multi-fileupload/{req_user}_{up_epic}_{up_image_ope}_{req_opid}"
+    req_opid = req_status.operations[0].operation
+    req_grid = req_status.group_id
+    upload_excel_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}_{up_excel_ope}_{req_opid}"
+    upload_image_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}_{up_image_ope}_{req_opid}"
     match req_status.status:
         case Status.START:
             logger.log(
@@ -61,7 +64,8 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
                 AppLogger.DEBUG,
                 "DRAWING-REVIEW START STATUS START"
             )
-            if os.path.exists(upload_excel_dir) and os.path.exists(upload_image_dir):
+            if os.path.exists(upload_excel_dir) and os.path.exists(
+                    upload_image_dir):
                 # app_status 作成
                 app_state.create_new_app_status(
                     req_status
@@ -111,8 +115,9 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
                     req_status
                 )
             # 2)ダウンロード先ディレクトリから図面ファイル、CSVファイル読み込み
-            ope_dir = f"{req_status.user}_{req_status.epic}_"
-            ope_dir += f"{req_status.operation}_{req_status.operation_id}/"
+            ope_dir = f"{req_status.user}_{req_status.epic}_{req_status.group_id}"
+            ope_dir += f"{req_status.operations[0].operation}"
+            ope_dir += f"_{req_status.operation[0].operation_id}/"
             res_dir = f"./drawing-review-responce/{ope_dir}"
             fname_list = os.listdir(res_dir)
             file_list = [

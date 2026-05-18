@@ -6,14 +6,13 @@ from state.app_status import AppStatus
 router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
-@router.post('/issue/operation-id/')
+@router.post('/issue/group-id/')
 async def issue_operation_id(request: Request):
     req_status = AppStatus.create_from_request(request.state.body)
     app_state = AppRoute.get_app_state()
-    state_status = app_state.get_eq_app_status(req_status)
-    new_status = app_state.create_new_ope_id(
-            state_status,
+    state_status = app_state.create_new_app_status(
+            req_status,
     )
     return AppRoute.create_responce_from_status(
-        new_status
+            state_status
     )

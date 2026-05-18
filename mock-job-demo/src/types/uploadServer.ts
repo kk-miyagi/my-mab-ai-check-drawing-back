@@ -1,11 +1,18 @@
-// Server-side (or server-mimic) request/response shapes used by the front-end
+export type Status = 'start' | 'doing' | 'end' | 'error' | string;
+
+export type Operations = {
+  operation: string;
+  operation_id: string | null;
+  status: Status;
+}
 
 export interface OperationIssueRequest {
   user: string;
   epic: string;
-  operation: string;
-  operation_id: string | null; // empty/null when requesting issuance
-  status: 'start';
+  group_id: string;
+  group_status: Status | null;
+  others: Record<string, any> | null;
+  operations: Operations[] | null;
 }
 
 export interface OperationIssueResponse {
@@ -17,12 +24,10 @@ export interface OperationIssueResponse {
 export interface UploadPairRequest {
   user: string;
   epic: string;
-  operation: string;
-  operation_id: string;
-  status: 'doing';
-  number: number; // upload sequence (1-based)
-  files: File[]; // up to 2 files per request
-  file_field_keys?: string[]; // optional custom field names per file (e.g., ['bf_file_csv','bf_file'])
+  group_id: string;
+  group_status: Status;
+  others: Record<string, any> | null;
+  operations: Operations[] | null;
 }
 
 export interface UploadCompleteRequest {

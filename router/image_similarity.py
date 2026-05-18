@@ -154,7 +154,7 @@ class ImageSimilarity:
     def get_similarity(base_image_path, target_image_dir):
         data = calc_image_similarity(base_image_path, target_image_dir)
         return data
-    
+
     def pdf_to_jpeg(file_path):
         """PDFを画像に変換する"""
         file_name = Path(file_path)
@@ -169,12 +169,13 @@ class ImageSimilarity:
             image.save(save_path, 'JPEG')
             files.append(save_path.as_posix())
         return files
-    
+
     def loop_pdf_to_jpeg(file_dir) -> list:
         pdf_dir = Path(file_dir)
         pdf_files = list(pdf_dir.glob("*.pdf"))
         if len(pdf_files) > 0:
-            image_files = [ImageSimilarity.pdf_to_jpeg(file) for file in pdf_files]
+            image_files = [ImageSimilarity.pdf_to_jpeg(file)
+                           for file in pdf_files]
             image_files = [x for row in image_files for x in row]
             print(f'save: {image_files}')
             return image_files
@@ -192,18 +193,19 @@ async def image_similarity(request: Request):
     req_status = AppStatus.create_from_state(state)
 
     req_epic = req_status.epic
-    req_ope = req_status.operation
     req_user = req_status.user
-    req_opid = req_status.operation_id
+    req_ope = req_status.operations[0].operation
+    req_opid = req_status.operations[0].operation_id
+    req_grid = req_status.group_id
 
     up_base_ope = 'upload-base'
     up_target_ope = 'upload-target'
 
     upload_base_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
-    upload_base_file_dir += f"_{up_base_ope}_{req_opid}"
+    upload_base_file_dir += f"_{req_grid}_{up_base_ope}_{req_opid}"
 
     upload_target_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
-    upload_target_file_dir += f"_{up_target_ope}_{req_opid}"
+    upload_target_file_dir += f"_{req_grid}_{up_target_ope}_{req_opid}"
 
     base_file_list = ImageSimilarity.loop_pdf_to_jpeg(upload_base_file_dir)
     target_file_list = ImageSimilarity.loop_pdf_to_jpeg(upload_target_file_dir)
@@ -221,7 +223,7 @@ async def image_similarity(request: Request):
     base_image_path = Path(upload_base_file_dir, base_image_name)
     target_image_path = Path(upload_target_file_dir, target_image_name)
     _OUT_BASE_DIR = f'./{req_epic}-responce'
-    out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_ope}_{req_opid}"
+    out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_{req_ope}_{req_opid}"
 
     # TODO operation_idがない場合はエラーにするか？
     match req_status.status:

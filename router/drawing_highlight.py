@@ -74,8 +74,10 @@ class DrawingHighlight:
             cv.rectangle(img1_yellow, (x, y), (x+w, y+h), (0, 255, 255), -1)
             cv.rectangle(img2_yellow, (x, y), (x+w, y+h), (0, 255, 255), -1)
 
-            cv.addWeighted(img1_marked, alpha, img1_yellow, 1-alpha, 0, img1_marked)
-            cv.addWeighted(img2_marked, alpha, img2_yellow, 1-alpha, 0, img2_marked)
+            cv.addWeighted(
+                    img1_marked, alpha, img1_yellow, 1-alpha, 0, img1_marked)
+            cv.addWeighted(
+                    img2_marked, alpha, img2_yellow, 1-alpha, 0, img2_marked)
 
         print("ハイライト終了")
 
@@ -246,6 +248,7 @@ async def drawing_highlight(request: Request):
     req_epic = req_status.epic
     req_ope = req_status.operation
     req_user = req_status.user
+    req_grid = req_status.group_id
     req_opid = req_status.operation_id
 
     req_combinations = state.combinations
@@ -255,10 +258,10 @@ async def drawing_highlight(request: Request):
     up_target_ope = 'upload-target'
 
     upload_base_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
-    upload_base_file_dir += f"_{up_base_ope}_{req_opid}"
+    upload_base_file_dir += f"_{req_grid}_{up_base_ope}_{req_opid}"
 
     upload_target_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
-    upload_target_file_dir += f"_{up_target_ope}_{req_opid}"
+    upload_target_file_dir += f"_{req_grid}_{up_target_ope}_{req_opid}"
 
     image_extensions = {".jpg", ".jpeg", ".png"}
     base_image_name = [
@@ -270,7 +273,8 @@ async def drawing_highlight(request: Request):
     base_image_path = Path(upload_base_file_dir, base_image_name)
     target_image_path = Path(upload_target_file_dir, target_image_name)
     _OUT_BASE_DIR = f'./{req_epic}-responce'
-    out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_ope}_{req_opid}"
+    out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}"
+    out_dir = f"_{req_ope}_{req_opid}"
     Path(out_dir).mkdir(parents=True, exist_ok=True)
 
     # TODO operation_idがない場合はエラーにするか？
@@ -328,21 +332,21 @@ async def drawing_highlight(request: Request):
                 if req_combinations:
                     await DrawingHighlight.loop_highlight(
                         req_combinations,
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/cut_base",
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/cut_target",
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/cut_base",
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/cut_target",
                         out_dir
                     )
                     await DrawingHighlight.paste_cut_image(
                         'base',
                         base_image_path.as_posix(),
                         out_dir,
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/responce.json"
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/responce.json"
                     )
                     await DrawingHighlight.paste_cut_image(
                         'target',
                         target_image_path.as_posix(),
                         out_dir,
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/responce.json"
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/responce.json"
                     )
 
                 logger.log(

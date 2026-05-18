@@ -6,6 +6,20 @@ import { createLabelApi } from '../../api/createLabelApi.ts';
 import JSZip from 'jszip';
 import { useNavigate } from 'react-router-dom';
 import { PdfPreview } from '../../components/PdfPreview.tsx';
+import {
+  Box,
+  Button,
+  Container,
+  Stack,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from '@mui/material';
+import { Header } from '../../components/Header';
 
 type Row = Record<string, string | number | boolean | null>;
 
@@ -53,11 +67,6 @@ export const CreateLabelResultScreen: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // ホーム画面へ遷移
-  const handleNavigate = () => {
-    navigate('/')
-  };
-
   const handleDownload = async () => {
     try {
       if (!currentPdfFile) return;
@@ -74,11 +83,6 @@ export const CreateLabelResultScreen: React.FC = () => {
       window.alert("ダウンロードに失敗しました。ネットワークやパスを確認してください。");
     }
   };
-
-  // 編集画面への遷移
-  const handleMove = async () => {
-    navigate('/update-label', { state: { currentImageFile }})
-  }
 
   useEffect(() => {
     const getLocalStorage = window.localStorage.getItem(localStorageKey.createLabel)
@@ -184,39 +188,53 @@ export const CreateLabelResultScreen: React.FC = () => {
   }, [pdfFiles]);
 
   return (
-    <div className="page">
-      <h1>ラベル付与</h1>
-      <p>ラベル付与を行った図面の確認画面です。</p>
-      <h2>図面の結果</h2>
+    <Box>
+      <Header />
+      <Container>
+        <Stack spacing={2} sx={{ py: 2 }}>
+          <Typography variant="h4">ラベル付与</Typography>
+          <Typography variant="body1" color="text.secondary">
+            ダウンロードボタンを押すと、ラベル付与結果がダウンロードされます。
+          </Typography>
 
-      {pdfFiles.length > 0 && currentPdfFile && (
-        <PdfPreview preview={currentPdfFile.url} />
-      )}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              onClick={handleDownload}
+            >
+              ダウンロード
+            </Button>
+          </Box>
 
-      <h2>CSVの結果</h2>
-      
-      {csvFiles.length > 0 && currentCsvFile && (
-        <div className='table-wrapper'>
-          <table>
-            <thead>
-              <tr>{csvColumns.map((c) => <th key={c}>{c}</th>)}</tr>
-            </thead>
-            <tbody className='table-row'>
-              {csvRows.map((r, i) => (
-                <tr key={i}>
-                  {csvColumns.map((c) => <td key={c}>{String(r[c] ?? '')}</td>)}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      
-      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleNavigate}>最初からやり直す</button>
-          <button className="primary" onClick={handleDownload}>図面と設計情報を同時にダウンロード</button>
-        <button className="primary" onClick={handleMove}>編集画面へ</button>
-      </div>
-    </div>
+          {pdfFiles.length > 0 && currentPdfFile && (
+            <PdfPreview preview={currentPdfFile.url} />
+          )}
+
+          {csvFiles.length > 0 && currentCsvFile && (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    {csvColumns.map((c) => (
+                      <TableCell key={c}>{c}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {csvRows.map((r, i) => (
+                    <TableRow key={i}>
+                      {csvColumns.map((c) => (
+                        <TableCell key={c}>{String(r[c] ?? '')}</TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+          
+        </Stack>
+      </Container>
+    </Box>
   );
 };
