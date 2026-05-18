@@ -13,5 +13,6 @@ export const ENDPOINTS = {
   drawingCompare: `${PREFIX}/drawing-compare/`,
   getImageSimilarity: `${PREFIX}/image-similarity/`,
   drawingHighlight: `${PREFIX}/drawing-highlight/`,
-  issueGroupId: `${PREFIX}/issue/group-id/`
+  issueGroupId: `${PREFIX}/issue/group-id/`,
+  statusList: `${PREFIX}/status-list/`,
 };

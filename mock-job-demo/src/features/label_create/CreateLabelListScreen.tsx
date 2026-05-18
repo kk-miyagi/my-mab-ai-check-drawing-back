@@ -1,30 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Button,
-  Chip,
-  Container,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow
-} from '@mui/material';
-import {
-  Autorenew,
-  CheckCircle,
-  CheckCircleOutlineOutlined,
-  ChevronRight,
-  Create,
-  Error,
-  Schedule
-} from '@mui/icons-material';
-import { Header } from '../../components/Header';
+import { Button } from '@mui/material';
+import { ChevronRight, Create } from '@mui/icons-material';
 import { UpdateLabelInitRequest } from '../../types/createLabel';
 import { updateLabelInit } from '../../hooks/updateLabelInit';
+import { StatusList, StatusBadge } from '../../components/StatusList';
 
 type ProcessStatus = 'start' | 'doing' | 'end' | 'error';
 
@@ -37,23 +17,7 @@ interface ProcessItem {
   isComplete: boolean;
 }
 
-const MOCK_DATA: ProcessItem[] = [
-  {title: '部品Aの図面', modelName: 'FC-901SN', fileName: 'TKE-000004', createdAt: '2026-04-01 09:00', status: 'doing', isComplete: false},
-  {title: '部品Aの図面', modelName: 'FC-901SN', fileName: 'TKE-000003', createdAt: '2026-04-01 09:00', status: 'doing', isComplete: false},
-  {title: '部品Bの図面', modelName: 'FC-801SN', fileName: 'TKE-000015', createdAt: '2026-03-31 17:00', status: 'end', isComplete: false},
-  {title: '部品Cの図面', modelName: 'FC-701SN', fileName: 'TKE-000021', createdAt: '2026-03-30 12:00', status: 'end', isComplete: true},
-  {title: '部品Dの図面', modelName: 'FC-601SN', fileName: 'TKE-000032', createdAt: '2026-03-30 11:30', status: 'end', isComplete: true}
-]
-
-
-type StatusConfig = {
-  label: string;
-  color?: 'default' | 'info' | 'success' | 'error' | 'warning';
-  icon: React.ReactElement;
-  sx?: object;
-};
-
-const NavigateButton: React.FC<{ status: ProcessStatus, isComlete: boolean }> = ({ status, isComlete }) => {
+const NavigateButton: React.FC<{ status: ProcessStatus, isComplete: boolean }> = ({ status, isComplete }) => {
   const navigate = useNavigate();
   const t : UpdateLabelInitRequest = {
     user: "demo-user",
@@ -73,7 +37,7 @@ const NavigateButton: React.FC<{ status: ProcessStatus, isComlete: boolean }> = 
     return;
   }
   const config = {
-    end: isComlete ? {label: '詳細', icon: <ChevronRight />, nav: () => navigate('/create-label-list')} : {label: '編集', icon: <Create />, nav: () => handleClick()}
+    end: isComplete ? {label: '詳細', icon: <ChevronRight />, nav: () => navigate('/create-label-list')} : {label: '編集', icon: <Create />, nav: () => handleClick()}
   }
   const { label, icon, nav } = config[status];
   return(
@@ -81,84 +45,29 @@ const NavigateButton: React.FC<{ status: ProcessStatus, isComlete: boolean }> = 
   );
 }
 
-const StatusBadge: React.FC<{ status: ProcessStatus, isComlete: boolean }> = ({ status, isComlete }) => {
-  const config: Record<ProcessStatus, StatusConfig> = {
-    start: {
-      label: '開始',
-      icon: <Schedule />,
-    },
-    doing: {
-      label: '実行中',
-      color: 'info',
-      icon: <Autorenew />,
-    },
-    end: isComlete
-      ? {
-          label: '完了',
-          color: 'success',
-          icon: <CheckCircle />,
-        }
-      : {
-          label: '編集待ち',
-          color: 'warning',
-          icon: <CheckCircleOutlineOutlined />,
-        },
-    error: {
-      label: 'エラー',
-      color: 'error',
-      icon: <Error />,
-    },
-  };
-
-
-  const { label, color, icon, sx } = config[status];
-
-  return (
-    <Chip
-      icon={icon}
-      label={label}
-      color={color}
-      variant={sx ? 'outlined' : 'filled'}
-    />
-  );
-
-}
-
 export const CreateLabelListScreen: React.FC = () => {
-  const navigate = useNavigate();
+  const columns: Array<{
+    id: string;
+    label: string;
+    render: (row?: ProcessItem) => React.ReactNode;
+  }> = [
+    { id: 'title', label: 'タイトル', render: (r) => r?.title },
+    { id: 'modelName', label: '機種名', render: (r) => r?.modelName },
+    { id: 'fileName', label: 'ファイル名', render: (r) => r?.fileName },
+    { id: 'createdAt', label: '開始時間', render: (r) => r?.createdAt },
+    {
+      id: 'status',
+      label: 'ステータス',
+      render: (r) => <StatusBadge status={(r as ProcessItem).status} epic="create-label" isComplete={(r as ProcessItem).isComplete} />,
+    },
+    {
+      id: 'action',
+      label: '操作',
+      render: (r) => <NavigateButton status={(r as ProcessItem).status} isComplete={(r as ProcessItem).isComplete} />,
+    },
+  ];
+
   return (
-    <Box>
-      <Header />
-      <Container>
-        <h1>ラベル付与</h1>
-        <h2>処理一覧</h2>
-        <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>タイトル</TableCell>
-                <TableCell>機種名</TableCell>
-                <TableCell>ファイル名</TableCell>
-                <TableCell>開始時間</TableCell>
-                <TableCell>ステータス</TableCell>
-                <TableCell>操作</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {MOCK_DATA.map((row) => (
-                <TableRow key={row.title}>
-                  <TableCell>{row.title}</TableCell>
-                  <TableCell>{row.modelName}</TableCell>
-                  <TableCell>{row.fileName}</TableCell>
-                  <TableCell>{row.createdAt}</TableCell>
-                  <TableCell><StatusBadge status={row.status} isComlete={row.isComplete} /></TableCell>
-                  <TableCell><NavigateButton status={row.status} isComlete={row.isComplete} /></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Container>
-    </Box>
+    <StatusList epic="create-label" title="ラベル付与" columns={columns} />
   );
 }
