@@ -98,8 +98,8 @@ class AppStatus:
                 cls._get_req_status(body, cls.APP_STATUS_EPIC),
                 cls._get_req_status(body, cls.APP_STATUS_GRP_ID),
                 cls._get_req_status(body, cls.APP_STATUS_GRP_STATUS),
-                cls._get_req_status(body, cls.APP_STATUS_OPERARIONS),
-                cls._get_req_statsu(body, cls.APP_STATUS_OTHERS),
+                cls._get_req_status(body, cls.APP_STATUS_OPERATIONS),
+                cls._get_req_status(body, cls.APP_STATUS_OTHERS),
                 -1
         )
 
