@@ -5,7 +5,6 @@ import { ENDPOINTS } from "./endpoints.ts";
 const GROUP_ID_ENDPOINT = ENDPOINTS.issueGroupId;
 
 export const groupIdApi = async (payload: GroupIdRequest): Promise<GroupIdResponse> => {
-  console.log(payload)
   const { data } = await http.post<GroupIdResponse>(GROUP_ID_ENDPOINT, payload);
   return data;
 }
