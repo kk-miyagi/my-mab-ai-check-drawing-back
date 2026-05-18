@@ -49,9 +49,10 @@ class AppMiddleware(BaseHTTPMiddleware):
                 return
             request.state.user = form_data.get('user')
             request.state.epic = form_data.get('epic')
-            request.state.operation = form_data.get('operation')
-            request.state.operation_id = form_data.get('operation_id')
+            request.state.group_id = form_data.get('group_id')
             request.state.status = form_data.get('status')
+            request.state.operations = form_data.get('operations')
+            request.state.others = form_data.get('others')
             request.state.bf_file = form_data.get('bf_file')
             request.state.af_file = form_data.get('af_file')
             request.state.bf_file_csv = form_data.get('bf_file_csv')
@@ -63,8 +64,9 @@ class AppMiddleware(BaseHTTPMiddleware):
             body_json = {
                          'user': request.state.user,
                          'epic': request.state.epic,
-                         'operation': request.state.operation,
-                         'operation_id': request.state.operation_id,
+                         'group_id': request.state.group_id,
+                         'operations': request.state.operations,
+                         'others': request.state.others,
                          'status': request.state.status
             }
         elif content_type == 'application/json':
@@ -73,10 +75,12 @@ class AppMiddleware(BaseHTTPMiddleware):
                 request.state.user = body_json['user']
             if 'epic' in body_json:
                 request.state.epic = body_json['epic']
-            if 'operation' in body_json:
-                request.state.operation = body_json['operation']
-            if 'operation_id' in body_json:
-                request.state.operation_id = body_json['operation_id']
+            if 'operations' in body_json:
+                request.state.operations = body_json['operations']
+            if 'others' in body_json:
+                request.state.others = body_json['others']
+            if 'group_id' in body_json:
+                request.state.group_id = body_json['group_id']
             if 'status' in body_json:
                 request.state.status = body_json['status']
             if 'number' in body_json:

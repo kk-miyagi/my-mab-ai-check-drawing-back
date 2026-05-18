@@ -21,8 +21,8 @@ class AppRoute(APIRoute):
         return {
             "user": status.user,
             "epic": status.epic,
-            "operation": status.operation,
-            "operation_id": status.operation_id,
+            "operations": status.operations,
+            "group_id": status.group_id,
             "status": Status.status_to_str(status.status)
         }
 
@@ -37,8 +37,9 @@ class AppRoute(APIRoute):
             req_str += " request state hasattr chek"
             req_str += f"\nuser:{hasattr(state, 'user')}"
             req_str += f"\nepic:{hasattr(state, 'epic')}"
-            req_str += f"\noperation:{hasattr(state, 'operation')}"
-            req_str += f"\noperation_id:{hasattr(state, 'operation_id')}"
+            req_str += f"\ngroup_id:{hasattr(state, 'group_id')}"
+            req_str += f"\noperations:{hasattr(state, 'operations')}"
+            req_str += f"\nothers:{hasattr(state, 'others')}"
             req_str += f"\nstatus:{hasattr(state, 'status')}"
             # RODO other attr
             logger.log(
