@@ -12,6 +12,8 @@ from app_logger import AppLogger, BatchLogger
 from app_backend_task import BackendTasks
 from state.app_status import AppStatus
 import router.issue_operation_id as issue_operation_id
+import router.issue_group_id as issue_group_id
+import router.status_list as status_list
 import router.multi_fileupload as multi_fileupload
 import router.epic_init as epic_init
 import router.check_status as check_status
@@ -157,6 +159,8 @@ class AppServer():
     def setup_routers(self, app_state: AppState):
         AppRoute.set_app_state(app_state)
         self.app.include_router(issue_operation_id.router)
+        self.app.include_router(issue_group_id.router)
+        self.app.include_router(status_list.router)
         self.app.include_router(multi_fileupload.router)
         self.app.include_router(epic_init.router)
         self.app.include_router(check_status.router)
