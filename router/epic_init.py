@@ -14,7 +14,7 @@ async def issue_operation_id(request: Request):
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
 
-    if req_status.status == Status.START:
+    if req_status.group_status == Status.START:
         logger.log(
             req_status,
             AppLogger.DEBUG,
@@ -27,7 +27,7 @@ async def issue_operation_id(request: Request):
         logger.log(
             req_status,
             AppLogger.DEBUG,
-            f"epic-init NOT START STATUS:{req_status.status}"
+            f"epic-init NOT START STATUS:{req_status.group_status}"
         )
         # update session status
         app_state.update_app_status(

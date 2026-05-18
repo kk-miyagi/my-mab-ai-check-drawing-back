@@ -109,9 +109,9 @@ class AppStatus:
                 state.user,
                 state.epic,
                 state.group_id,
-                Status.str_to_status(state.status),
-                state.others,
+                Status.str_to_status(state.group_status),
                 state.operations,
+                state.others,
                 -1
         )
 

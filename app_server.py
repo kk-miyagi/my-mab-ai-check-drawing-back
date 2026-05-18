@@ -17,7 +17,6 @@ import router.status_list as status_list
 import router.multi_fileupload as multi_fileupload
 import router.epic_init as epic_init
 import router.check_status as check_status
-import router.demo_create_label as demo_create_label
 import router.create_label as create_label
 import router.update_label as update_label
 import router.drawing_review as drawing_review
@@ -50,7 +49,7 @@ class AppMiddleware(BaseHTTPMiddleware):
             request.state.user = form_data.get('user')
             request.state.epic = form_data.get('epic')
             request.state.group_id = form_data.get('group_id')
-            request.state.status = form_data.get('status')
+            request.state.group_status = form_data.get('group_status')
             request.state.operations = form_data.get('operations')
             request.state.others = form_data.get('others')
             request.state.bf_file = form_data.get('bf_file')
@@ -67,7 +66,7 @@ class AppMiddleware(BaseHTTPMiddleware):
                          'group_id': request.state.group_id,
                          'operations': request.state.operations,
                          'others': request.state.others,
-                         'status': request.state.status
+                         'group_status': request.state.group_status
             }
         elif content_type == 'application/json':
             body_json = await request.json()
@@ -81,8 +80,8 @@ class AppMiddleware(BaseHTTPMiddleware):
                 request.state.others = body_json['others']
             if 'group_id' in body_json:
                 request.state.group_id = body_json['group_id']
-            if 'status' in body_json:
-                request.state.status = body_json['status']
+            if 'group_status' in body_json:
+                request.state.group_status = body_json['group_status']
             if 'number' in body_json:
                 request.state.number = body_json['number']
             if 'sum_number' in body_json:
@@ -168,7 +167,6 @@ class AppServer():
         self.app.include_router(multi_fileupload.router)
         self.app.include_router(epic_init.router)
         self.app.include_router(check_status.router)
-        self.app.include_router(demo_create_label.router)
         self.app.include_router(create_label.router)
         self.app.include_router(update_label.router)
         self.app.include_router(drawing_review.router)

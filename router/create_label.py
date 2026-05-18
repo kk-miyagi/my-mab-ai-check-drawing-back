@@ -43,7 +43,7 @@ class CreateLabelRunner(BackendTaskRunner):
 
 @router.post("/create-label/")
 async def create_label(request: Request, background_tasks: BackgroundTasks):
-    state = request.state
+    state = request.group_state
     req_status = AppStatus.create_from_state(state)
 
     app_state = AppRoute.get_app_state()
@@ -56,7 +56,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
     req_opid = req_status.operations[0].operation_id
     upload_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}"
     upload_dir += f"_{up_ope}_{req_opid}"
-    match req_status.status:
+    match req_status.group_status:
         case Status.START:
             logger.log(
                 req_status,
@@ -111,7 +111,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     background_tasks
                 )
             else:
-                req_status.status = Status.ERROR
+                req_status.group_status = Status.ERROR
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
@@ -138,13 +138,13 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
             )
             # 1)status END確認
             app_status = app_state.get_eq_app_status(req_status)
-            if app_status is None or app_status.status != Status.END:
+            if app_status is None or app_status.group_status != Status.END:
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
-                    f"CREATE-LABEL REQUEST IS NOT END:{req_status.status}"
+                    f"CREATE-LABEL REQUEST IS NOT END:{req_status.group_status}"
                 )
-                req_status.staus = Status.ERROR
+                req_status.group_staus = Status.ERROR
                 return AppRoute.create_responce_from_status(
                     req_status
                 )

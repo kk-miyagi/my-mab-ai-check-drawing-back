@@ -62,9 +62,9 @@ class BackendTaskRunner:
             )
             return_code = await process.wait()
             if return_code == 0:
-                req_status.status = Status.END
+                req_status.group_status = Status.END
             else:
-                req_status.status = Status.ERROR
+                req_status.group_status = Status.ERROR
                 self.logger.log(
                     req_status,
                     BatchLogger.ERROR,
@@ -76,7 +76,7 @@ class BackendTaskRunner:
                 BatchLogger.INFO,
                 f"backend error!!: {e}"
             )
-            req_status.status = Status.ERROR
+            req_status.group_status = Status.ERROR
 
         # app status update
         app_state.update_app_status(

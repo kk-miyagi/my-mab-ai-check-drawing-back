@@ -246,10 +246,10 @@ async def drawing_highlight(request: Request):
     req_status = AppStatus.create_from_state(state)
 
     req_epic = req_status.epic
-    req_ope = req_status.operation
+    req_ope = req_status.operations[0].operation
     req_user = req_status.user
     req_grid = req_status.group_id
-    req_opid = req_status.operation_id
+    req_opid = req_status.operatons[0].operation_id
 
     req_combinations = state.combinations
     req_combinations = json.loads(req_combinations)
@@ -278,7 +278,7 @@ async def drawing_highlight(request: Request):
     Path(out_dir).mkdir(parents=True, exist_ok=True)
 
     # TODO operation_idがない場合はエラーにするか？
-    match req_status.status:
+    match req_status.group_status:
         case Status.START:
             # TODO 一応想定外だがどうするか？
             logger.log(
@@ -307,7 +307,7 @@ async def drawing_highlight(request: Request):
                     error_msg = "DRAWING-HIGHLIGHT DIR NOT FOUND:"
                     error_msg += f"{upload_base_file_dir} "
                     error_msg += f"or {upload_target_file_dir}"
-                    req_status.status = Status.ERROR
+                    req_status.group_status = Status.ERROR
                     logger.log(
                         req_status,
                         AppLogger.ERROR,

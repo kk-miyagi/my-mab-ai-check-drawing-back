@@ -57,7 +57,7 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
     req_grid = req_status.group_id
     upload_excel_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}_{up_excel_ope}_{req_opid}"
     upload_image_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}_{up_image_ope}_{req_opid}"
-    match req_status.status:
+    match req_status.group_status:
         case Status.START:
             logger.log(
                 req_status,
@@ -77,7 +77,7 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
                     background_tasks
                 )
             else:
-                req_status.status = Status.ERROR
+                req_status.group_status = Status.ERROR
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
@@ -104,13 +104,13 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
             )
             # 1)status END確認
             app_status = app_state.get_eq_app_status(req_status)
-            if app_status is None or app_status.status != Status.END:
+            if app_status is None or app_status.group_status != Status.END:
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
-                    f"DRAWING-REVIEW REQUEST IS NOT END:{req_status.status}"
+                    f"DRAWING-REVIEW REQUEST IS NOT END:{req_status.group_status}"
                 )
-                req_status.staus = Status.ERROR
+                req_status.group_status = Status.ERROR
                 return AppRoute.create_responce_from_status(
                     req_status
                 )

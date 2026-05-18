@@ -5,6 +5,6 @@ from dataclasses import dataclass
 class ImageSimilarityInfo:
     user: str
     epic: str
+    group_id: str
     operation: str
     operation_id: str
-    status: str

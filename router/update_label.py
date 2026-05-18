@@ -83,13 +83,12 @@ async def update_label(request: Request):
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
     up_epic = 'update-label'
-    up_ope = 'batch-update-label'
 
     req_user = req_status.user
     req_opid = req_status.operations[0].operation_id
     req_grid = req_status.group_id
     req_others = req_status.others
-    
+
     # TODO: ラベル付与していない図面の保存先の指定
     input_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}_{req_opid}"
 
@@ -106,7 +105,7 @@ async def update_label(request: Request):
     else:
         raise Exception(f"Input image file not found or multiple files found in {input_dir}")
 
-    match req_status.status:
+    match req_status.group_status:
         case Status.START:
             logger.log(
                 req_status,

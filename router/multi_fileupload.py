@@ -51,8 +51,9 @@ class MultiFileUploader:
         return '_'.join([
             self.user,
             self.epic,
-            self.operation,
-            self.operation_id
+            self.group_id,
+            self.operations[0].operation,
+            self.operations[0].operation_id,
         ])
 
 
@@ -63,7 +64,7 @@ async def multi_fileupload(request: Request):
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
     req_status = AppStatus.create_from_state(state)
-    match req_status.status:
+    match req_status.group_status:
         case Status.START:
             logger.log(
                     req_status,

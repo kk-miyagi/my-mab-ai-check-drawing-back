@@ -21,9 +21,10 @@ class AppRoute(APIRoute):
         return {
             "user": status.user,
             "epic": status.epic,
-            "operations": status.operations,
             "group_id": status.group_id,
-            "status": Status.status_to_str(status.status)
+            "operations": status.operations,
+            "others": status.others,
+            "group_status": Status.status_to_str(status.group_status)
         }
 
     def get_route_handler(
@@ -40,7 +41,7 @@ class AppRoute(APIRoute):
             req_str += f"\ngroup_id:{hasattr(state, 'group_id')}"
             req_str += f"\noperations:{hasattr(state, 'operations')}"
             req_str += f"\nothers:{hasattr(state, 'others')}"
-            req_str += f"\nstatus:{hasattr(state, 'status')}"
+            req_str += f"\ngroup_status:{hasattr(state, 'group_status')}"
             # RODO other attr
             logger.log(
                 AppStatus.get_dummy_status(),

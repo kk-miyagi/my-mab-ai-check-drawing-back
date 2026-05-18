@@ -25,7 +25,6 @@ class DrawingCompareRunner(BackendTaskRunner):
     def __init__(self, combinations: dict):
         self.combinations = combinations
 
-
     def get_cmd(self, base_cmd, app_state, req_status):
         req = req_status
         combinations = self.combinations
@@ -66,7 +65,7 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
 
     out_dir = f'{base_dir}/{req_user}_{up_epic}_{req_grid}_{req_op}_{req_opid}'
 
-    match req_status.status:
+    match req_status.group_status:
         case Status.START:
             logger.log(
                 req_status,
@@ -110,7 +109,7 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
                     background_tasks
                 )
             else:
-                req_status.status = Status.ERROR
+                req_status.group_status = Status.ERROR
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
@@ -137,13 +136,13 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
             )
             # 1)status END確認
             app_status = app_state.get_eq_app_status(req_status)
-            if app_status is None or app_status.status != Status.END:
+            if app_status is None or app_status.group_status != Status.END:
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
-                    f"DRAWING-COMPARE REQUEST IS NOT END:{req_status.status}"
+                    f"DRAWING-COMPARE REQUEST IS NOT END:{req_status.group_status}"
                 )
-                req_status.staus = Status.ERROR
+                req_status.group_staus = Status.ERROR
                 return AppRoute.create_responce_from_status(
                     req_status
                 )

@@ -223,10 +223,10 @@ async def image_similarity(request: Request):
     base_image_path = Path(upload_base_file_dir, base_image_name)
     target_image_path = Path(upload_target_file_dir, target_image_name)
     _OUT_BASE_DIR = f'./{req_epic}-responce'
-    out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_{req_ope}_{req_opid}"
+    out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}"
+    out_dir += f"_{req_ope}_{req_opid}"
 
-    # TODO operation_idがない場合はエラーにするか？
-    match req_status.status:
+    match req_status.group_status:
         case Status.START:
             # TODO 一応想定外だがどうするか？
             logger.log(
@@ -247,7 +247,6 @@ async def image_similarity(request: Request):
                 is_exist_file = os.path.exists(upload_target_file_dir)
 
                 if is_exist_dir and is_exist_file:
-                    # app_status 作成
                     app_state.create_new_app_status(
                         req_status
                     )
@@ -284,7 +283,7 @@ async def image_similarity(request: Request):
                     error_msg = "IMAGE-SIMILARITY DIR NOT FOUND:"
                     error_msg += f"{upload_base_file_dir} "
                     error_msg += f"or {upload_target_file_dir}"
-                    req_status.status = Status.ERROR
+                    req_status.group_status = Status.ERROR
                     logger.log(
                         req_status,
                         AppLogger.ERROR,
