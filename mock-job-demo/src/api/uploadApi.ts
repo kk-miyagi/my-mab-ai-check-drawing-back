@@ -44,6 +44,13 @@ export const uploadApi = {
     form.append('group_status', payload.group_status);
     form.append('others', JSON.stringify(payload.others));
     form.append('operations', JSON.stringify(payload.operations));
+    form.append('number', payload.number.toString());
+    if (payload.bf_file) {
+      form.append('bf_file', payload.bf_file);
+    }
+    if (payload.af_file) {
+      form.append('af_file', payload.af_file);
+    }
     return postForm(FILE_UPLOAD_ENDPOINT, form);
   },
 

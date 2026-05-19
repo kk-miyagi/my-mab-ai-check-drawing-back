@@ -28,6 +28,9 @@ export interface UploadPairRequest {
   group_status: Status;
   others: Record<string, any> | null;
   operations: Operations[] | null;
+  number: number,
+  bf_file: File | null;
+  af_file: File | null;
 }
 
 export interface UploadCompleteRequest {
