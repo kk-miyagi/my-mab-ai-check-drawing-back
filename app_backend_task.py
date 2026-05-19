@@ -133,6 +133,6 @@ class BackendTasks:
         return '_'.join(
             [
                 req_status.epic,
-                req_status.operation
+                req_status.operations[0].operation
             ]
         )
