@@ -22,14 +22,8 @@ async function postForm<TResponse>(path: string, formData: FormData, responseTyp
 
 export const createLabelApi = {
   async createLabelStart(payload: CreateLabelRequest): Promise<CreateLabelResponse> {
-    const form = new FormData();
-    form.append('user', payload.user);
-    form.append('epic', payload.epic);
-    form.append('group_id', payload.group_id);
-    form.append('group_status', payload.group_status);
-    form.append('others', JSON.stringify(payload.others));
-    form.append('operations', JSON.stringify(payload.operations));
-    return postForm(CREATELABEL_ENDPOINT, form);
+    const { data } = await http.post<CreateLabelResponse>(CREATELABEL_ENDPOINT, payload);
+    return data;
   },
 
   async createLabelEnd(payload: CreateLabelRequest): Promise<Blob> {

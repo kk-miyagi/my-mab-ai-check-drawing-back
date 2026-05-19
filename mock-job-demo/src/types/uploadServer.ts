@@ -16,9 +16,12 @@ export interface OperationIssueRequest {
 }
 
 export interface OperationIssueResponse {
-  operation_id: string;
-  status: string;
-  message?: string;
+  user: string;
+  epic: string;
+  group_id: string;
+  group_status: Status;
+  others: Record<string, any>;
+  operations: Operations[];
 }
 
 export interface UploadPairRequest {
