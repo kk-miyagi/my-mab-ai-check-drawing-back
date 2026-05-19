@@ -116,7 +116,7 @@ export const CreateLabelScreen: React.FC = () => {
         const groupIdPayload = {
           user: 'demo-user',
           epic: DEFAULT_EPIC,
-          group_id: 'new',
+          group_id: '',
           group_status: 'start',
           others: {},
           operations: [{ operation: '', operation_id: '', status: '' }],
@@ -130,7 +130,7 @@ export const CreateLabelScreen: React.FC = () => {
           group_id: groupId,
           group_status: 'start',
           others: {},
-          operations: [{ operation: DEFAULT_OPERATION, operation_id: null, status: 'start' }]
+          operations: [{ operation: DEFAULT_OPERATION, operation_id: '', status: 'start' }]
         };
         const operationIdResponse = await issueOperationIdApi(operationIdPayload);
         const operationId = operationIdResponse.operation_id;
