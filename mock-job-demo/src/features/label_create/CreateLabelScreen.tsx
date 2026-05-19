@@ -146,7 +146,7 @@ export const CreateLabelScreen: React.FC = () => {
           user: 'demo-user',
           epic: DEFAULT_EPIC,
           group_id: groupId,
-          group_status: 'start',
+          group_status: 'doing',
           others: {
             title,
             modelName: modelNameMap.get(files[i].id) ?? '',
