@@ -41,8 +41,7 @@ def get_status_list(self, user, epic):
 def get_eq_app_status(self, req_status):
     with self.lock:
         status_dic = self.app_state.APP_STATUS_SESSION_KEY
-        if AppStatus._is_none_and_black(
-                req_status.operations[0].operation_id):
+        if AppStatus._is_none_and_black(req_status.group_id):
             ret = None
         elif req_status.get_hash_key() not in status_dic:
             ret = None
@@ -76,25 +75,25 @@ def create_new_ope_id(self, status):
         status_dic = self.app_state.APP_STATUS_SESSION_KEY
         state_status = status_dic[status.get_hash_key()]
         opes = status.operations
-        state_opes = state_status.operations
-
-        ope = opes[0]
         ret = None
-        for state_ope in state_opes:
-            if state_ope.operation == ope.operation:
-                n_ope = Operation(
-                            ope.operation,
-                            uuid.uuid4(),
-                            ope.group_status
-                )
-                ret = AppStatus(
-                    state_status.user,
-                    state_status.epic,
-                    state_status.group_id,
-                    [n_ope],
-                    state_status.others,
-                    state_status.create_time
-                )
+        n_opes = []
+        for ope in opes:
+            n_ope = Operation(
+                        ope.operation,
+                        uuid.uuid4(),
+                        ope.status
+            )
+            n_opes.append(n_ope)
+        ret_opes = state_status.operations + n_opes,
+        ret = AppStatus(
+            state_status.user,
+            state_status.epic,
+            state_status.group_id,
+            state_status.group_status,
+            ret_opes,
+            state_status.others,
+            state_status.create_time
+        )
     return ret
 
 

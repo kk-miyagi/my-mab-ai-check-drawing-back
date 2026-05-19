@@ -52,6 +52,7 @@ class Operation:
 
     @classmethod
     def get_req_status(cls, body):
+        print(body)
         return [
                 Operation(
                     x[cls.APP_STATUS_OPE],
@@ -96,7 +97,9 @@ class AppStatus:
                 cls._get_req_status(body, cls.APP_STATUS_USER),
                 cls._get_req_status(body, cls.APP_STATUS_EPIC),
                 cls._get_req_status(body, cls.APP_STATUS_GRP_ID),
-                cls._get_req_status(body, cls.APP_STATUS_GRP_STATUS),
+                Status.str_to_status(
+                    cls._get_req_status(body, cls.APP_STATUS_GRP_STATUS)
+                ),
                 cls._get_req_status(body, cls.APP_STATUS_OPERATIONS),
                 cls._get_req_status(body, cls.APP_STATUS_OTHERS),
                 -1
