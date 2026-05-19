@@ -52,12 +52,11 @@ class Operation:
 
     @classmethod
     def get_req_status(cls, body):
-        # TODO
         return [
                 Operation(
                     x[cls.APP_STATUS_OPE],
                     x[cls.APP_STATUS_OPE_ID],
-                    x[cls.APP_STATUS])
+                    x[cls.APP_STATUS_STATUS])
                 for x in body
         ]
 

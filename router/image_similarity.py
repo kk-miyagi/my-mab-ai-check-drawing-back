@@ -334,6 +334,4 @@ async def image_similarity(request: Request):
                     "Content-Disposition": f"attachment;filename={zip_filename}"
                     }
                 )
-
-
     return ret
