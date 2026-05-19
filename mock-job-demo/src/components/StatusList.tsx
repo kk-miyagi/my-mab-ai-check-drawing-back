@@ -89,46 +89,46 @@ export const StatusList: React.FC<StatusListProps> = ({ epic, title, columns }) 
     const res = await statusListApi.getStatusList(payload);
     if (epic === "create-label") {
       setItems(
-        res.others.status_list.map((item: any) => ({
-          title: item.title,
-          modelName: item.modelName,
-          fileName: item.fileName,
-          createdAt: item.createdAt,
-          status: item.status,
-          isComplete: item.isComplete,
+        res.map((item: any) => ({
+          title: item.others.items ?? '',
+          modelName: item.others.modelName ?? '',
+          fileName: item.others.fileName ?? '',
+          createdAt: item.create_time ?? '',
+          status: item.group_status ?? '',
+          isComplete: item.others.isComplete ?? false,
         }))
       );
     }
     if (epic === "drawing-review") {
       setItems(
-        res.others.status_list.map((item: any) => ({
-          title: item.title,
-          modelName: item.modelName,
-          createdAt: item.createdAt,
-          status: item.status,
-          isComplete: item.isComplete,
+        res.map((item: any) => ({
+          title: item.others.items ?? '',
+          modelName: item.others.modelName ?? '',
+          createdAt: item.create_time ?? '',
+          status: item.group_status ?? '',
+          isComplete: item.others.isComplete ?? false,
         }))
       );
     }
     if (epic === "drawing-highlight") {
       setItems(
-        res.others.status_list.map((item: any) => ({
-          title: item.title,
-          modelName: item.modelName,
-          createdAt: item.createdAt,
-          status: item.status,
-          isComplete: item.isComplete,
+        res.map((item: any) => ({
+          title: item.others.items ?? '',
+          modelName: item.others.modelName ?? '',
+          createdAt: item.create_time ?? '',
+          status: item.group_status ?? '',
+          isComplete: item.others.isComplete ?? false,
         }))
       );
     }
     if (epic === "drawing-compare") {
       setItems(
-        res.others.status_list.map((item: any) => ({
-          title: item.title,
-          modelName: item.modelName,
-          createdAt: item.createdAt,
-          status: item.status,
-          isComplete: item.isComplete,
+        res.map((item: any) => ({
+          title: item.others.items ?? '',
+          modelName: item.others.modelName ?? '',
+          createdAt: item.create_time ?? '',
+          status: item.group_status ?? '',
+          isComplete: item.others.isComplete ?? false,
         }))
       );
     }
