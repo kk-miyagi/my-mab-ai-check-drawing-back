@@ -4,16 +4,7 @@ import type { StatusListRequest, StatusListResponse } from '../types/statusList'
 
 export const statusListApi = {
   async getStatusList(payload: StatusListRequest): Promise<StatusListResponse> {
-    const form = new FormData();
-    form.append('user', payload.user);
-    form.append('epic', payload.epic);
-    form.append('group_id', payload.group_id);
-    form.append('group_status', payload.group_status);
-    form.append('others', JSON.stringify(payload.others));
-    form.append('operations', JSON.stringify(payload.operations));
-    const { data } = await http.post<StatusListResponse>(ENDPOINTS.statusList, form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const { data } = await http.post<StatusListResponse>(ENDPOINTS.statusList, payload);
     return data;
   },
 

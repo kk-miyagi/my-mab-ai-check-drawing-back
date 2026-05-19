@@ -86,7 +86,7 @@ export const StatusList: React.FC<StatusListProps> = ({ epic, title, columns }) 
         { operation: "status-list", operation_id: "", status: "start" },
       ],
     };
-    const res = await statusListApi.getStatusListMock(payload);
+    const res = await statusListApi.getStatusList(payload);
     if (epic === "create-label") {
       setItems(
         res.others.status_list.map((item: any) => ({
