@@ -43,7 +43,7 @@ class CreateLabelRunner(BackendTaskRunner):
 
 @router.post("/create-label/")
 async def create_label(request: Request, background_tasks: BackgroundTasks):
-    state = request.group_state
+    state = request.state
     req_status = AppStatus.create_from_state(state)
 
     app_state = AppRoute.get_app_state()
@@ -56,6 +56,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
     req_opid = req_status.operations[0].operation_id
     upload_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}"
     upload_dir += f"_{up_ope}_{req_opid}"
+    print(upload_dir)
 
     target_status = req_status.operations[0].status
     match target_status:

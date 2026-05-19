@@ -115,6 +115,8 @@ def update_app_status(self, status):
                             ) and (state_op.operation_id == ope.operation_id):
                         state_op.group_status = ope.group_status
 
+            for k in status.others.keys():
+                state_status.others[k] = status.others[k]
             status_dic[update_key] = state_status
 
 

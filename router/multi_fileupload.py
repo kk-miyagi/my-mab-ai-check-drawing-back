@@ -30,7 +30,7 @@ class MultiFileUploader:
                 content = await file.read()
                 save_path = f"{MultiFileUploader.MULTI_FILE_UPLOAD_SAVE_DIR}"
                 save_path += f"/{req_status.get_hash_key()}"
-                save_path += f"_{req_status.operations[0].operation}_"
+                save_path += f"_{req_status.operations[0].operation}"
                 save_path += f"_{req_status.operations[0].operation_id}"
                 file_name = f"{save_path}/"
                 file_name += f"{state.number}_{file_key}_{file.filename}"

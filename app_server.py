@@ -52,7 +52,7 @@ class AppMiddleware(BaseHTTPMiddleware):
             request.state.group_id = form_data.get('group_id')
             request.state.group_status = form_data.get('group_status')
             request.state.operations = json.loads(form_data.get('operations'))
-            request.state.others = form_data.get('others')
+            request.state.others = json.loads(form_data.get('others'))
             request.state.bf_file = form_data.get('bf_file')
             request.state.af_file = form_data.get('af_file')
             request.state.bf_file_csv = form_data.get('bf_file_csv')
