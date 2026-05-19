@@ -134,7 +134,7 @@ export const CreateLabelScreen: React.FC = () => {
           epic: DEFAULT_EPIC,
           group_id: groupId,
           group_status: 'start',
-          others: {},
+          others: { fileName: files[i].file.name },
           operations: [{ operation: DEFAULT_OPERATION, operation_id: operationId, status: 'doing' }],
           number: 1,
           bf_file: files[i].file,
