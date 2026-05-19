@@ -56,8 +56,8 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
     req_opid = req_status.operations[0].operation_id
     upload_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}"
     upload_dir += f"_{up_ope}_{req_opid}"
-    print(upload_dir)
 
+    print(f"*** create-label start:{app_state.get_eq_app_status(req_status)} ***")
     target_status = req_status.operations[0].status
     match target_status:
         case Status.START:
@@ -120,6 +120,9 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     AppLogger.ERROR,
                     f"CREATE-LABEL UPLOAD DIR NOT FOUND:{upload_dir}"
                 )
+                app_state.update_app_status(
+                    req_status
+                )
             return AppRoute.create_responce_from_status(
                 req_status
             )
@@ -128,6 +131,9 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 req_status,
                 AppLogger.DEBUG,
                 "CREATE-LABEL DOING STATUS START"
+            )
+            app_state.update_app_status(
+                req_status
             )
             # requestと同じステータス
             return AppRoute.create_responce_from_status(
@@ -148,6 +154,9 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     f"CREATE-LABEL REQUEST IS NOT END:{req_status.group_status}"
                 )
                 req_status.group_staus = Status.ERROR
+                app_state.update_app_status(
+                    req_status
+                )
                 return AppRoute.create_responce_from_status(
                     req_status
                 )
@@ -189,6 +198,9 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
                 for fpath in file_list:
                     zip.write(fpath)
+            app_state.update_app_status(
+                req_status
+            )
             return StreamingResponse(
                 iter([io.getvalue()]),
                 media_type="application/x-zip-compressed",

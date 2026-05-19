@@ -33,7 +33,7 @@ def get_status_list(self, user, epic):
     with self.lock:
         status_dic = self.app_state.APP_STATUS_SESSION_KEY
         for val in status_dic.values():
-            if val.user == user and val.epic == user:
+            if val.user == user and val.epic == epic:
                 ret_list.append(val)
     return ret_list
 
@@ -117,6 +117,7 @@ def update_app_status(self, status):
 
             for k in status.others.keys():
                 state_status.others[k] = status.others[k]
+            print(state_status)
             status_dic[update_key] = state_status
 
 

@@ -7,7 +7,7 @@ router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
 @router.post('/issue/group-id/')
-async def issue_operation_id(request: Request):
+async def issue_group_id(request: Request):
     req_status = AppStatus.create_from_request(request.state.body)
     app_state = AppRoute.get_app_state()
     state_status = app_state.create_new_app_status(

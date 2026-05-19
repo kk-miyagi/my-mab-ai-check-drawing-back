@@ -82,6 +82,7 @@ class BackendTaskRunner:
         app_state.update_app_status(
             req_status
         )
+        print(f"*** backend-task-end:{app_state.get_eq_app_status(req_status)}")
         self.logger.log(
             req_status,
             BatchLogger.INFO,
@@ -127,6 +128,7 @@ class BackendTasks:
             BatchLogger.DEBUG,
             "BACKEND TASK SET END !!"
         )
+        # TODO session status update
 
     @classmethod
     def _task_state_key(cls, req_status):

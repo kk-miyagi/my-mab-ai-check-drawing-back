@@ -24,7 +24,8 @@ class AppRoute(APIRoute):
             "group_id": status.group_id,
             "operations": status.operations,
             "others": status.others,
-            "group_status": Status.status_to_str(status.group_status)
+            "group_status": Status.status_to_str(status.group_status),
+            "create_time": status.create_time
         }
 
     def get_route_handler(

@@ -70,7 +70,6 @@ async def multi_fileupload(request: Request):
     )
 
     target_status = req_status.operations[0].status
-    print(target_status)
     match target_status:
         case Status.START:
             logger.log(
@@ -113,12 +112,15 @@ async def multi_fileupload(request: Request):
                     "MULTI-FILE-UPLOAD DOING STATUS app status session update!"
                 )
                 app_state.update_app_status(
-                        req_status
+                    req_status
                 )
                 logger.log(
                     req_status,
                     AppLogger.DEBUG,
                     "MULTI-FILE-UPLOAD DOING STATUS responce create!"
+                )
+                app_state.update_app_status(
+                    req_status
                 )
                 ret = AppRoute.create_responce_from_status(
                     req_status
@@ -130,6 +132,10 @@ async def multi_fileupload(request: Request):
                     req_status,
                     AppLogger.ERROR,
                     f"MULTI-FILE-UPLOAD DOING STATUS error !:{e}"
+                )
+                req_status.group_status = Status.ERROR
+                app_state.update_app_status(
+                    req_status
                 )
                 raise e
 
@@ -176,6 +182,10 @@ async def multi_fileupload(request: Request):
                         "MULTI-FILE-UPLOAD END STATUS allready sum number done"
                     )
                     pass
+                    req_status.group_status = Status.ERROR
+                app_state.update_app_status(
+                    req_status
+                )
                 ret = AppRoute.create_responce_from_status(
                     req_status
                 )
