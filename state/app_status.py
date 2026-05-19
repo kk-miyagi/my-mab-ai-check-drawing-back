@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import IntEnum
+import json
 
 
 class Status(IntEnum):
@@ -52,12 +53,11 @@ class Operation:
 
     @classmethod
     def get_req_status(cls, body):
-        print(body)
         return [
                 Operation(
                     x[cls.APP_STATUS_OPE],
                     x[cls.APP_STATUS_OPE_ID],
-                    x[cls.APP_STATUS_STATUS])
+                    Status.str_to_status(x[cls.APP_STATUS_STATUS]))
                 for x in body
         ]
 
@@ -112,7 +112,7 @@ class AppStatus:
                 state.epic,
                 state.group_id,
                 Status.str_to_status(state.group_status),
-                state.operations,
+                Operation.get_req_status(state.operations),
                 state.others,
                 -1
         )

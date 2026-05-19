@@ -13,6 +13,7 @@ async def issue_operation_id(request: Request):
     new_status = app_state.create_new_ope_id(
             req_status,
     )
+    print(new_status)
     return AppRoute.create_responce_from_status(
         new_status
     )

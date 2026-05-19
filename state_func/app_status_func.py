@@ -84,7 +84,7 @@ def create_new_ope_id(self, status):
                         ope.status
             )
             n_opes.append(n_ope)
-        ret_opes = state_status.operations + n_opes,
+        ret_opes = state_status.operations + n_opes
         ret = AppStatus(
             state_status.user,
             state_status.epic,

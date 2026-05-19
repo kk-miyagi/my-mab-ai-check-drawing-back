@@ -56,7 +56,9 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
     req_opid = req_status.operations[0].operation_id
     upload_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}"
     upload_dir += f"_{up_ope}_{req_opid}"
-    match req_status.group_status:
+
+    target_status = req_status.operations[0].status
+    match target_status:
         case Status.START:
             logger.log(
                 req_status,

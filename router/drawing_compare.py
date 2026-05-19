@@ -65,7 +65,8 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
 
     out_dir = f'{base_dir}/{req_user}_{up_epic}_{req_grid}_{req_op}_{req_opid}'
 
-    match req_status.group_status:
+    target_status = req_status.operations[0].status
+    match target_status:
         case Status.START:
             logger.log(
                 req_status,

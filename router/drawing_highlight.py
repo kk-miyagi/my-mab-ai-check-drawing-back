@@ -277,8 +277,8 @@ async def drawing_highlight(request: Request):
     out_dir = f"_{req_ope}_{req_opid}"
     Path(out_dir).mkdir(parents=True, exist_ok=True)
 
-    # TODO operation_idがない場合はエラーにするか？
-    match req_status.group_status:
+    target_status = req_status.operations[0].status
+    match target_status:
         case Status.START:
             # TODO 一応想定外だがどうするか？
             logger.log(

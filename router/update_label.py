@@ -105,7 +105,8 @@ async def update_label(request: Request):
     else:
         raise Exception(f"Input image file not found or multiple files found in {input_dir}")
 
-    match req_status.group_status:
+    target_status = req_status.operations[0].status
+    match target_status:
         case Status.START:
             logger.log(
                 req_status,
@@ -124,11 +125,13 @@ async def update_label(request: Request):
             rect_list = list(rects_dict.values())
             sorted_rects = sort_mange_panels(rect_list)
             rect_to_key = {tuple(v): k for k, v in rects_dict.items()}
-            sorted_old_keys = [rect_to_key[tuple(rect)] for rect in sorted_rects]
+            sorted_old_keys = [
+                    rect_to_key[tuple(rect)] for rect in sorted_rects]
 
             # sort_mange_panels()の結果をもとにキーの振り直し
             req_others["rects"] = {
-                i: rects_dict[k] for i, k in enumerate(sorted_old_keys, start=1)
+                i: rects_dict[k]
+                for i, k in enumerate(sorted_old_keys, start=1)
             }
             req_others["info"] = {
                 i: info_dict[k] for i, k in enumerate(sorted_old_keys, start=1)
@@ -170,7 +173,8 @@ async def update_label(request: Request):
             fname_list = os.listdir(output_dir)
             extensions = ('.csv', 'pdf')
             file_list = [
-                output_dir + fname for fname in fname_list if fname.endswith(extensions)
+                output_dir + fname
+                for fname in fname_list if fname.endswith(extensions)
             ]
 
             # ZIPに固めてダウンロードの返信を実施

@@ -30,6 +30,8 @@ class MultiFileUploader:
                 content = await file.read()
                 save_path = f"{MultiFileUploader.MULTI_FILE_UPLOAD_SAVE_DIR}"
                 save_path += f"/{req_status.get_hash_key()}"
+                save_path += f"_{req_status.operations[0].operation}_"
+                save_path += f"_{req_status.operations[0].operation_id}"
                 file_name = f"{save_path}/"
                 file_name += f"{state.number}_{file_key}_{file.filename}"
 
@@ -63,8 +65,13 @@ async def multi_fileupload(request: Request):
     state = request.state
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
-    req_status = AppStatus.create_from_state(state)
-    match req_status.group_status:
+    req_status = AppStatus.create_from_state(
+           state
+    )
+
+    target_status = req_status.operations[0].status
+    print(target_status)
+    match target_status:
         case Status.START:
             logger.log(
                     req_status,

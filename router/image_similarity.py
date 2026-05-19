@@ -226,7 +226,8 @@ async def image_similarity(request: Request):
     out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}"
     out_dir += f"_{req_ope}_{req_opid}"
 
-    match req_status.group_status:
+    target_status = req_status.operations[0].status
+    match target_status:
         case Status.START:
             # TODO 一応想定外だがどうするか？
             logger.log(

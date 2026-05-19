@@ -13,8 +13,9 @@ async def issue_operation_id(request: Request):
 
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
+    target_status = app_state.operations[0].status
 
-    if req_status.group_status == Status.START:
+    if target_status == Status.START:
         logger.log(
             req_status,
             AppLogger.DEBUG,

@@ -25,6 +25,7 @@ import router.drawing_compare as drawing_compare
 import router.drawing_highlight as drawing_highlight
 import router.update_label_init as update_label_init
 import threading
+import json
 
 
 # 各種マネージャー格納用
@@ -50,7 +51,7 @@ class AppMiddleware(BaseHTTPMiddleware):
             request.state.epic = form_data.get('epic')
             request.state.group_id = form_data.get('group_id')
             request.state.group_status = form_data.get('group_status')
-            request.state.operations = form_data.get('operations')
+            request.state.operations = json.loads(form_data.get('operations'))
             request.state.others = form_data.get('others')
             request.state.bf_file = form_data.get('bf_file')
             request.state.af_file = form_data.get('af_file')

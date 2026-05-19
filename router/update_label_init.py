@@ -21,7 +21,8 @@ async def update_label_init(request: Request):
     logger = app_state.getLogger()
     req_status = AppStatus.create_from_state(state)
 
-    if req_status.group_status == Status.START:
+    target_status = req_status.operations[0].status
+    if target_status == Status.START:
         try:
             logger.log(
                 req_status,
