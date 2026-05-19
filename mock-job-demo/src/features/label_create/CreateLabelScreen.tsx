@@ -17,9 +17,6 @@ import {
 import { Header } from '../../components/Header';
 import { groupIdApi } from '../../api/groupIdApi.ts';
 import { InputFiles, UploadFileItem } from '../../components/InputFiles';
-import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { LocalStorageDataV2 } from '../../types/storage.ts';
-import { useLocalStorageArray } from '../../hooks/useLocalStorageArray.ts';
 
 const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'batch-create-label';
@@ -53,9 +50,6 @@ export const CreateLabelScreen: React.FC = () => {
 
   const [title, setTitle] = useState<string>(''); // タイトルの状態管理(タイトルは1回の処理で全てのファイルに対して共通の値とするため、currentFileから切り離して管理する)
   const [modelNames, setModelNames] = useState<ModelName[]>([]); // 機種名の状態管理(機種名はファイルごとに異なる値となるため、currentFileから切り離して管理する。modelNamesはファイルIDと機種名のペアの配列で管理する)
-
-  // ローカルストレージの操作関数
-  const { addItem } = useLocalStorageArray<LocalStorageDataV2>(localStorageKey.createLabel);
 
   // タイトルの切り替え
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -148,14 +142,6 @@ export const CreateLabelScreen: React.FC = () => {
         };
         await uploadApi.uploadPair(uploadPayload);
 
-        // ローカルストレージへ保存
-        const localStorageData: LocalStorageDataV2 = {
-          user: 'demo-user',
-          group_id: groupId,
-          status: 'start',
-        }
-        addItem(localStorageData);
-
         const createLabelPayload: CreateLabelRequest = {
           user: 'demo-user',
           epic: DEFAULT_EPIC,
@@ -167,7 +153,6 @@ export const CreateLabelScreen: React.FC = () => {
           },
           operations: [{ operation: DEFAULT_OPERATION, operation_id: operationId, status: 'start' }],
         };
-        requests.push({ ...createLabelPayload, fileName: files[i].file.name });
         await createLabelApi.createLabelStart(createLabelPayload);
       }
       await navigate('/');
