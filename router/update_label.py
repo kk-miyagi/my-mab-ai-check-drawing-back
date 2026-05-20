@@ -69,7 +69,7 @@ def _annotate_matches(
             drawer.text(label_anchor, label_text, fill=outline, font=font)
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
-        output_path = f"{output_dir}{annotated_path.name}"
+        output_path = Path(f"{output_dir}/{annotated_path.name}")
         img.save(output_path)
 
     return output_path
@@ -82,20 +82,21 @@ async def update_label(request: Request):
 
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
-    up_epic = 'update-label'
+    up_epic = 'create-label'
+    in_op = 'batch-create-label'
 
     req_user = req_status.user
+    req_op = req_status.operations[0].operation
     req_opid = req_status.operations[0].operation_id
     req_grid = req_status.group_id
-    req_others = req_status.others
 
     # ラベル付与していない図面の保存先の指定
     input_dir = f"./multi-fileupload/{req_user}_{up_epic}"
-    input_dir += f"_{req_grid}_{req_opid}"
+    input_dir += f"_{req_grid}_{in_op}_{req_opid}"
 
     # ラベル付与後の図面の保存先の指定
     output_dir = f"./update-label-response/{req_user}_{up_epic}"
-    output_dir += f"_{req_grid}_{req_opid}"
+    output_dir += f"_{req_grid}_{req_op}_{req_opid}"
 
     # ファイルを取得
     f_list = [
@@ -125,8 +126,8 @@ async def update_label(request: Request):
         case Status.DOING:
             # rects: x1, y1, x2, y2
             # info: 項目, 寸法値または品質指定等の記載内容, 備考
-            rects_dict = req_others["rects"]
-            info_dict = req_others["info"]
+            rects_dict = request.state.rects
+            info_dict = request.state.info
 
             rect_list = list(rects_dict.values())
             sorted_rects = sort_mange_panels(rect_list)
@@ -135,24 +136,24 @@ async def update_label(request: Request):
                     rect_to_key[tuple(rect)] for rect in sorted_rects]
 
             # sort_mange_panels()の結果をもとにキーの振り直し
-            req_others["rects"] = {
+            rects_dict = {
                 i: rects_dict[k]
                 for i, k in enumerate(sorted_old_keys, start=1)
             }
-            req_others["info"] = {
+            info_dict = {
                 i: info_dict[k] for i, k in enumerate(sorted_old_keys, start=1)
             }
 
             # _annotate_matches()に渡すためのordered_matchesを作成
             ordered_matches = [
                 {"id": str(k), "rect": v}
-                for k, v in req_others["rects"].items()
+                for k, v in rects_dict.items()
             ]
 
             # 図面にラベルを描画する処理(ラベル付与と同じ処理)
             box_on = True
             annotated_path = _annotate_matches(
-                input_img,
+                Path(input_img),
                 ordered_matches,
                 suffix="_update_label",
                 outline=(220, 20, 60),
@@ -170,16 +171,28 @@ async def update_label(request: Request):
             # infoはcsv形式で出力する
             csv_path = f"{output_dir}/info.csv"
             with open(csv_path, "w", encoding="utf-8") as f:
-                f.write("id,項目,寸法値または品質指定等の記載内容,備考\n")
-                for key, info in req_others["info"].items():
+                f.write("No,項目,寸法値または品質指定等の記載内容,備考\n")
+                for key, info in info_dict.items():
                     f.write(f"{key},{info[0]},{info[1]},{info[2]}\n")
             print("Info CSV saved at:", csv_path)
+            app_state.update_app_status(
+                req_status
+            )
+            return AppRoute.create_responce_from_status(
+                req_status
+            )
 
+        case Status.END:
+            logger.log(
+                req_status,
+                AppLogger.DEBUG,
+                "UPDATE-LABEL END STATUS START"
+            )
             # ダウンロード先ディレクトリから図面ファイル、CSVファイル読み込み
             fname_list = os.listdir(output_dir)
-            extensions = ('.csv', 'pdf')
+            extensions = ('.csv', '.pdf')
             file_list = [
-                output_dir + fname
+                Path(output_dir) / fname
                 for fname in fname_list if fname.endswith(extensions)
             ]
 
@@ -201,15 +214,4 @@ async def update_label(request: Request):
                    "Content-Disposition": f"attachment;filename={zip_filename}"
                 }
             )
-        case Status.END:
-            logger.log(
-                req_status,
-                AppLogger.DEBUG,
-                "UPDATE-LABEL END STATUS START"
-            )
-            app_state.update_app_status(
-                req_status
-            )
-            return AppRoute.create_responce_from_status(
-                req_status
-            )
+

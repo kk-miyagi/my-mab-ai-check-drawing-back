@@ -89,6 +89,10 @@ class AppMiddleware(BaseHTTPMiddleware):
                 request.state.sum_number = body_json['sum_number']
             if 'combinations' in body_json:
                 request.state.combinations = body_json['combinations']
+            if 'rects' in body_json:
+                request.state.rects = body_json['rects']
+            if 'info' in body_json:
+                request.state.info = body_json['info']
             request.state.body = body_json
 
         res = MANAGERS.start_managers(request, body_json)

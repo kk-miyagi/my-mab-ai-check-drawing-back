@@ -26,3 +26,6 @@ drawing-compare-responce/*
 
 drawing-highlight-responce/*
 !/drawing-highlight-responce/.gitkeep
+
+update-label-response/*
+!/update-label-response/.gitkeep
