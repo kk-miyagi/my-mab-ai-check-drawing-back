@@ -5,26 +5,20 @@ import { ChevronRight, Create } from '@mui/icons-material';
 import { UpdateLabelInitRequest } from '../../types/createLabel';
 import { updateLabelInit } from '../../hooks/updateLabelInit';
 import { StatusList, StatusBadge } from '../../components/StatusList';
+import type { StatusListResponse, Status } from '../../types/statusList';
 
-type ProcessStatus = 'start' | 'doing' | 'end' | 'error';
-
-interface ProcessItem {
-  title: string;
-  modelName: string;
-  fileName: string;
-  createdAt: string;
-  status: ProcessStatus;
-  isComplete: boolean;
-}
-
-const NavigateButton: React.FC<{ status: ProcessStatus, isComplete: boolean }> = ({ status, isComplete }) => {
+const NavigateButton: React.FC<{ row: StatusListResponse }> = ({ row }) => {
+  if(!row.operations || row.operations.length === 0) {
+    return null;
+  }
   const navigate = useNavigate();
   const t : UpdateLabelInitRequest = {
-    user: "demo-user",
-    epic: "create-label",
-    operation: "update-label-init",
-    operation_id: "0cee10ef-d568-4839-bf72-8511a3dd9813",
-    status: "start"
+    user: row.user,
+    epic: row.epic,
+    group_id: row.group_id,
+    group_status: row.group_status,
+    others: row.others,
+    operations: [{ operation: "update-label-init", operation_id: row.operations[0].operation_id, status: "start" }]
   }
   const handleClick = async () => {
     await updateLabelInit(
@@ -33,9 +27,11 @@ const NavigateButton: React.FC<{ status: ProcessStatus, isComplete: boolean }> =
       "/update-label"
     );
   };
+  const status = row.group_status as Status;
   if (status === 'start' || status === 'doing' || status === 'error') {
     return;
   }
+  const isComplete = row.others.isComplete as boolean;
   const config = {
     end: isComplete ? {label: '詳細', icon: <ChevronRight />, nav: () => navigate('/create-label-list')} : {label: '編集', icon: <Create />, nav: () => handleClick()}
   }
@@ -49,21 +45,21 @@ export const CreateLabelListScreen: React.FC = () => {
   const columns: Array<{
     id: string;
     label: string;
-    render: (row?: ProcessItem) => React.ReactNode;
+    render: (row?: StatusListResponse) => React.ReactNode;
   }> = [
-    { id: 'title', label: 'タイトル', render: (r) => r?.title },
-    { id: 'modelName', label: '機種名', render: (r) => r?.modelName },
-    { id: 'fileName', label: 'ファイル名', render: (r) => r?.fileName },
-    { id: 'createdAt', label: '開始時間', render: (r) => r?.createdAt },
+    { id: 'title', label: 'タイトル', render: (r) => r?.others.title },
+    { id: 'modelName', label: '機種名', render: (r) => r?.others.modelName },
+    { id: 'fileName', label: 'ファイル名', render: (r) => r?.others.fileName },
+    { id: 'createdAt', label: '開始時間', render: (r) => r?.create_time },
     {
       id: 'status',
       label: 'ステータス',
-      render: (r) => <StatusBadge status={(r as ProcessItem).status} epic="create-label" isComplete={(r as ProcessItem).isComplete} />,
+      render: (r) => <StatusBadge status={(r as StatusListResponse).group_status} epic="create-label" isComplete={(r as StatusListResponse).others.isComplete} />,
     },
     {
       id: 'action',
       label: '操作',
-      render: (r) => <NavigateButton status={(r as ProcessItem).status} isComplete={(r as ProcessItem).isComplete} />,
+      render: (r) => <NavigateButton row={r as StatusListResponse} />,
     },
   ];
 

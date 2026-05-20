@@ -90,45 +90,69 @@ export const StatusList: React.FC<StatusListProps> = ({ epic, title, columns }) 
     if (epic === "create-label") {
       setItems(
         res.map((item: any) => ({
-          title: item.others.items ?? '',
-          modelName: item.others.modelName ?? '',
-          fileName: item.others.fileName ?? '',
-          createdAt: item.create_time ?? '',
-          status: item.group_status ?? '',
-          isComplete: item.others.isComplete ?? false,
+          user: item.user,
+          epic: item.epic,
+          group_id: item.group_id,
+          group_status: item.group_status,
+          others: {
+            title: item.others.title ?? '',
+            modelName: item.others.modelName ?? '',
+            fileName: item.others.fileName ?? '',
+            isComplete: item.others.isComplete ?? false,
+          },
+          operations: item.operations,
+          create_time: new Date(item.create_time * 1000).toLocaleString(),
         }))
       );
     }
     if (epic === "drawing-review") {
       setItems(
         res.map((item: any) => ({
-          title: item.others.items ?? '',
-          modelName: item.others.modelName ?? '',
-          createdAt: item.create_time ?? '',
-          status: item.group_status ?? '',
-          isComplete: item.others.isComplete ?? false,
+          user: item.user,
+          epic: item.epic,
+          group_id: item.group_id,
+          group_status: item.group_status,
+          others: {
+            title: item.others.title ?? '',
+            modelName: item.others.modelName ?? '',
+            isComplete: item.others.isComplete ?? false,
+          },
+          operations: item.operations,
+          create_time: new Date(item.create_time * 1000).toLocaleString(),
         }))
       );
     }
     if (epic === "drawing-highlight") {
       setItems(
         res.map((item: any) => ({
-          title: item.others.items ?? '',
-          modelName: item.others.modelName ?? '',
-          createdAt: item.create_time ?? '',
-          status: item.group_status ?? '',
-          isComplete: item.others.isComplete ?? false,
+          user: item.user,
+          epic: item.epic,
+          group_id: item.group_id,
+          group_status: item.group_status,
+          others: {
+            title: item.others.title ?? '',
+            modelName: item.others.modelName ?? '',
+            isComplete: item.others.isComplete ?? false,
+          },
+          operations: item.operations,
+          create_time: new Date(item.create_time * 1000).toLocaleString(),
         }))
       );
     }
     if (epic === "drawing-compare") {
       setItems(
         res.map((item: any) => ({
-          title: item.others.items ?? '',
-          modelName: item.others.modelName ?? '',
-          createdAt: item.create_time ?? '',
-          status: item.group_status ?? '',
-          isComplete: item.others.isComplete ?? false,
+          user: item.user,
+          epic: item.epic,
+          group_id: item.group_id,
+          group_status: item.group_status,
+          others: {
+            title: item.others.title ?? '',
+            modelName: item.others.modelName ?? '',
+            isComplete: item.others.isComplete ?? false,
+          },
+          operations: item.operations,
+          create_time: new Date(item.create_time * 1000).toLocaleString(),
         }))
       );
     }

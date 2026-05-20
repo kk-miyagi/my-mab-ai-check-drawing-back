@@ -35,7 +35,8 @@ export type CsvRow = Record<string, string>
 export interface UpdateLabelInitRequest {
   user: string;
   epic: string;
-  operation: string;
-  operation_id: string;
-  status: 'start';
+  group_id: string;
+  group_status: Status;
+  others: Record<string, any>;
+  operations: Operations[];
 }
