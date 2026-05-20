@@ -63,6 +63,10 @@ async def update_label_init(request: Request):
                     io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
                 for fpath in file_list:
                     zip.write(fpath)
+            # status update
+            app_state.update_app_status(
+                req_status
+            )
             return StreamingResponse(
                 iter([io.getvalue()]),
                 media_type="application/x-zip-compressed",
@@ -76,6 +80,12 @@ async def update_label_init(request: Request):
                 AppLogger.ERROR,
                 f"UPDATE-LABEL-INIT ERROR! : {e}"
             )
+            up_status = Status.ERROR
+            req_status.group_status = up_status
+            req_status.operations[0].status = up_status
+            app_state.update_app_status(
+                req_status
+            )
             raise e
     else:
         logger.log(
@@ -84,4 +94,10 @@ async def update_label_init(request: Request):
             f"UPDATE-LABEL-INIT NOT INIT STATUS: {req_status.group_status}"
         )
 
+        up_status = Status.ERROR
+        req_status.group_status = up_status
+        req_status.operations[0].status = up_status
+        app_state.update_app_status(
+            req_status
+        )
     return ret

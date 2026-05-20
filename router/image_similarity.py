@@ -244,6 +244,9 @@ async def image_similarity(request: Request):
                     "IMAGE-SIMILARITY DOING STATUS START"
                 )
 
+                app_state.update_app_status(
+                    req_status
+                )
                 is_exist_dir = os.path.exists(upload_base_file_dir)
                 is_exist_file = os.path.exists(upload_target_file_dir)
 
@@ -283,12 +286,16 @@ async def image_similarity(request: Request):
                 else:
                     error_msg = "IMAGE-SIMILARITY DIR NOT FOUND:"
                     error_msg += f"{upload_base_file_dir} "
-                    error_msg += f"or {upload_target_file_dir}"
-                    req_status.group_status = Status.ERROR
                     logger.log(
                         req_status,
                         AppLogger.ERROR,
                         error_msg
+                        )
+                    up_status = Status.ERROR
+                    req_status.group_status = up_status
+                    req_status.operations[0].status = up_status
+                    app_state.update_app_status(
+                        req_status
                     )
 
                 ret = AppRoute.create_responce_from_status(
@@ -297,7 +304,6 @@ async def image_similarity(request: Request):
                 ret["base_rects"] = out_base_rects
                 ret["target_rects"] = out_target_rects
                 ret["similarities"] = similarities
-                print(ret)
 
                 with open(
                     f"{out_dir}/responce.json", "w", encoding="utf-8"
@@ -309,6 +315,12 @@ async def image_similarity(request: Request):
                     req_status,
                     AppLogger.ERROR,
                     f"IMAGE-SIMILARITY DOING STATUS error !:{e}"
+                )
+                up_status = Status.ERROR
+                req_status.group_status = up_status
+                req_status.operations[0].status = up_status
+                app_state.update_app_status(
+                    req_status
                 )
                 raise e
 

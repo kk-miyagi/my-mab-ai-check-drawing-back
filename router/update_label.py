@@ -89,11 +89,13 @@ async def update_label(request: Request):
     req_grid = req_status.group_id
     req_others = req_status.others
 
-    # TODO: ラベル付与していない図面の保存先の指定
-    input_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}_{req_opid}"
+    # ラベル付与していない図面の保存先の指定
+    input_dir = f"./multi-fileupload/{req_user}_{up_epic}"
+    input_dir += f"_{req_grid}_{req_opid}"
 
-    # TODO: ラベル付与後の図面の保存先の指定
-    output_dir = f"./update-label-response/{req_user}_{up_epic}_{req_grid}_{req_opid}"
+    # ラベル付与後の図面の保存先の指定
+    output_dir = f"./update-label-response/{req_user}_{up_epic}"
+    output_dir += f"_{req_grid}_{req_opid}"
 
     # ファイルを取得
     f_list = [
@@ -103,7 +105,8 @@ async def update_label(request: Request):
     if len(f_list) == 1:
         input_img = f"{input_dir}/{f_list[0]}"
     else:
-        raise Exception(f"Input image file not found or multiple files found in {input_dir}")
+        raise Exception(
+                f"Input image file not found or multiple files found in {input_dir}")
 
     target_status = req_status.operations[0].status
     match target_status:
@@ -112,6 +115,9 @@ async def update_label(request: Request):
                 req_status,
                 AppLogger.INFO,
                 "UPDATE-LABEL START STATUS"
+            )
+            app_state.update_app_status(
+                req_status
             )
             return AppRoute.create_responce_from_status(
                 req_status
@@ -185,6 +191,9 @@ async def update_label(request: Request):
                     io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
                 for fpath in file_list:
                     zip.write(fpath)
+            app_state.update_app_status(
+                req_status
+            )
             return StreamingResponse(
                 iter([io.getvalue()]),
                 media_type="application/x-zip-compressed",
@@ -197,6 +206,9 @@ async def update_label(request: Request):
                 req_status,
                 AppLogger.DEBUG,
                 "UPDATE-LABEL END STATUS START"
+            )
+            app_state.update_app_status(
+                req_status
             )
             return AppRoute.create_responce_from_status(
                 req_status

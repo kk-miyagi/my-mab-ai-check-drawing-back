@@ -66,12 +66,11 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
                 AppLogger.DEBUG,
                 "DRAWING-REVIEW START STATUS START"
             )
+            app_state.update_app_status(
+                req_status
+            )
             if os.path.exists(upload_excel_dir) and os.path.exists(
                     upload_image_dir):
-                # app_status 作成
-                app_state.create_new_app_status(
-                    req_status
-                )
                 # 別プロセスにてラベル付与実行
                 BackendTasks.set_backend_runner(
                     req_status,
@@ -85,6 +84,12 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
                     AppLogger.ERROR,
                     f"DRAWING-REVIEW UPLOAD DIR NOT FOUND:{upload_excel_dir} or {upload_image_dir}"
                 )
+                up_status = Status.ERROR
+                req_status.group_status = up_status
+                req_status.operations[0].status = up_status
+                app_state.update_app_status(
+                    req_status
+                )
             return AppRoute.create_responce_from_status(
                 req_status
             )
@@ -95,6 +100,9 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
                 "DRAWING-REVIEW DOING STATUS START"
             )
             # requestと同じステータス
+            app_state.update_app_status(
+                req_status
+            )
             return AppRoute.create_responce_from_status(
                 req_status
             )
@@ -136,6 +144,9 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
                     io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
                 for fpath in file_list:
                     zip.write(fpath)
+            app_state.update_app_status(
+                req_status
+            )
             return StreamingResponse(
                 iter([io.getvalue()]),
                 media_type="application/x-zip-compressed",
