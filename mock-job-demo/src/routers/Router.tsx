@@ -20,7 +20,6 @@ import { DrawingCompareResultScreen } from '../features/drawing_compare/DrawingC
 import { DrawingHighlight } from '../features/drawing_highlight/DrawingHighlight';
 import { DrawingHighlightProcessingScreen } from '../features/drawing_highlight/DrawingHighlightProcessingScreen';
 import { DrawingHighlightResultScreen } from '../features/drawing_highlight/DrawingHighlightResultScreen';
-import { CompareDrawingApp } from '../features/label_create/CompareDrawingApp';
 import { CreateLabelListScreen } from '../features/label_create/CreateLabelListScreen';
 import { DrawingReviewListScreen } from '../features/drawing_review/DrawingReviewListScreen';
 import { DrawingCompareListScreen } from '../features/drawing_compare/DrawingCompareListScreen';
@@ -44,7 +43,6 @@ export const AppRouter = () => {
       <Route path="/drawing-compare-upload-base" element={<DrawingCompareUploadBaseFileScreen />} />
       <Route path="/drawing-compare-upload-target" element={<DrawingCompareUploadCompareFileScreen />} />
       <Route path="/drawing-compare" element={<DrawingCompare />} />
-      <Route path="/compare" element={<CompareDrawingApp />} />
       <Route path="/drawing-compare-processing" element={<DrawingCompareProcessingScreen />} />
       <Route path="/drawing-compare-result" element={<DrawingCompareResultScreen />} />
       <Route path="/drawing-highlight-upload-before" element={<DrawingHighlightUploadBeforeFileScreen />} />
