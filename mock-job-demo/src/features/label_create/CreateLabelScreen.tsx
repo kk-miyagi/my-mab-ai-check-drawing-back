@@ -148,7 +148,7 @@ export const CreateLabelScreen: React.FC = () => {
           group_id: groupId,
           group_status: 'doing',
           others: {
-            title,
+            title: title,
             modelName: modelNameMap.get(files[i].id) ?? '',
           },
           operations: [{ operation: DEFAULT_OPERATION, operation_id: operationId, status: 'start' }],
