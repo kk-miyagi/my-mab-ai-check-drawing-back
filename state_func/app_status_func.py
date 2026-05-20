@@ -91,9 +91,10 @@ def create_new_ope_id(self, status):
             state_status.group_id,
             state_status.group_status,
             ret_opes,
-            state_status.others,
+            status.others,
             state_status.create_time
         )
+        status_dic[status.get_hash_key()] = ret
     return ret
 
 
@@ -117,7 +118,7 @@ def update_app_status(self, status):
 
             for k in status.others.keys():
                 state_status.others[k] = status.others[k]
-            print(state_status)
+
             status_dic[update_key] = state_status
 
 

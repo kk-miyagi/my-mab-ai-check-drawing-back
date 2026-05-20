@@ -57,7 +57,6 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
     upload_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}"
     upload_dir += f"_{up_ope}_{req_opid}"
 
-    print(f"*** create-label start:{app_state.get_eq_app_status(req_status)} ***")
     target_status = req_status.operations[0].status
     match target_status:
         case Status.START:
@@ -67,10 +66,6 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 "CREATE-LABEL START STATUS START"
             )
             if os.path.exists(upload_dir):
-                # app_status 作成
-                app_state.create_new_app_status(
-                    req_status
-                )
                 pdf_list = [f"{upload_dir}/{f}"
                             for f in os.listdir(upload_dir)
                             if f.lower().endswith(".pdf")]
@@ -99,9 +94,9 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                                     pdf_to_jpeg(file) for file in pdf_files]
                             image_files = [
                                     x for row in image_files for x in row]
-                            print(f'save: {image_files}')
                             return image_files
                         else:
+                            # TODO to log file
                             print("PDFファイルではないようなので、変換せず後続処理を実行")
                             return []
 
