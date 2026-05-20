@@ -298,12 +298,7 @@ async def drawing_highlight(request: Request):
                 is_exist_base_dir = os.path.exists(upload_base_file_dir)
                 is_exist_target_dir = os.path.exists(upload_target_file_dir)
 
-                if is_exist_base_dir and is_exist_target_dir:
-                    # app_status 作成
-                    app_state.create_new_app_status(
-                        req_status
-                    )
-                else:
+                if not (is_exist_base_dir and is_exist_target_dir):
                     error_msg = "DRAWING-HIGHLIGHT DIR NOT FOUND:"
                     error_msg += f"{upload_base_file_dir} "
                     error_msg += f"or {upload_target_file_dir}"
@@ -314,6 +309,12 @@ async def drawing_highlight(request: Request):
                         error_msg
                     )
 
+                    up_status = Status.ERROR
+                    req_status.group_status = up_status
+                    req_status.operations[0].status = up_status
+                    app_state.update_app_status(
+                        req_status
+                    )
                 if not req_combinations:
                     DrawingHighlight.highlight(
                         base_image_path.as_posix(),
@@ -382,6 +383,9 @@ async def drawing_highlight(request: Request):
                         io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
                     for fpath in file_list:
                         zip.write(fpath)
+                app_state.update_app_status(
+                    req_status
+                )
                 return StreamingResponse(
                     iter([io.getvalue()]),
                     media_type="application/x-zip-compressed",
@@ -395,6 +399,12 @@ async def drawing_highlight(request: Request):
                     req_status,
                     AppLogger.ERROR,
                     f"DRAWING-HIGHLIGHT DOING STATUS error !:{e}"
+                )
+                up_status = Status.ERROR
+                req_status.group_status = up_status
+                req_status.operations[0].status = up_status
+                app_state.update_app_status(
+                    req_status
                 )
                 raise e
 
