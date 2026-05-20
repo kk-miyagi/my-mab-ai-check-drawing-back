@@ -22,4 +22,5 @@ export interface StatusListResponse {
   group_status: Status;
   others: Record<string, any>;
   operations: Operations[];
+  create_time: string;
 }
