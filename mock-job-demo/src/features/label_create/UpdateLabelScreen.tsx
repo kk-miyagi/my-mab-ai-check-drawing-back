@@ -637,7 +637,6 @@ export const UpdateLabelScreen: React.FC = () => {
       // オブジェクト形式: { "1": ["col1値","col2値",...], ... }
       const mapped = csvRows.reduce<Record<string, string[]>>((acc, row) => {
         const idx = String(row.__rowIndex);
-        console.log(idx, row)
         const values = visibleCsvColumns.map(col => String(row[col] ?? ''));
         acc[idx] = values;
         return acc;
@@ -655,7 +654,6 @@ export const UpdateLabelScreen: React.FC = () => {
         info: mapped,
       }
       const res = await createLabelApi.updateLabelStart(updateLabelPayload);
-      console.log('updateLabelStart response:', res);
       navigate('/');
     } catch {
       window.alert('バッチ処理起動に失敗したため、画面を切り替えます');

@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { localStorageKey } from '../constants/localStorageKey';
 import { Header } from '../components/Header.tsx'
 import {
   Box,
@@ -35,11 +34,6 @@ type feature = {
 }
 
 export const HubScreen: React.FC = () => {
-  console.log("ホーム")
-  for (const key of Object.values(localStorageKey)) {
-    const value = window.localStorage.getItem(key);
-    console.log(key, value);
-  }
 
   const navigate = useNavigate();
 
@@ -65,7 +59,7 @@ export const HubScreen: React.FC = () => {
     },
     {
       id: "highlight",
-      title: "図面ハイライト",
+      title: "差分ハイライト",
       descripttion: "変更前後の図面を画像認識で比較し、差分をハイライトします。",
       icon: Brush,
       color: "#FAECE7",
