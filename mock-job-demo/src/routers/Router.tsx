@@ -3,9 +3,6 @@ import { CreateLabelScreen } from '../features/label_create/CreateLabelScreen';
 import { HubScreen } from '../pages/HubScreen';
 import { CreateLabelProcessingScreen } from '../features/label_create/CreateLabelProcessingScreen';
 import { CreateLabelResultScreen } from '../features/label_create/CreateLabelResult';
-import { DemoCreateLabelScreen } from '../features/label_create/DemoCreateLabelScreen';
-import { DemoCreateLabelProcessingScreen } from '../features/label_create/DemoCreateLabelProcessingScreen';
-import { DemoCreateLabelResultScreen } from '../features/label_create/DemoCreateLabelResult';
 import { UpdateLabelScreen } from '../features/label_create/UpdateLabelScreen';
 import { UpdateLabelProcessingScreen } from '../features/label_create/UpdateLabelProcessingScreen';
 import { UpdateLabelResultScreen } from '../features/label_create/UpdateLabelResult';
@@ -55,9 +52,6 @@ export const AppRouter = () => {
       <Route path="/drawing-highlight" element={<DrawingHighlight />} />
       <Route path="/drawing-highlight-processing" element={<DrawingHighlightProcessingScreen />} />
       <Route path="/drawing-highlight-result" element={<DrawingHighlightResultScreen />} />
-      <Route path="/demo-create-label-processing" element={<DemoCreateLabelProcessingScreen />} />
-      <Route path="/demo-create-label-result" element={<DemoCreateLabelResultScreen />} />
-      <Route path="/demo-create-label" element={<DemoCreateLabelScreen />} />
       <Route path="/create-label-list" element={<CreateLabelListScreen />} />
       <Route path="/drawing-review-list" element={<DrawingReviewListScreen />} />
       <Route path="/drawing-compare-list" element={<DrawingCompareListScreen />} />
