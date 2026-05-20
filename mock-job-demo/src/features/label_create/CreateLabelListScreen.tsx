@@ -31,14 +31,22 @@ const NavigateButton: React.FC<{ row: StatusListResponse }> = ({ row }) => {
   if (status === 'start' || status === 'doing' || status === 'error') {
     return;
   }
-  const isComplete = row.others.isComplete as boolean;
-  const config = {
-    end: isComplete ? {label: '詳細', icon: <ChevronRight />, nav: () => navigate('/create-label-list')} : {label: '編集', icon: <Create />, nav: () => handleClick()}
+  if (status === 'end') {
+    const nav =  () => handleClick();
+    const icon = <Create />;
+    const label = '編集';
+    return (
+      <Button variant="outlined" color='inherit' onClick={nav}>{icon}{label}</Button>
+    )
   }
-  const { label, icon, nav } = config[status];
-  return(
-    <Button variant="outlined" color='inherit' onClick={nav}>{icon}{label}</Button>
-  );
+  if (status === 'complete') {
+    const nav = () => navigate('/create-label-result');
+    const icon = <ChevronRight />;
+    const label = '詳細';
+    return (
+      <Button variant="outlined" color='inherit' onClick={nav}>{icon}{label}</Button>
+    )
+  }
 }
 
 export const CreateLabelListScreen: React.FC = () => {
