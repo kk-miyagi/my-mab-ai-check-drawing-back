@@ -69,6 +69,9 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                 pdf_list = [f"{upload_dir}/{f}"
                             for f in os.listdir(upload_dir)
                             if f.lower().endswith(".pdf")]
+                app_state.update_app_status(
+                    req_status
+                )
                 if len(pdf_list) > 0:
                     def pdf_to_jpeg(file_path):
                         """PDFを画像に変換する"""
@@ -109,12 +112,14 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     background_tasks
                 )
             else:
-                req_status.group_status = Status.ERROR
+                up_status = Status.ERROR
                 logger.log(
                     req_status,
                     AppLogger.ERROR,
                     f"CREATE-LABEL UPLOAD DIR NOT FOUND:{upload_dir}"
                 )
+                req_status.group_status = up_status
+                req_status.operations[0].status = up_status
                 app_state.update_app_status(
                     req_status
                 )
@@ -148,7 +153,9 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                     AppLogger.ERROR,
                     f"CREATE-LABEL REQUEST IS NOT END:{req_status.group_status}"
                 )
-                req_status.group_staus = Status.ERROR
+                up_status = Status.ERROR
+                req_status.group_staus = up_status
+                req_status.operations[0].status = up_status
                 app_state.update_app_status(
                     req_status
                 )

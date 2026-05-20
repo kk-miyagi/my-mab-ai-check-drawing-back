@@ -114,7 +114,7 @@ def update_app_status(self, status):
                     if (
                             state_op.operation == ope.operation
                             ) and (state_op.operation_id == ope.operation_id):
-                        state_op.group_status = ope.group_status
+                        state_op.status = ope.status
 
             for k in status.others.keys():
                 state_status.others[k] = status.others[k]
