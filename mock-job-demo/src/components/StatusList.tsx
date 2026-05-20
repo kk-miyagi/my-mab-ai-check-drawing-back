@@ -26,7 +26,7 @@ import {
 import { Header } from './Header';
 import { statusListApi } from '../api/statusListApi';
 
-type ProcessStatus = 'start' | 'doing' | 'end' | 'error';
+type ProcessStatus = 'start' | 'doing' | 'end' | 'error' | 'comp';
 
 type StatusConfig = {
   label: string;
@@ -35,11 +35,9 @@ type StatusConfig = {
   sx?: object;
 };
 
-export const StatusBadge: React.FC<{ status: ProcessStatus, epic: string, isComplete?: boolean }> = ({ status, epic, isComplete }) => {
+export const StatusBadge: React.FC<{ status: ProcessStatus, epic: string }> = ({ status, epic }) => {
   const endConfig = epic === 'create-label'
-    ? (isComplete
-        ? { label: '完了', color: 'success' as const, icon: <CheckCircle /> }
-        : { label: '編集待ち', color: 'warning' as const, icon: <CheckCircleOutlineOutlined /> })
+    ? { label: '編集待ち', color: 'warning' as const, icon: <CheckCircleOutlineOutlined /> }
     : { label: '完了', color: 'success' as const, icon: <CheckCircle /> };
 
   const config: Record<ProcessStatus, StatusConfig> = {
@@ -47,6 +45,7 @@ export const StatusBadge: React.FC<{ status: ProcessStatus, epic: string, isComp
     doing: { label: '実行中', color: 'info', icon: <Autorenew /> },
     end: endConfig,
     error: { label: 'エラー', color: 'error', icon: <Error /> },
+    comp: { label: '完了', color: 'success', icon: <CheckCircle /> },
   };
 
   const { label, color, icon, sx } = config[status];
@@ -190,7 +189,7 @@ export const StatusList: React.FC<StatusListProps> = ({ epic, title, columns }) 
                   </TableRow>
                 )}
                 {items.map((row) => (
-                  <TableRow key={row.title}>
+                  <TableRow key={row.group_id}>
                     {columns.map((c) => (
                       <TableCell key={c.id}>{c.render(row)}</TableCell>
                     ))}

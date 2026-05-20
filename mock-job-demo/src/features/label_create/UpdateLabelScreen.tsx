@@ -18,19 +18,17 @@ import {
   Typography,
 } from '@mui/material';
 import { createLabelApi } from '../../api/createLabelApi.ts';
-import { uploadApi } from '../../api/uploadApi.ts';
-import { localStorageKey } from '../../constants/localStorageKey.ts';
 import type { CreateLabelResponse } from '../../types/createLabel.ts';
-import { LocalStorageData } from '../../types/storage.ts';
-import { UploadPairRequest } from '../../types/uploadServer.ts';
 import type { DraftRect, HandleDirection, InteractionMode, RectModel } from './compare/types.ts';
 import { Geometry } from './compare/services/Geometry.ts';
 import { RectFactory } from './compare/services/RectFactory.ts';
 import { RectManipulator } from './compare/services/RectManipulator.ts';
 import { Header } from '../../components/Header.tsx';
+import type { UpdateLabelInitRequest } from '../../types/createLabel.ts';
+import type { UpdateLabelRequest } from '../../types/createLabel.ts';
 
 const DEFAULT_EPIC = 'create-label';
-const DEFAULT_OPERATION = 'batch-update-label';
+const DEFAULT_OPERATION = 'update-label';
 const DEFAULT_CSV_COLUMNS = ['No', '項目', '寸法値または品質指定等の記載内容', '備考'];
 const HIDDEN_CSV_COLUMNS = ['理由およびエラーログ', 'No', 'No.', 'row_index'];
 
@@ -47,6 +45,7 @@ type UpdateLabelLocationState = {
   labelImg?: InitFileRef;
   labelData?: InitFileRef;
   rects?: Record<string, RectTuple>;
+  requestBody: UpdateLabelInitRequest;
 };
 
 type EditableRow = Row & {
@@ -590,22 +589,6 @@ export const UpdateLabelScreen: React.FC = () => {
   };
 
   const handleStart = async () => {
-    const getLocalStorage = window.localStorage.getItem(localStorageKey.createLabel);
-    if (!getLocalStorage) {
-      window.alert('処理に失敗したため、画面を切り替えます');
-      navigate('/');
-      return;
-    }
-
-    const localStorageData: LocalStorageData = JSON.parse(getLocalStorage);
-    localStorageData.epic = DEFAULT_EPIC;
-    localStorageData.operation = DEFAULT_OPERATION;
-    localStorageData.status = 'start';
-    window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
-
-    if (!localStorageData.operationId) {
-      return;
-    }
 
     const generatedCsv = buildCsvForUpload();
     const fallbackCsv = csvFile.length > 0 ? csvFile[0] : null;
@@ -615,39 +598,66 @@ export const UpdateLabelScreen: React.FC = () => {
       return;
     }
 
-    try {
-      // FIXME(keep): サーバー送信時は「画像+CSV」と「rects(JSON)」の両方を送る前提。
-      // サーバーへ送信する候補値の組み立て
-      // - 設計情報: imageFile.concat([csvToUpload]) がファイルとして送信される
-      // - 座標情報: rects を JSON.stringify して rects フィールドに追加
-      // - メタデータ: localStorageData から user, epic, operation, operation_id などを取得
-      const requestPayload: UploadPairRequest = {
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: 'doing',
-        number: 1,
-        files: imageFile.concat([csvToUpload]),
-        // JSON文字列で矩形座標情報をサーバーに送信
-        // rects: JSON.stringify(rects),
-      };
-      await uploadApi.uploadPair(requestPayload);
-
-      navigate('/');
-
-      let res: CreateLabelResponse;
-      res = await createLabelApi.updateLabelStart({
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: localStorageData.status,
+    // imagePreview と rects, rectRowMap が使える前提
+    const convertRectsToXY = async () => {
+      const img = new Image();
+      const ok = await new Promise<boolean>((resolve) => {
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = imagePreview!;
       });
-      void res;
+      if (!ok || img.naturalWidth === 0 || img.naturalHeight === 0) {
+        throw new Error('画像読み込みに失敗しました');
+      }
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+
+      // サーバーに送る形式: { "<rowIndex>": [x1,y1,x2,y2], ... }
+      const out: Record<string, number[]> = {};
+      for (const r of rects) {
+        const x1 = Math.round((r.x / 100) * w);
+        const y1 = Math.round((r.y / 100) * h);
+        const x2 = Math.round(((r.x + r.width) / 100) * w);
+        const y2 = Math.round(((r.y + r.height) / 100) * h);
+        const rowIndex = rectRowMap[r.id];
+        const key = Number.isFinite(rowIndex) && rowIndex > 0 ? String(rowIndex) : r.id;
+        out[key] = [x1, y1, x2, y2];
+      }
+      return out;
+    };
+
+    try {
+      const req = data?.requestBody;
+      if (!req) {
+        window.alert('予期せぬエラーが発生しました');
+        navigate('/')
+        return;
+      }
+
+      // オブジェクト形式: { "1": ["col1値","col2値",...], ... }
+      const mapped = csvRows.reduce<Record<string, string[]>>((acc, row) => {
+        const idx = String(row.__rowIndex);
+        console.log(idx, row)
+        const values = visibleCsvColumns.map(col => String(row[col] ?? ''));
+        acc[idx] = values;
+        return acc;
+      }, {});
+      const rectsForUpload = await convertRectsToXY();
+
+      const updateLabelPayload: UpdateLabelRequest = {
+        user: req.user,
+        epic: req.epic,
+        group_id: req.group_id,
+        group_status: 'comp',
+        others: req.others,
+        operations: [{operation: DEFAULT_OPERATION,  operation_id: req.operations[0].operation_id, status: 'doing'}],
+        rects: rectsForUpload,
+        info: mapped,
+      }
+      const res = await createLabelApi.updateLabelStart(updateLabelPayload);
+      console.log('updateLabelStart response:', res);
+      navigate('/');
     } catch {
-      localStorageData.status = 'error';
-      window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
       window.alert('バッチ処理起動に失敗したため、画面を切り替えます');
       navigate('/update-label');
     }
@@ -782,7 +792,7 @@ export const UpdateLabelScreen: React.FC = () => {
 
           <Stack direction="row" divider={<Divider orientation="vertical" flexItem />} spacing={2} sx={{ justifyContent: 'flex-end', width: '100%'}}>
             <Button variant="contained" onClick={handleRemoveItem}>一覧に戻る</Button>
-            <Button variant="contained" disabled={imageFile.length === 0 || csvFile.length === 0}>
+            <Button variant="contained" disabled={imageFile.length === 0 || csvFile.length === 0} onClick={handleStart} >
               ラベル編集処理を開始する
             </Button>
           </Stack>

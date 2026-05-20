@@ -1,4 +1,4 @@
-export type Status = 'start' | 'doing' | 'end' | 'error' | string;
+export type Status = 'start' | 'doing' | 'end' | 'error' | 'comp' | string;
 
 export type Operations = {
   operation: string;

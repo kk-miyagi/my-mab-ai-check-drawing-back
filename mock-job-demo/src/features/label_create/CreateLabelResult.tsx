@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import Papa from 'papaparse';
-import { localStorageKey } from '../../constants/localStorageKey';
-import { LocalStorageData } from '../../types/storage.ts';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import JSZip from 'jszip';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { PdfPreview } from '../../components/PdfPreview.tsx';
 import {
   Box,
   Button,
   Container,
+  Paper,
   Stack,
   Typography,
   Table,
@@ -65,6 +64,8 @@ export const CreateLabelResultScreen: React.FC = () => {
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
 
+  const updateLabelPayload = useLocation().state.updateLabelPayload;
+
   const navigate = useNavigate();
 
   const handleDownload = async () => {
@@ -85,27 +86,16 @@ export const CreateLabelResultScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    const getLocalStorage = window.localStorage.getItem(localStorageKey.createLabel)
-    if (!getLocalStorage) {
-      return
-    }
-    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
-    if (!localStorageData.operationId) {
-      return
-    }
 
     (async () => {
       try {
-        if (!localStorageData.operationId) {
-          return
-        }
-
-        const res = await createLabelApi.createLabelEnd({
-          user: localStorageData.user,
-          epic: localStorageData.epic,
-          operation: localStorageData.operation,
-          operation_id: localStorageData.operationId,
-          status: localStorageData.status,
+        const res = await createLabelApi.updateLabelEnd({
+          user: updateLabelPayload.user,
+          epic: updateLabelPayload.epic,
+          group_id: updateLabelPayload.group_id,
+          group_status: updateLabelPayload.group_status,
+          others: updateLabelPayload.others,
+          operations: [{ operation: "update-label", operation_id: updateLabelPayload.operations[0].operation_id, status: "end" }]
         });
 
         // TODO: 複数出力がある場合
@@ -206,33 +196,43 @@ export const CreateLabelResultScreen: React.FC = () => {
             </Button>
           </Box>
 
-          {pdfFiles.length > 0 && currentPdfFile && (
-            <PdfPreview preview={currentPdfFile.url} />
-          )}
-
-          {csvFiles.length > 0 && currentCsvFile && (
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    {csvColumns.map((c) => (
-                      <TableCell key={c}>{c}</TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {csvRows.map((r, i) => (
-                    <TableRow key={i}>
-                      {csvColumns.map((c) => (
-                        <TableCell key={c}>{String(r[c] ?? '')}</TableCell>
+          <Stack direction="row" spacing={2}>
+            <Box sx={{ flex: 2 }}>
+              {pdfFiles.length > 0 && currentPdfFile && (
+                <>
+                <Typography variant="h6" align="center" gutterBottom>ラベル付与後の図面</Typography>
+                <PdfPreview preview={currentPdfFile.url} />
+                </>
+              )}
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              {csvFiles.length > 0 && currentCsvFile && (
+                <>
+                <Typography variant="h6" align="center" gutterBottom>設計情報</Typography>
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        {csvColumns.map((c) => (
+                          <TableCell key={c}>{c}</TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {csvRows.map((r, i) => (
+                        <TableRow key={i}>
+                          {csvColumns.map((c) => (
+                            <TableCell key={c}>{String(r[c] ?? '')}</TableCell>
+                          ))}
+                        </TableRow>
                       ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-          
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                </>
+              )}
+            </Box>
+          </Stack>
         </Stack>
       </Container>
     </Box>

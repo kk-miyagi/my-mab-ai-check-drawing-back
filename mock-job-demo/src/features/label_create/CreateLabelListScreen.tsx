@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@mui/material';
 import { ChevronRight, Create } from '@mui/icons-material';
-import { UpdateLabelInitRequest } from '../../types/createLabel';
+import { UpdateLabelInitRequest, UpdateLabelRequest } from '../../types/createLabel';
 import { updateLabelInit } from '../../hooks/updateLabelInit';
 import { StatusList, StatusBadge } from '../../components/StatusList';
 import type { StatusListResponse, Status } from '../../types/statusList';
@@ -39,8 +39,16 @@ const NavigateButton: React.FC<{ row: StatusListResponse }> = ({ row }) => {
       <Button variant="outlined" color='inherit' onClick={nav}>{icon}{label}</Button>
     )
   }
-  if (status === 'complete') {
-    const nav = () => navigate('/create-label-result');
+  if (status === 'comp') {
+    const updateLabelPayload : UpdateLabelRequest = {
+      user: row.user,
+      epic: row.epic,
+      group_id: row.group_id,
+      group_status: row.group_status,
+      others: row.others,
+      operations: [{ operation: "update-label", operation_id: row.operations[0].operation_id, status: "end" }]
+    }
+    const nav = () => navigate('/create-label-result', { state: { updateLabelPayload }});
     const icon = <ChevronRight />;
     const label = '詳細';
     return (
@@ -62,7 +70,7 @@ export const CreateLabelListScreen: React.FC = () => {
     {
       id: 'status',
       label: 'ステータス',
-      render: (r) => <StatusBadge status={(r as StatusListResponse).group_status} epic="create-label" isComplete={(r as StatusListResponse).others.isComplete} />,
+      render: (r) => <StatusBadge status={(r as StatusListResponse).group_status} epic="create-label" />,
     },
     {
       id: 'action',

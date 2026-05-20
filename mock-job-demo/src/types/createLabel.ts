@@ -40,3 +40,23 @@ export interface UpdateLabelInitRequest {
   others: Record<string, any>;
   operations: Operations[];
 }
+
+export interface UpdateLabelRequest {
+  user: string;
+  epic: string;
+  group_id: string;
+  group_status: Status;
+  others: Record<string, any>;
+  operations: Operations[];
+  rects?: Record<string, any>;
+  info?: Record<string, any>;
+}
+
+export interface UpdateLabelResponse {
+  user: string;
+  epic: string;
+  group_id: string;
+  group_status: Status;
+  others: Record<string, any>;
+  operations: Operations[];
+}
