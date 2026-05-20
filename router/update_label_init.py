@@ -21,7 +21,8 @@ async def update_label_init(request: Request):
     logger = app_state.getLogger()
     req_status = AppStatus.create_from_state(state)
 
-    if req_status.status == Status.START:
+    target_status = req_status.operations[0].status
+    if target_status == Status.START:
         try:
             logger.log(
                 req_status,
@@ -30,11 +31,13 @@ async def update_label_init(request: Request):
             )
 
             req_epic = req_status.epic
-            req_ope = req_status.operation
+            req_ope = req_status.operations[0]
             req_user = req_status.user
-            req_opeid = req_status.operation_id
+            req_grid = req_status.group_id
+            req_opeid = req_ope.operation_id
 
-            base_dir = f'./create-label-responce/{req_user}_{req_epic}_batch-create-label_{req_opeid}'
+            base_dir = f'./create-label-responce/{req_user}_{req_epic}'
+            base_dir += f"_{req_grid}_batch-create-label_{req_opeid}"
 
             img_list = list(Path(base_dir).glob("*.jpg"))
             img_list = [f.as_posix() for f in img_list]
@@ -43,12 +46,10 @@ async def update_label_init(request: Request):
             csv_list = [f.as_posix() for f in csv_list]
 
             pattern = re.compile(r'^job_\d{14}$')
-            dirs = [
+            [
                 d for d in Path(base_dir).iterdir()
                 if d.is_dir() and pattern.match(d.name)
             ]
- 
-            latest_dir = max(dirs, key=lambda d: d.name.split("_")[1])
 
             rects_json_path = (Path(base_dir) / "rects.json").as_posix()
 
@@ -62,6 +63,10 @@ async def update_label_init(request: Request):
                     io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
                 for fpath in file_list:
                     zip.write(fpath)
+            # status update
+            app_state.update_app_status(
+                req_status
+            )
             return StreamingResponse(
                 iter([io.getvalue()]),
                 media_type="application/x-zip-compressed",
@@ -75,12 +80,24 @@ async def update_label_init(request: Request):
                 AppLogger.ERROR,
                 f"UPDATE-LABEL-INIT ERROR! : {e}"
             )
+            up_status = Status.ERROR
+            req_status.group_status = up_status
+            req_status.operations[0].status = up_status
+            app_state.update_app_status(
+                req_status
+            )
             raise e
     else:
         logger.log(
             req_status,
             AppLogger.DEBUG,
-            f"UPDATE-LABEL-INIT NOT INIT STATUS: {req_status.status}"
+            f"UPDATE-LABEL-INIT NOT INIT STATUS: {req_status.group_status}"
         )
 
+        up_status = Status.ERROR
+        req_status.group_status = up_status
+        req_status.operations[0].status = up_status
+        app_state.update_app_status(
+            req_status
+        )
     return ret

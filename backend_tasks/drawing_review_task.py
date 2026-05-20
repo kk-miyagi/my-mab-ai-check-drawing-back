@@ -4,7 +4,6 @@ import os
 import sys
 from pathlib import Path
 from pdf2image import convert_from_path
-from vertexai.generative_models import GenerativeModel
 from utils.simple_multi_genemipronpt import (
     generate_with_multiple_contents,
 )
@@ -15,7 +14,7 @@ from utils.gemini_response import (
 
 # サービスアカウントキーファイルのパスを設定
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'mab-ai-check-drawing-sa-key.json'
-model = GenerativeModel("gemini-2.5-pro")
+model = "gemini-2.5-pro"
 
 
 def check_drawings_prompt(propt_list, files_list):

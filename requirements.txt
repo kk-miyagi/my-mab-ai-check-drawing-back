@@ -7,7 +7,6 @@ requests
 google-cloud-vision
 Pillow
 opencv-python
-google-cloud-aiplatform
 google-genai
 pdf2image
 img2pdf

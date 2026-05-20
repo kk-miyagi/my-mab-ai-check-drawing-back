@@ -12,10 +12,11 @@ from app_logger import AppLogger, BatchLogger
 from app_backend_task import BackendTasks
 from state.app_status import AppStatus
 import router.issue_operation_id as issue_operation_id
+import router.issue_group_id as issue_group_id
+import router.status_list as status_list
 import router.multi_fileupload as multi_fileupload
 import router.epic_init as epic_init
 import router.check_status as check_status
-import router.demo_create_label as demo_create_label
 import router.create_label as create_label
 import router.update_label as update_label
 import router.drawing_review as drawing_review
@@ -24,6 +25,7 @@ import router.drawing_compare as drawing_compare
 import router.drawing_highlight as drawing_highlight
 import router.update_label_init as update_label_init
 import threading
+import json
 
 
 # 各種マネージャー格納用
@@ -47,9 +49,10 @@ class AppMiddleware(BaseHTTPMiddleware):
                 return
             request.state.user = form_data.get('user')
             request.state.epic = form_data.get('epic')
-            request.state.operation = form_data.get('operation')
-            request.state.operation_id = form_data.get('operation_id')
-            request.state.status = form_data.get('status')
+            request.state.group_id = form_data.get('group_id')
+            request.state.group_status = form_data.get('group_status')
+            request.state.operations = json.loads(form_data.get('operations'))
+            request.state.others = json.loads(form_data.get('others'))
             request.state.bf_file = form_data.get('bf_file')
             request.state.af_file = form_data.get('af_file')
             request.state.bf_file_csv = form_data.get('bf_file_csv')
@@ -61,9 +64,10 @@ class AppMiddleware(BaseHTTPMiddleware):
             body_json = {
                          'user': request.state.user,
                          'epic': request.state.epic,
-                         'operation': request.state.operation,
-                         'operation_id': request.state.operation_id,
-                         'status': request.state.status
+                         'group_id': request.state.group_id,
+                         'operations': request.state.operations,
+                         'others': request.state.others,
+                         'group_status': request.state.group_status
             }
         elif content_type == 'application/json':
             body_json = await request.json()
@@ -71,18 +75,24 @@ class AppMiddleware(BaseHTTPMiddleware):
                 request.state.user = body_json['user']
             if 'epic' in body_json:
                 request.state.epic = body_json['epic']
-            if 'operation' in body_json:
-                request.state.operation = body_json['operation']
-            if 'operation_id' in body_json:
-                request.state.operation_id = body_json['operation_id']
-            if 'status' in body_json:
-                request.state.status = body_json['status']
+            if 'operations' in body_json:
+                request.state.operations = body_json['operations']
+            if 'others' in body_json:
+                request.state.others = body_json['others']
+            if 'group_id' in body_json:
+                request.state.group_id = body_json['group_id']
+            if 'group_status' in body_json:
+                request.state.group_status = body_json['group_status']
             if 'number' in body_json:
                 request.state.number = body_json['number']
             if 'sum_number' in body_json:
                 request.state.sum_number = body_json['sum_number']
             if 'combinations' in body_json:
                 request.state.combinations = body_json['combinations']
+            if 'rects' in body_json:
+                request.state.rects = body_json['rects']
+            if 'info' in body_json:
+                request.state.info = body_json['info']
             request.state.body = body_json
 
         res = MANAGERS.start_managers(request, body_json)
@@ -157,10 +167,11 @@ class AppServer():
     def setup_routers(self, app_state: AppState):
         AppRoute.set_app_state(app_state)
         self.app.include_router(issue_operation_id.router)
+        self.app.include_router(issue_group_id.router)
+        self.app.include_router(status_list.router)
         self.app.include_router(multi_fileupload.router)
         self.app.include_router(epic_init.router)
         self.app.include_router(check_status.router)
-        self.app.include_router(demo_create_label.router)
         self.app.include_router(create_label.router)
         self.app.include_router(update_label.router)
         self.app.include_router(drawing_review.router)

@@ -8,9 +8,10 @@ export const ENDPOINTS = {
   createLabel: `${PREFIX}/create-label/`,
   updateLabel: `${PREFIX}/update-label/`,
   updateLabelInit: `${PREFIX}/update-label-init/`,
-  demoCreateLabel: `${PREFIX}/demo-create-label/`,
   drawingReview: `${PREFIX}/drawing-review/`,
   drawingCompare: `${PREFIX}/drawing-compare/`,
   getImageSimilarity: `${PREFIX}/image-similarity/`,
-  drawingHighlight: `${PREFIX}/drawing-highlight/`
+  drawingHighlight: `${PREFIX}/drawing-highlight/`,
+  issueGroupId: `${PREFIX}/issue/group-id/`,
+  statusList: `${PREFIX}/status-list/`,
 };

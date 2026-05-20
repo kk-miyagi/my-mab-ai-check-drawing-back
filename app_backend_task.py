@@ -62,9 +62,9 @@ class BackendTaskRunner:
             )
             return_code = await process.wait()
             if return_code == 0:
-                req_status.status = Status.END
+                up_status = Status.END
             else:
-                req_status.status = Status.ERROR
+                up_status = Status.ERROR
                 self.logger.log(
                     req_status,
                     BatchLogger.ERROR,
@@ -76,8 +76,10 @@ class BackendTaskRunner:
                 BatchLogger.INFO,
                 f"backend error!!: {e}"
             )
-            req_status.status = Status.ERROR
+            up_status = Status.ERROR
 
+        req_status.group_status = up_status
+        req_status.operations[0].status = up_status
         # app status update
         app_state.update_app_status(
             req_status
@@ -127,12 +129,13 @@ class BackendTasks:
             BatchLogger.DEBUG,
             "BACKEND TASK SET END !!"
         )
+        # TODO session status update
 
     @classmethod
     def _task_state_key(cls, req_status):
         return '_'.join(
             [
                 req_status.epic,
-                req_status.operation
+                req_status.operations[0].operation
             ]
         )

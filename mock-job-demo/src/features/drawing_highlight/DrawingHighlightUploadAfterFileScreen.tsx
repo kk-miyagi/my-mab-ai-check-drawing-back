@@ -1,14 +1,21 @@
-import React, { useState, ChangeEvent, useEffect } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import React, { useState, useCallback } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react';
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { LocalStorageData } from '../../types/storage.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
-import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
 import { imageSimilarityApi } from '../../api/imageSimilarityApi.ts';
 import { drawingHighlightApi } from '../../api/drawingHighlightApi.ts';
-import { PdfPreview } from '../../components/PdfPreview.tsx';
 import JSZip from 'jszip';
+import {
+  Box,
+  Button,
+  Container,
+  Stack,
+  Typography,
+} from '@mui/material';
+import { Header } from '../../components/Header';
+import { InputFile } from '../../components/InputFile';
 
 const DEFAULT_EPIC = 'drawing-highlight';
 const DEFAULT_OPERATION = 'upload-target';
@@ -22,28 +29,16 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
   const baseImageFile = data.baseImageFile;
 
   const [compareImageFile, setCompareImageFile] = useState<File[]>([]);
-  const [compareImagepreview, setCompareImagePreview] = useState<string | null>(null);
-  const [isPdf, setIsPdf] = useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleSetCompareImageFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const selectedFile = files[0];
-      if (selectedFile.type === 'application/pdf') {
-        setIsPdf(true);
-      } else {
-        setIsPdf(false);
-      }
-      setCompareImageFile([selectedFile]);
-      setCompareImagePreview(URL.createObjectURL(selectedFile));
-    } else {
-      setCompareImageFile([]);
-      setCompareImagePreview(null);
-      setIsPdf(false);
-    }
-  };
+  const handleFilesChange = useCallback((files: File[]) => {
+    setCompareImageFile(files);
+  }, []);
+
+  const isPdf = compareImageFile.length > 0
+    && (compareImageFile[0].type === 'application/pdf'
+      || compareImageFile[0].name.toLowerCase().endsWith('.pdf'));
 
   const handleStart = async () => {
     setIsLoading(true);
@@ -119,7 +114,7 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
 
       if (Object.keys(similarities).length === 0) {
         // 実行中画面に遷移して、対象のAPIを叩く
-        navigate("/drawing-highlight-processing")
+        navigate("/")
         const toPersist =JSON.parse(window.localStorage.getItem(localStorageKey.drawingHighlight) as string);
         localStorageData.operation = "drawing-highlight"
         localStorageData.status = "doing"
@@ -163,47 +158,30 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
     }
   }
 
-  useEffect(() => {
-    return () => {
-      if (compareImagepreview) {
-        URL.revokeObjectURL(compareImagepreview);
-      }
-    };
-  }, [compareImagepreview]);
-
   return (
-    <div className="page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>図面ハイライト</h1>
-      </div>
+    <Box>
+      <Header />
+      <Container>
+        <Stack spacing={2} sx={{ py: 2 }}>
+          <Typography variant="h4">差分ハイライト</Typography>
+          <Typography variant="body1" color="text.secondary">
+            修正後の図面を選択し、「次へ」ボタンを押してください。
+          </Typography>
 
-      <h3>修正後の図面</h3>
-      <div style={{ display: 'grid', gap: 12 }}>
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
-          <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" accept="image/*, application/pdf" onChange={handleSetCompareImageFile} />
-          </label>
-        </div>
-      </div>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              onClick={handleStart}
+              disabled={compareImageFile.length === 0 || isLoading}
+              startIcon={isLoading ? <Loader2 size={18} className="spin" /> : undefined}
+            >
+              {isLoading ? '読み込み中' : '次へ'}
+            </Button>
+          </Box>
 
-      {compareImagepreview && !isPdf && (
-        <div style={{ marginBottom: '15px' }}>
-          <img src={compareImagepreview} alt='プレビュー' style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
-        </div>
-      )}
-      {compareImagepreview && isPdf && (
-        <PdfPreview preview={compareImagepreview} />
-      )}
-
-      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart} disabled={compareImageFile.length === 0 || isLoading}>
-          {isLoading && (
-            <Loader2 className="spin" size={18} />
-          )}
-          {isLoading ? '処理中...' : '処理開始'}
-        </button>  
-      </div>
-
-    </div>
+          <InputFile onFilesChange={handleFilesChange} />
+        </Stack>
+      </Container>
+    </Box>
   )
 }

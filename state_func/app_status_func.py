@@ -1,6 +1,7 @@
 import uuid
 import time
 from state.app_status import AppStatus
+from state.app_status import Operation
 
 
 def get_all_keys(self):
@@ -27,11 +28,20 @@ def create_app_status(self):
             self.app_state.APP_STATUS_SESSION_KEY = {}
 
 
+def get_status_list(self, user, epic):
+    ret_list = []
+    with self.lock:
+        status_dic = self.app_state.APP_STATUS_SESSION_KEY
+        for val in status_dic.values():
+            if val.user == user and val.epic == epic:
+                ret_list.append(val)
+    return ret_list
+
+
 def get_eq_app_status(self, req_status):
     with self.lock:
         status_dic = self.app_state.APP_STATUS_SESSION_KEY
-        if AppStatus._is_none_and_black(
-                req_status.operation_id):
+        if AppStatus._is_none_and_black(req_status.group_id):
             ret = None
         elif req_status.get_hash_key() not in status_dic:
             ret = None
@@ -43,19 +53,48 @@ def get_eq_app_status(self, req_status):
 def create_new_app_status(self, status):
     with self.lock:
         status_dic = self.app_state.APP_STATUS_SESSION_KEY
-        ret_id = status.operation_id
+        ret_id = status.group_id
         if AppStatus._is_none_and_black(ret_id):
             ret_id = str(uuid.uuid4())
         ret_time = time.time()
         ret = AppStatus(
                  status.user,
                  status.epic,
-                 status.operation,
                  ret_id,
-                 status.status,
+                 status.group_status,
+                 [],
+                 {},
                  ret_time
         )
         status_dic[ret.get_hash_key()] = ret
+    return ret
+
+
+def create_new_ope_id(self, status):
+    with self.lock:
+        status_dic = self.app_state.APP_STATUS_SESSION_KEY
+        state_status = status_dic[status.get_hash_key()]
+        opes = status.operations
+        ret = None
+        n_opes = []
+        for ope in opes:
+            n_ope = Operation(
+                        ope.operation,
+                        uuid.uuid4(),
+                        ope.status
+            )
+            n_opes.append(n_ope)
+        ret_opes = state_status.operations + n_opes
+        ret = AppStatus(
+            state_status.user,
+            state_status.epic,
+            state_status.group_id,
+            state_status.group_status,
+            ret_opes,
+            status.others,
+            state_status.create_time
+        )
+        status_dic[status.get_hash_key()] = ret
     return ret
 
 
@@ -69,7 +108,17 @@ def update_app_status(self, status):
                 continue
         if update_key is not None:
             state_status = status_dic[update_key]
-            state_status.status = status.status
+            state_status.group_status = status.group_status
+            for ope in status.operations:
+                for state_op in state_status.operations:
+                    if (
+                            state_op.operation == ope.operation
+                            ) and (state_op.operation_id == ope.operation_id):
+                        state_op.status = ope.status
+
+            for k in status.others.keys():
+                state_status.others[k] = status.others[k]
+
             status_dic[update_key] = state_status
 
 

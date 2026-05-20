@@ -25,10 +25,10 @@ def update_drawing_highlight_info(self, status):
             session_dic[status.get_hash_key()] = DrawingHighlightInfo(
                 status.user,
                 status.epic,
+                status.group_id,
                 status.operation,
                 status.operation_id,
-                status.status
             )
         else:
             info = session_dic[status.get_hash_key()]
-            info.status = status.status
+            info.group_status = status.group_status

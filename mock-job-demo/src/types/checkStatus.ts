@@ -1,16 +1,23 @@
+export type Operations = {
+  operation: string;
+  operation_id: string;
+  status: 'start' | 'doing' | 'end' | string;
+}
+
 export interface CheckStatusRequest {
   user: string;
   epic: string;
-  operation: string;
-  operation_id: string;
-  status: 'doing' | 'end';
+  group_id: string;
+  group_status: 'start' | 'doing' | 'end' | string;
+  others: Record<string, string> | null;
+  operations: Operations[];
 }
 
 export interface CheckStatusResponse {
   user: string;
   epic: string;
-  operation: string;
-  operation_id: string;
-  status: 'start' | 'doing' | 'end' | 'error' | string;
-  message: string;
+  group_id: string;
+  group_status: 'start' | 'doing' | 'end' | string;
+  others: Record<string, string> | null;
+  operations: Operations[];
 }

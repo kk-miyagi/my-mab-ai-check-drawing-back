@@ -62,5 +62,14 @@ export const updateLabelInit = async (
     return
   }
 
-  navigate(to, { state: { labelImg, labelData, rects }});
+  const requestBody = {
+    user: req.user,
+    epic: req.epic,
+    group_id: req.group_id,
+    group_status: req.group_status,
+    others: req.others,
+    operations: req.operations,
+  }
+
+  navigate(to, { state: { labelImg, labelData, rects, requestBody } });
 };

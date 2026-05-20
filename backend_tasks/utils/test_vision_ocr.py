@@ -7,13 +7,8 @@ import imghdr
 from google.cloud import vision
 from google.cloud.vision_v1.types import TextAnnotation
 from PIL import Image, ImageDraw
-
 from utils.dimension_models import OCRParagraph, OCRToken
 
-try:
-    from vertexai.generative_models import GenerativeModel
-except ImportError:  # pragma: no cover - optional dependency
-    GenerativeModel = None  # type: ignore
 
 try:
     from simple_multi_genemipronpt import generate_with_multiple_contents, extract_first_json
@@ -287,8 +282,8 @@ def _call_gemini_for_grouping(
     if not tokens:
         return None
 
-    if generate_with_multiple_contents is None or GenerativeModel is None:
-        print("Vertex AI SDK または補助関数が利用できないため連携をスキップします。")
+    if generate_with_multiple_contents is None:
+        print("GenAI helper が利用できないため連携をスキップします。")
         return None
 
     path_obj = Path(image_path)
@@ -296,11 +291,7 @@ def _call_gemini_for_grouping(
         print(f"画像ファイルが見つかりません: {path_obj.resolve()}")
         return None
 
-    try:
-        model = GenerativeModel(model_name)
-    except Exception as exc:  # pragma: no cover - network/api config
-        print(f"Vertex AIモデルの初期化に失敗しました: {exc}")
-        return None
+    model = model_name
 
     tokens_payload = [
         {

@@ -30,10 +30,10 @@ def update_boot_process_info(self, status):
         session_dic[status.get_hash_key()] = BaseBootAnotherProcessInfo(
             status.user,
             status.epic,
-            status.operation,
-            status.operation_id,
-            status.status
+            status.group_id,
+            status.operations[0].operation,
+            status.operations[0].operation_id,
         )
     else:
         loader = session_dic[status.get_hash_key()]
-        loader.status = status.status
+        loader.group_status = status.group_status

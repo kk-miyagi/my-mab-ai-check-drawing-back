@@ -37,24 +37,20 @@ export const uploadApi = {
   issueOperationIdApi,
 
   async uploadPair(payload: UploadPairRequest): Promise<UploadResponse> {
-    if (USE_MOCK_API) {
-      await wait(600);
-      return { status: 'doing', number: payload.number, operation_id: payload.operation_id };
-    }
-
     const form = new FormData();
     form.append('user', payload.user);
     form.append('epic', payload.epic);
-    form.append('operation', payload.operation);
-    form.append('operation_id', payload.operation_id);
-    form.append('status', payload.status);
-    form.append('number', String(payload.number));
-    // Use explicit field names for before/after files
-    payload.files.forEach((file, idx) => {
-      const field = payload.file_field_keys?.[idx] ?? (idx === 0 ? 'bf_file' : idx === 1 ? 'af_file' : `file_${idx + 1}`);
-      form.append(field, file);
-    });
-
+    form.append('group_id', payload.group_id);
+    form.append('group_status', payload.group_status);
+    form.append('others', JSON.stringify(payload.others));
+    form.append('operations', JSON.stringify(payload.operations));
+    form.append('number', payload.number.toString());
+    if (payload.bf_file) {
+      form.append('bf_file', payload.bf_file);
+    }
+    if (payload.af_file) {
+      form.append('af_file', payload.af_file);
+    }
     return postForm(FILE_UPLOAD_ENDPOINT, form);
   },
 

@@ -1,11 +1,20 @@
-import React, { useState, ChangeEvent, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState, ChangeEvent, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { LocalStorageData } from '../../types/storage.ts';
 import { OperationIssueRequest } from '../../types/upload.ts';
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
-import { PdfPreview } from '../../components/PdfPreview.tsx';
+import {
+  Box,
+  Button,
+  Container,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { Header } from '../../components/Header';
+import { InputFile, UploadFileItem } from '../../components/InputFile';
 
 const DEFAULT_EPIC = 'drawing-compare';
 const DEFAULT_OPERATION = 'upload-base';
@@ -14,8 +23,7 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
 
   const navigate = useNavigate();
   const [baseImageFile, setBaseImageFile] = useState<File[]>([]);
-  const [baseImagepreview, setBaseImagePreview] = useState<string | null>(null);
-  const [isPdf, setIsPdf] = useState<boolean>(false);
+  const [currentItem, setCurrentItem] = useState<UploadFileItem | null>(null);
 
   const [title, setTitle] = useState<string>("");
   const [modelName, setModelName] = useState<string>("");
@@ -28,23 +36,13 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
     setModelName(e.target.value);
   };
 
-  const handleSetBaseImageFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const selectedFile = files[0];
-      if (selectedFile.type === 'application/pdf') {
-        setIsPdf(true);
-      } else {
-        setIsPdf(false);
-      }
-      setBaseImageFile([selectedFile]);
-      setBaseImagePreview(URL.createObjectURL(selectedFile));
-    } else {
-      setBaseImageFile([]);
-      setBaseImagePreview(null);
-      setIsPdf(false);
-    }
-  };
+  const handleFilesChange = useCallback((files: File[]) => {
+    setBaseImageFile(files);
+  }, []);
+
+  const handleCurrentItemChange = useCallback((item: UploadFileItem | null) => {
+    setCurrentItem(item);
+  }, []);
 
   const handleStart = async () => {
     // ローカルストレージの初期化
@@ -92,52 +90,50 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
     }
   }
 
-  useEffect(() => {
-    return () => {
-      if (baseImagepreview) {
-        URL.revokeObjectURL(baseImagepreview);
-      }
-    };
-  }, [baseImagepreview]);
-
   return (
-    <div className="page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>図面比較</h1>
-        <Link to="/hub">前に戻る</Link>
-      </div>
+    <Box>
+      <Header />
+      <Container>
+        <Stack spacing={2} sx={{ py: 2 }}>
+          <Typography variant="h4">図面比較</Typography>
+          <Typography variant="body1" color="text.secondary">
+            基準側(客先)の図面を選択し、タイトルと機種名を入力して「次へ」ボタンを押してください。
+          </Typography>
 
-      <h3>基準側(客先)図面</h3>
-      <div style={{ display: 'grid', gap: 12 }}>
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
-          <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" accept="image/*, application/pdf" onChange={handleSetBaseImageFile} />
-          </label>
-        </div>
-      </div>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              onClick={handleStart}
+              disabled={baseImageFile.length === 0}
+            >
+              次へ
+            </Button>
+          </Box>
 
-      {baseImagepreview && (
-        <div>
-          <p>タイトル</p>
-          <input type="text" value={title} onChange={handleTitleChange} placeholder="タイトル"/>
-          <p>機種名</p>
-          <input type="text" value={modelName} onChange={handleModelNameChange} placeholder="機種名"/>
-        </div>
-      )}
-
-      {baseImagepreview && !isPdf && (
-        <div style={{ marginBottom: '15px' }}>
-          <img src={baseImagepreview} alt='プレビュー' style={{ width: '100%', maxHeight: '2000px', objectFit: 'contain' }} />
-        </div>
-      )}
-      {baseImagepreview && isPdf && (
-        <PdfPreview preview={baseImagepreview} />
-      )}
-
-      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart} disabled={baseImageFile.length === 0} >次に進む</button>
-      </div>
-
-    </div>
+          <InputFile
+            onFilesChange={handleFilesChange}
+            onCurrentItemChange={handleCurrentItemChange}
+            rightPanel={
+              currentItem ? (
+                <Stack spacing={1.5}>
+                  <TextField
+                    label="タイトル"
+                    value={title}
+                    onChange={handleTitleChange}
+                    fullWidth
+                  />
+                  <TextField
+                    label="機種名"
+                    value={modelName}
+                    onChange={handleModelNameChange}
+                    fullWidth
+                  />
+                </Stack>
+              ) : null
+            }
+          />
+        </Stack>
+      </Container>
+    </Box>
   )
 }

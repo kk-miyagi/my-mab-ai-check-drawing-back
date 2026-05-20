@@ -12,6 +12,7 @@ import zipfile
 from datetime import datetime
 import json
 import shutil
+import img2pdf
 
 
 router = APIRouter(prefix='/api', route_class=AppRoute)
@@ -73,8 +74,10 @@ class DrawingHighlight:
             cv.rectangle(img1_yellow, (x, y), (x+w, y+h), (0, 255, 255), -1)
             cv.rectangle(img2_yellow, (x, y), (x+w, y+h), (0, 255, 255), -1)
 
-            cv.addWeighted(img1_marked, alpha, img1_yellow, 1-alpha, 0, img1_marked)
-            cv.addWeighted(img2_marked, alpha, img2_yellow, 1-alpha, 0, img2_marked)
+            cv.addWeighted(
+                    img1_marked, alpha, img1_yellow, 1-alpha, 0, img1_marked)
+            cv.addWeighted(
+                    img2_marked, alpha, img2_yellow, 1-alpha, 0, img2_marked)
 
         print("ハイライト終了")
 
@@ -243,9 +246,10 @@ async def drawing_highlight(request: Request):
     req_status = AppStatus.create_from_state(state)
 
     req_epic = req_status.epic
-    req_ope = req_status.operation
+    req_ope = req_status.operations[0].operation
     req_user = req_status.user
-    req_opid = req_status.operation_id
+    req_grid = req_status.group_id
+    req_opid = req_status.operatons[0].operation_id
 
     req_combinations = state.combinations
     req_combinations = json.loads(req_combinations)
@@ -254,10 +258,10 @@ async def drawing_highlight(request: Request):
     up_target_ope = 'upload-target'
 
     upload_base_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
-    upload_base_file_dir += f"_{up_base_ope}_{req_opid}"
+    upload_base_file_dir += f"_{req_grid}_{up_base_ope}_{req_opid}"
 
     upload_target_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
-    upload_target_file_dir += f"_{up_target_ope}_{req_opid}"
+    upload_target_file_dir += f"_{req_grid}_{up_target_ope}_{req_opid}"
 
     image_extensions = {".jpg", ".jpeg", ".png"}
     base_image_name = [
@@ -269,11 +273,12 @@ async def drawing_highlight(request: Request):
     base_image_path = Path(upload_base_file_dir, base_image_name)
     target_image_path = Path(upload_target_file_dir, target_image_name)
     _OUT_BASE_DIR = f'./{req_epic}-responce'
-    out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_ope}_{req_opid}"
+    out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}"
+    out_dir = f"_{req_ope}_{req_opid}"
     Path(out_dir).mkdir(parents=True, exist_ok=True)
 
-    # TODO operation_idがない場合はエラーにするか？
-    match req_status.status:
+    target_status = req_status.operations[0].status
+    match target_status:
         case Status.START:
             # TODO 一応想定外だがどうするか？
             logger.log(
@@ -293,22 +298,23 @@ async def drawing_highlight(request: Request):
                 is_exist_base_dir = os.path.exists(upload_base_file_dir)
                 is_exist_target_dir = os.path.exists(upload_target_file_dir)
 
-                if is_exist_base_dir and is_exist_target_dir:
-                    # app_status 作成
-                    app_state.create_new_app_status(
-                        req_status
-                    )
-                else:
+                if not (is_exist_base_dir and is_exist_target_dir):
                     error_msg = "DRAWING-HIGHLIGHT DIR NOT FOUND:"
                     error_msg += f"{upload_base_file_dir} "
                     error_msg += f"or {upload_target_file_dir}"
-                    req_status.status = Status.ERROR
+                    req_status.group_status = Status.ERROR
                     logger.log(
                         req_status,
                         AppLogger.ERROR,
                         error_msg
                     )
 
+                    up_status = Status.ERROR
+                    req_status.group_status = up_status
+                    req_status.operations[0].status = up_status
+                    app_state.update_app_status(
+                        req_status
+                    )
                 if not req_combinations:
                     DrawingHighlight.highlight(
                         base_image_path.as_posix(),
@@ -327,21 +333,21 @@ async def drawing_highlight(request: Request):
                 if req_combinations:
                     await DrawingHighlight.loop_highlight(
                         req_combinations,
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/cut_base",
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/cut_target",
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/cut_base",
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/cut_target",
                         out_dir
                     )
                     await DrawingHighlight.paste_cut_image(
                         'base',
                         base_image_path.as_posix(),
                         out_dir,
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/responce.json"
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/responce.json"
                     )
                     await DrawingHighlight.paste_cut_image(
                         'target',
                         target_image_path.as_posix(),
                         out_dir,
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}/responce.json"
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/responce.json"
                     )
 
                 logger.log(
@@ -350,12 +356,23 @@ async def drawing_highlight(request: Request):
                     "DRAWING-HIGHLIGHT SAVE OUTPUT IMAGE!"
                 )
 
+                # pdf変換
+                image_files = [
+                    f"{out_dir}/target_output_img.jpg",
+                    f"{out_dir}/base_output_img.jpg"
+                ]
+                for file in image_files:
+                    file = Path(file)
+                    new_file_name = Path(file).with_suffix(".pdf")
+                    with open(new_file_name, "wb") as f:
+                        f.write(img2pdf.convert(file))
+
                 # 2)ダウンロード先ディレクトリからCSVファイル読み込み
 
                 fname_list = os.listdir(out_dir)
                 file_list = [
                     f"{out_dir}/{fname}" for fname in fname_list
-                    if fname.endswith('.jpg')
+                    if fname.endswith('.pdf')
                 ]
                 print(f"file_list: {file_list}")
                 # 3)ZIPに固めてダウンロードの返信を実施
@@ -366,6 +383,9 @@ async def drawing_highlight(request: Request):
                         io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
                     for fpath in file_list:
                         zip.write(fpath)
+                app_state.update_app_status(
+                    req_status
+                )
                 return StreamingResponse(
                     iter([io.getvalue()]),
                     media_type="application/x-zip-compressed",
@@ -379,6 +399,12 @@ async def drawing_highlight(request: Request):
                     req_status,
                     AppLogger.ERROR,
                     f"DRAWING-HIGHLIGHT DOING STATUS error !:{e}"
+                )
+                up_status = Status.ERROR
+                req_status.group_status = up_status
+                req_status.operations[0].status = up_status
+                app_state.update_app_status(
+                    req_status
                 )
                 raise e
 

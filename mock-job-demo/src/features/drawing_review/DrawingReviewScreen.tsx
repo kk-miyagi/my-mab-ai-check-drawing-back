@@ -1,15 +1,42 @@
-import React, { useState, ChangeEvent, useRef, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { localStorageKey } from '../../constants/localStorageKey.ts';
 import { LocalStorageData } from '../../types/storage.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { ImagePair, DrawingReviewResponse } from '../../types/drawingReview.ts';
 import { drawingReviewApi } from '../../api/drawingReviewApi.ts';
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  Container,
+  Stack,
+  Typography,
+} from '@mui/material';
+import { Header } from '../../components/Header';
+import { InputFiles, UploadFileItem } from '../../components/InputFiles';
 
 const DEFAULT_EPIC = 'drawing-review';
 const DEFAULT_OPERATION = 'upload-images';
 
 type Row = Record<string, string | number | boolean | null>;
+
+type UploadedFile = {
+  id: string;
+  file: File;
+  url: string;
+  isPdf: boolean;
+};
+
+const toUploadedFile = (item: UploadFileItem): UploadedFile => {
+  return {
+    id: item.id,
+    file: item.file,
+    url: item.previewUrl,
+    isPdf: item.kind === 'pdf',
+  };
+};
 
 export const DrawingReviewScreen: React.FC = () => {
 
@@ -45,46 +72,32 @@ export const DrawingReviewScreen: React.FC = () => {
 
   const all_uniques = [...old_uniques, ...new_uniques]
 
-  const [imageFile, setImageFile] = useState<File[]>([]);
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [currentFile, setCurrentFile] = useState<UploadedFile | null>(null);
 
   const [validationMessage01, setValidationMessage01] = useState<string[]>([]);
   const [validationMessage02, setValidationMessage02] = useState<string[]>([]);
   const [validationMessage03, setValidationMessage03] = useState<string[]>([]);
   const [validationMessage04, setValidationMessage04] = useState<string[]>([]);
 
-  const replaceInputRef = useRef<HTMLInputElement | null>(null);
-  const replaceIndexRef = useRef<number | null>(null);
-
-  const handleSetImageFile = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    setImageFile(prev => [...prev, ...files]);
-    e.target.value = "";
+  // アップロードするファイルの切り替え
+  const handleInputItemsChange = (nextItems: UploadFileItem[]) => {
+    const nextFiles = nextItems.map(toUploadedFile);
+    setFiles(nextFiles);
   };
 
-  const handleImageFileReplace = (index: number) => {
-    replaceIndexRef.current = index;
-    replaceInputRef.current?.click();
-  };
-
-  const handleImageFileRemove = (index: number) => {
-    setImageFile((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const onReplaceOne = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    const i = replaceIndexRef.current;
-
-    if (!file || i == null) return;
-
-    setImageFile((prev) => {
-      const next = [...prev];
-      next[i] = file;
-      return next;
+  // 現在選択されているファイルの切り替え
+  const handleCurrentItemChange = useCallback((currentItem: UploadFileItem | null) => {
+    setCurrentFile((prev) => {
+      if (!currentItem) {
+        return null;
+      }
+      if (prev?.id === currentItem.id) {
+        return prev;
+      }
+      return toUploadedFile(currentItem);
     });
-
-    e.target.value = "";
-    replaceIndexRef.current = null;
-  };
+  }, []);
 
   const handleStart = async () => {
     // ローカルストレージの取得
@@ -111,7 +124,7 @@ export const DrawingReviewScreen: React.FC = () => {
       for (let i = 0; i < imagePairs.length; i++) {
         localStorageData.status = "doing";
         window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
-        const files: File[] = [imagePairs[i].image1, imagePairs[i].image2]
+        const files: File[] = [imagePairs[i].image1.file, imagePairs[i].image2.file]
         const requestPayload = {
           user: localStorageData.user,
           epic: localStorageData.epic,
@@ -132,7 +145,7 @@ export const DrawingReviewScreen: React.FC = () => {
       window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
 
       // 実行中画面に切り替え
-      navigate("/drawing-review-processing")
+      navigate("/")
 
       let res: DrawingReviewResponse;
       res = await drawingReviewApi.drawingReviewStart({
@@ -190,19 +203,19 @@ export const DrawingReviewScreen: React.FC = () => {
   // Excelのファイル名部分を抜き出す
   useEffect(() => {
     setImagePairs([])
-    const fileNames = imageFile.map(img => img.name.replace(/\.pdf$/i, ""));
+    const fileNames = files.map(img => img.file.name.replace(/\.pdf$/i, ""));
 
     compareFileLists(fileNames, all_uniques)
 
     // ペアを作る
     const pairs: ImagePair[] = [];
     Object.keys(filtered).forEach((i) => {
-      const image01 = imageFile.find((row) => {
-        const name = row.name.replace(/\.pdf$/i, "")
+      const image01 = files.find((row) => {
+        const name = row.file.name.replace(/\.pdf$/i, "")
         return name === filtered[i][3]
       })
-      const image02 = imageFile.find((row) => {
-        const name = row.name.replace(/\.pdf$/i, "")
+      const image02 = files.find((row) => {
+        const name = row.file.name.replace(/\.pdf$/i, "")
         return name === filtered[i][7]
       })
       if (image01 && image02) {
@@ -214,11 +227,11 @@ export const DrawingReviewScreen: React.FC = () => {
       }
     })
     setImagePairs(pairs)
-  }, [imageFile])
+  }, [files])
 
   useEffect(() => {
     setValidationMessage04([])
-    const fileNames = imageFile.map(img => img.name);
+    const fileNames = files.map(img => img.file.name);
 
     const uniqueNames = new Set(fileNames);
 
@@ -228,101 +241,62 @@ export const DrawingReviewScreen: React.FC = () => {
     } else {
       setValidationMessage04([])
     }
-  }, [imageFile])
+  }, [files])
 
   return (
-    <div className="page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>図面審査</h1>
-      </div>
+    <Box>
+      <Header />
+      <Container>
+        <Stack spacing={2} sx={{ py: 2 }}>
+          <Typography variant="h4">図面審査</Typography>
+          <Typography variant="body1" color="text.secondary">
+            アップロードした図面審査シートの中で「採用可否」が可である図面を全て選択し、「処理開始」ボタンを押してください。
+          </Typography>
 
-      <h3>アップロードした図面審査シート</h3>
-      <ul>
-        <li>アップロードした図面審査シートの中で、以下に該当するものを表示しています。</li>
-          <ul>
-            <li>「採用可否」が可である</li>
-          </ul>
-      </ul>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              onClick={handleStart}
+              disabled={validationMessage01.length > 0 || validationMessage02.length > 0|| validationMessage03.length > 0 || validationMessage04.length > 0}
+            >
+              処理開始
+            </Button>
+          </Box>
 
-      {targetSheet && (
-        <div style={{ marginTop: 12, overflowX: 'auto' }} className='table-wrapper' >
-          <table
-            style={{
-              borderCollapse: 'collapse',
-              minWidth: 600,
-            }}
-          >
-            <tbody className='table-row' >
-              {filtered.map((row, rIdx) => (
-                <tr key={rIdx}>
-                  {row.map((cell, cIdx) => (
-                    <td
-                      key={cIdx}
-                      style={{
-                        border: '1px solid #ddd',
-                        padding: '6px 10px',
-                        whiteSpace: 'nowrap',
-                      }}
-                      title={String(cell ?? '')}
-                    >
-                      {String(cell ?? "")}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>)
-          }
-        
+          {validationMessage01.length > 0 && (
+            <Alert severity='error'>
+              <AlertTitle>以下の指摘先図面を選択してください。</AlertTitle>
+              <ul>{validationMessage01.map((i) => (<li>{i}</li>))}</ul>
+            </Alert>
+          )}
 
-      <h3>図面アップロード</h3>
-      <p>図面審査シートに問題がなければ、対応する図面をアップロードしてください。</p>
-      <p>必要な図面が選択されないと処理開始ボタンが機能しないようにしています。</p>
+          {validationMessage02.length > 0 && (
+            <Alert severity='error'>
+              <AlertTitle>以下の指摘反映図面を選択してください。</AlertTitle>
+              <ul>{validationMessage02.map((i) => (<li>{i}</li>))}</ul>
+            </Alert>
+          )}
 
-      <div style={{ display: 'grid', gap: 12 }}>
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
-          <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" multiple accept="application/pdf" onChange={handleSetImageFile} />
-          </label>
-        </div>
+          {validationMessage03.length > 0 && (
+            <Alert severity='error'>
+              <AlertTitle>以下の図面は不要であるため、選択から削除してください。</AlertTitle>
+              <ul>{validationMessage03.map((i) => (<li>{i}</li>))}</ul>
+            </Alert>
+          )}
 
-        {validationMessage01.length > 0  && (
-        <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
-          <ul><li>以下の指摘先図面を選択してください。</li><ul>{validationMessage01.map((i) => (<li>{i}</li>))}</ul></ul>
-        </div>
-        )}
-        {validationMessage02.length > 0  && (
-        <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
-          <ul><li>以下の指摘反映図面を選択してください。</li><ul>{validationMessage02.map((i) => (<li>{i}</li>))}</ul></ul>
-        </div>
-        )}
-        {validationMessage03.length > 0  && (
-        <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
-          <ul><li>以下の図面は不要であるため、選択から削除してください。</li><ul>{validationMessage03.map((i) => (<li>{i}</li>))}</ul></ul>
-        </div>
-        )}
-        {validationMessage04.length > 0  && (
-        <div style={{ color: 'red', border: '1px solid red', padding: '10px'}}>
-          <ul><li>ファイルが重複しています。</li><ul>{validationMessage04.map((i) => (<li>{i}</li>))}</ul></ul>
-        </div>
-        )}
+          {validationMessage04.length > 0 && (
+            <Alert severity='error'>
+              <AlertTitle>図面が重複しています。</AlertTitle>
+              <ul>{validationMessage04.map((i) => (<li>{i}</li>))}</ul>
+            </Alert>
+          )}
 
-        <ul style={{ padding: 0 }}>
-          {imageFile.map((file, i) => (
-            <li style={{ listStyle: "none", margin: 2 }} key={i}>
-              <strong>{file.name}</strong>{" "}
-              <button type="button" onClick={() => handleImageFileReplace(i)}>別ファイルへ変更</button>{" "}
-              <button type="button" onClick={() => handleImageFileRemove(i)}>削除</button>
-            </li>
-          ))}
-        </ul>
-        <input ref={replaceInputRef} type="file" accept="application/pdf" onChange={onReplaceOne} style={{ display: "none" }}/>
-      </div>
-
-      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart}  disabled={validationMessage01.length > 0 || validationMessage02.length > 0|| validationMessage03.length > 0 || validationMessage04.length > 0}>処理開始</button>
-      </div>
-    </div>
+          <InputFiles
+            onItemsChange={handleInputItemsChange}
+            onCurrentItemChange={handleCurrentItemChange}
+          />
+        </Stack>
+      </Container>
+    </Box>
   )
 }

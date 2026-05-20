@@ -69,7 +69,7 @@ class LoggerBase:
             raise conf_loglevel
 
     def log(self, app_status, log_level, message):
-        mess = f"{app_status.operation_id} - {message}"
+        mess = f"{app_status.group_id} - {message}"
         match log_level:
             case self.DEBUG:
                 self.logger.debug(mess)

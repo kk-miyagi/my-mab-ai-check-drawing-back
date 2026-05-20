@@ -1,196 +1,225 @@
 import React from 'react';
 import { Link2 } from 'lucide-react';
 import type {
-  DraftRect,
-  HandleDirection,
-  Phase,
   RectModel,
   RectRole,
 } from '../types.ts';
-import { useEffect, useState } from 'react';
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import {
+  Box,
+  Typography,
+} from '@mui/material';
+
 interface CanvasPaneProps {
   role: RectRole;
-  phase: Phase;
   title: string;
-  instruction?: React.ReactNode;
   imageSrc: string | null;
   rects: RectModel[];
-  draftRect: DraftRect | null;
-  selectedId: string | null;
   currentSourceId: string | null;
   containerRef: React.RefObject<HTMLDivElement>;
   imageRef: React.RefObject<HTMLImageElement>;
-  isDrafting: boolean;
-  // onBackgroundMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void;
   onRectMouseDown: (event: React.MouseEvent<HTMLDivElement>, id: string) => void;
-  onHandleMouseDown: (
-    event: React.MouseEvent<HTMLDivElement>,
-    id: string,
-    handle: HandleDirection
-  ) => void;
-  onRequestUpload: () => void;
-  onSelectSample: () => void;
-  // crops: {}[]
+}
+
+
+function HighlightBox({ rect, sx, index, showLinkBadge, onMouseDown }: { rect: any, sx: any, index: number, showLinkBadge: boolean, onMouseDown: (event: React.MouseEvent<HTMLDivElement>, id: string) => void }) {
+  return (
+    <Box
+      key={rect.id}
+      sx={{
+        left: `${rect.x}%`,
+        top: `${rect.y}%`,
+        width: `${rect.width}%`,
+        height: `${rect.height}%`,
+        position: 'absolute',
+        transition: 'all 0.1s',
+        cursor: 'pointer',
+        ...sx,
+        pointerEvents: 'auto',
+      }}
+      onMouseDown={(event) => onMouseDown(event, rect.id)}
+    >
+      {/* 番号バッジ: 左上の上 */}
+      <Box
+        sx={{
+          position: 'absolute',
+          left: 0,
+          top: -22,
+          bgcolor: 'primary.main',
+          color: 'primary.contrastText',
+          borderRadius: 1,
+          px: 1,
+          py: 0.2,
+          fontSize: 12,
+          boxShadow: 1,
+          zIndex: 2,
+        }}
+      >
+        {index + 1}
+      </Box>
+
+      {/* リンクバッジ: 右下の下 */}
+      {showLinkBadge && 'linkedTargetIds' in rect && (
+        <Box
+          sx={{
+            position: 'absolute',
+            right: 0,
+            bottom: -18,
+            display: 'flex',
+            alignItems: 'center',
+            bgcolor: 'secondary.main',
+            color: 'secondary.contrastText',
+            borderRadius: 1,
+            px: 0.5,
+            py: 0.1,
+            fontSize: 10,
+            boxShadow: 1,
+            zIndex: 2,
+          }}
+        >
+          <Link2 size={10} style={{ marginRight: 2 }} />
+          {rect.linkedTargetIds.length}
+        </Box>
+      )}
+    </Box>
+  );
 }
 
 export function CanvasPane({
   role,
-  phase,
   title,
-  instruction,
   imageSrc,
   rects,
-  draftRect,
-  selectedId,
   currentSourceId,
   containerRef,
   imageRef,
-  isDrafting,
-  // onBackgroundMouseDown,
   onRectMouseDown,
-  onHandleMouseDown,
-  onRequestUpload,
-  onSelectSample,
-  // crops,
 }: CanvasPaneProps) {
-  // この pane の role に属する矩形のみ描画。
-  // idでソートする
+
   const visibleRects = rects.filter((r) => r.role === role).sort((a, b) => {
     const numA = Number(a.id.split("_")[1]);
     const numB = Number(b.id.split("_")[1]);
     return numA - numB
   })
 
-  const [scale, setScale] = useState<{ x: number; y: number } | null>(null);
-
-
-  const handleImageLoad = () => {
-    const img = imageRef.current;
-    if (!img) return;
-    setScale({
-      x: img.clientWidth / img.naturalWidth,
-      y: img.clientHeight / img.naturalHeight,
-    });
-  }
-
-  // useEffect(() => {
-  //   const img = imageRef.current;
-  //   if (!img) return;
-
-  //   handleImageLoad();
-
-  //   const observer = new ResizeObserver(handleImageLoad);
-  //   observer.observe(img);
-
-  //   return () => observer.disconnect();
-  // }, [imageSrc]);
-
   return (
-    <div className="canvas-wrapper">
-      <div className="canvas-header">
-        <span>{title}</span>
-      </div>
-      {instruction}
-      <div className={`canvas-area phase-${phase}`}>
-        {!imageSrc ? (
-          <div className="upload-placeholder">
-            <p>{role === 'source' ? '比較元の図面を選択' : '比較先の図面を選択'}</p>
-            <button className="upload-btn" onClick={onRequestUpload}>
-              アップロード
-            </button>
-            <button
-              className="text-xs text-blue-500 mt-4 underline block mx-auto"
-              onClick={onSelectSample}
-            >
-              サンプル{role === 'source' ? 'A' : 'B'}
-            </button>
-          </div>
-        ) : (
-          <div
-            ref={containerRef}
-            className={`image-container phase-${phase}`}
-            // onMouseDown={onBackgroundMouseDown}
-          >
-            <TransformWrapper>
-              <TransformComponent>
-                <img ref={imageRef} src={imageSrc} alt={role} className="image-content" draggable={false} />
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        {title}
+      </Typography>
 
-            {visibleRects.map((rect, index) => {
-              let classNames = 'rect';
-              let showLinkBadge = false;
-
-              if (phase === 'define') {
-                if (selectedId === rect.id) classNames += ' rect-selected';
-              } else if (phase === 'select') {
-                // Source は選択/紐付け状態を表示、Target は紐付け中は赤表示。
-                if (rect.role === 'source') {
-                  if (currentSourceId === rect.id) classNames += ' source-current';
-                  else if ('linkedTargetIds' in rect && rect.linkedTargetIds.length > 0)
-                    classNames += ' source-configured';
-
-                  if ('linkedTargetIds' in rect && rect.linkedTargetIds.length > 0) showLinkBadge = true;
-                } else if (rect.role === 'target') {
-                  const currentSource = rects.find((r) => r.role === 'source' && r.id === currentSourceId);
-                  if (currentSource?.role === 'source' && currentSource.linkedTargetIds.includes(rect.id)) {
-                    classNames += ' target-linked';
-                  }
-                }
-              }
-
-              return (
-                <div
-                  key={rect.id}
-                  className={classNames}
-                  style={{
-                    left: `${rect.x}%`,
-                    top: `${rect.y}%`,
-                    width: `${rect.width}%`,
-                    height: `${rect.height}%`,
-                  }}
-                  onMouseDown={(event) => onRectMouseDown(event, rect.id)}
-                >
-                  <div className="rect-badge">{index + 1}</div>
-                  {showLinkBadge && 'linkedTargetIds' in rect && (
-                    <div className="link-badge">
-                      <Link2 size={10} />
-                      {rect.linkedTargetIds.length}
-                    </div>
-                  )}
-
-                  {phase === 'define' && selectedId === rect.id && (
-                    <>
-                      {(['nw', 'ne', 'sw', 'se'] as const).map((handle) => (
-                        <div
-                          key={handle}
-                          className={`resize-handle handle-${handle}`}
-                          onMouseDown={(event) => onHandleMouseDown(event, rect.id, handle)}
-                        />
-                      ))}
-                    </>
-                  )}
-                </div>
-              );
-            })}
-
-            {isDrafting && draftRect && (
-              <div
-                className="rect"
-                style={{
-                  left: `${draftRect.x}%`,
-                  top: `${draftRect.y}%`,
-                  width: `${draftRect.width}%`,
-                  height: `${draftRect.height}%`,
-                  borderStyle: 'dashed',
-                  borderColor: '#3b82f6',
+      <Box ref={containerRef}
+        sx={{
+          position: 'relative',
+          backgroundColor: '#cbd5e1',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+          userSelect: 'none',
+          display: 'inline-block',
+          maxWidth: '100%',
+          maxHeight: 'calc(100vh - 140px)',
+          overflow: 'auto',
+        }}
+        
+      >
+        <img ref={imageRef} src={imageSrc ?? undefined} alt={role} className="image-content" draggable={false} />
+        {visibleRects.map((rect, index) => {
+          // source & current
+          if (rect.role === 'source' && currentSourceId === rect.id) {
+            return (
+              <HighlightBox
+                key={rect.id}
+                rect={rect}
+                sx={{
+                  borderColor: '#0ea5e9',
+                  backgroundColor: 'rgba(14, 165, 233, 0.2)',
+                  opacity: 1,
+                  zIndex: 20,
+                  boxShadow: '0 0 0 4px rgba(14, 165, 233, 0.2)',
                 }}
+                index={index}
+                showLinkBadge={true}
+                onMouseDown={onRectMouseDown}
               />
-            )}
-              </TransformComponent>
-            </TransformWrapper>
-          </div>
-        )}
-      </div>
-    </div>
+            );
+          }
+          // source & linked
+          if (rect.role === 'source' && 'linkedTargetIds' in rect && rect.linkedTargetIds.length > 0) {
+            return (
+              <HighlightBox
+                key={rect.id}
+                rect={rect}
+                sx={{
+                  borderColor: '#7dd3fc',
+                  backgroundColor: 'rgba(14, 165, 233, 0.05)',
+                  opacity: 0.8,
+                }}
+                index={index}
+                showLinkBadge={true}
+                onMouseDown={onRectMouseDown}
+              />
+            );
+          }
+
+          if (rect.role === 'source') {
+            return (
+              <HighlightBox
+                key={rect.id}
+                rect={rect}
+                sx={{
+                  borderColor: '#cbd5e1',
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  opacity: 0.6,
+                }}
+                index={index}
+                showLinkBadge={false}
+                onMouseDown={onRectMouseDown}
+              />
+            );
+          }
+          // target & linked
+          const currentSource = rects.find((r) => r.role === 'source' && r.id === currentSourceId);
+          if (
+            rect.role === 'target' &&
+            currentSource &&
+            'linkedTargetIds' in currentSource &&
+            Array.isArray((currentSource as any).linkedTargetIds) &&
+            (currentSource as any).linkedTargetIds.includes(rect.id)
+          ) {
+            return (
+              <HighlightBox
+                key={rect.id}
+                rect={rect}
+                sx={{
+                  borderColor: '#f43f5e',
+                  backgroundColor: 'rgba(244, 63, 94, 0.2)',
+                  opacity: 1,
+                  zIndex: 20,
+                  boxShadow: '0 0 0 4px rgba(244, 63, 94, 0.2)',
+                }}
+                index={index}
+                showLinkBadge={false}
+                onMouseDown={onRectMouseDown}
+              />
+            );
+          }
+          // target (default)
+          if (rect.role === 'target') {
+            return (
+              <HighlightBox
+                key={rect.id}
+                rect={rect}
+                sx={{
+                  borderColor: '#cbd5e1',
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  opacity: 0.6,
+                }}
+                index={index}
+                showLinkBadge={false}
+                onMouseDown={onRectMouseDown}
+              />
+            );
+          }
+        })}
+      </Box>
+    </Box>
   );
 }

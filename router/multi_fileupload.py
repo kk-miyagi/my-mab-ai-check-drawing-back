@@ -30,6 +30,8 @@ class MultiFileUploader:
                 content = await file.read()
                 save_path = f"{MultiFileUploader.MULTI_FILE_UPLOAD_SAVE_DIR}"
                 save_path += f"/{req_status.get_hash_key()}"
+                save_path += f"_{req_status.operations[0].operation}"
+                save_path += f"_{req_status.operations[0].operation_id}"
                 file_name = f"{save_path}/"
                 file_name += f"{state.number}_{file_key}_{file.filename}"
 
@@ -51,8 +53,9 @@ class MultiFileUploader:
         return '_'.join([
             self.user,
             self.epic,
-            self.operation,
-            self.operation_id
+            self.group_id,
+            self.operations[0].operation,
+            self.operations[0].operation_id,
         ])
 
 
@@ -62,11 +65,13 @@ async def multi_fileupload(request: Request):
     state = request.state
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
-    req_status = AppStatus.create_from_state(state)
-    # TODO operation_idがない場合はエラーにするか？
-    match req_status.status:
+    req_status = AppStatus.create_from_state(
+           state
+    )
+
+    target_status = req_status.operations[0].status
+    match target_status:
         case Status.START:
-            # TODO 一応想定外だがどうするか？
             logger.log(
                     req_status,
                     AppLogger.DEBUG,
@@ -107,12 +112,15 @@ async def multi_fileupload(request: Request):
                     "MULTI-FILE-UPLOAD DOING STATUS app status session update!"
                 )
                 app_state.update_app_status(
-                        req_status
+                    req_status
                 )
                 logger.log(
                     req_status,
                     AppLogger.DEBUG,
                     "MULTI-FILE-UPLOAD DOING STATUS responce create!"
+                )
+                app_state.update_app_status(
+                    req_status
                 )
                 ret = AppRoute.create_responce_from_status(
                     req_status
@@ -124,6 +132,10 @@ async def multi_fileupload(request: Request):
                     req_status,
                     AppLogger.ERROR,
                     f"MULTI-FILE-UPLOAD DOING STATUS error !:{e}"
+                )
+                req_status.group_status = Status.ERROR
+                app_state.update_app_status(
+                    req_status
                 )
                 raise e
 
@@ -170,6 +182,10 @@ async def multi_fileupload(request: Request):
                         "MULTI-FILE-UPLOAD END STATUS allready sum number done"
                     )
                     pass
+                    req_status.group_status = Status.ERROR
+                app_state.update_app_status(
+                    req_status
+                )
                 ret = AppRoute.create_responce_from_status(
                     req_status
                 )

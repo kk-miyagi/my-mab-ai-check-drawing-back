@@ -1,11 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import Papa from 'papaparse';
-import { localStorageKey } from '../../constants/localStorageKey';
-import { LocalStorageData } from '../../types/storage.ts';
 import { createLabelApi } from '../../api/createLabelApi.ts';
 import JSZip from 'jszip';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { PdfPreview } from '../../components/PdfPreview.tsx';
+import {
+  Box,
+  Button,
+  Container,
+  Paper,
+  Stack,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from '@mui/material';
+import { Header } from '../../components/Header';
 
 type Row = Record<string, string | number | boolean | null>;
 
@@ -51,12 +64,9 @@ export const CreateLabelResultScreen: React.FC = () => {
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
 
-  const navigate = useNavigate();
+  const updateLabelPayload = useLocation().state.updateLabelPayload;
 
-  // ホーム画面へ遷移
-  const handleNavigate = () => {
-    navigate('/')
-  };
+  const navigate = useNavigate();
 
   const handleDownload = async () => {
     try {
@@ -75,33 +85,17 @@ export const CreateLabelResultScreen: React.FC = () => {
     }
   };
 
-  // 編集画面への遷移
-  const handleMove = async () => {
-    navigate('/update-label', { state: { currentImageFile }})
-  }
-
   useEffect(() => {
-    const getLocalStorage = window.localStorage.getItem(localStorageKey.createLabel)
-    if (!getLocalStorage) {
-      return
-    }
-    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
-    if (!localStorageData.operationId) {
-      return
-    }
 
     (async () => {
       try {
-        if (!localStorageData.operationId) {
-          return
-        }
-
-        const res = await createLabelApi.createLabelEnd({
-          user: localStorageData.user,
-          epic: localStorageData.epic,
-          operation: localStorageData.operation,
-          operation_id: localStorageData.operationId,
-          status: localStorageData.status,
+        const res = await createLabelApi.updateLabelEnd({
+          user: updateLabelPayload.user,
+          epic: updateLabelPayload.epic,
+          group_id: updateLabelPayload.group_id,
+          group_status: updateLabelPayload.group_status,
+          others: updateLabelPayload.others,
+          operations: [{ operation: "update-label", operation_id: updateLabelPayload.operations[0].operation_id, status: "end" }]
         });
 
         // TODO: 複数出力がある場合
@@ -184,39 +178,63 @@ export const CreateLabelResultScreen: React.FC = () => {
   }, [pdfFiles]);
 
   return (
-    <div className="page">
-      <h1>ラベル付与</h1>
-      <p>ラベル付与を行った図面の確認画面です。</p>
-      <h2>図面の結果</h2>
+    <Box>
+      <Header />
+      <Container>
+        <Stack spacing={2} sx={{ py: 2 }}>
+          <Typography variant="h4">ラベル付与</Typography>
+          <Typography variant="body1" color="text.secondary">
+            ダウンロードボタンを押すと、ラベル付与結果がダウンロードされます。
+          </Typography>
 
-      {pdfFiles.length > 0 && currentPdfFile && (
-        <PdfPreview preview={currentPdfFile.url} />
-      )}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              onClick={handleDownload}
+            >
+              ダウンロード
+            </Button>
+          </Box>
 
-      <h2>CSVの結果</h2>
-      
-      {csvFiles.length > 0 && currentCsvFile && (
-        <div className='table-wrapper'>
-          <table>
-            <thead>
-              <tr>{csvColumns.map((c) => <th key={c}>{c}</th>)}</tr>
-            </thead>
-            <tbody className='table-row'>
-              {csvRows.map((r, i) => (
-                <tr key={i}>
-                  {csvColumns.map((c) => <td key={c}>{String(r[c] ?? '')}</td>)}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      
-      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleNavigate}>最初からやり直す</button>
-          <button className="primary" onClick={handleDownload}>図面と設計情報を同時にダウンロード</button>
-        <button className="primary" onClick={handleMove}>編集画面へ</button>
-      </div>
-    </div>
+          <Stack direction="row" spacing={2}>
+            <Box sx={{ flex: 2 }}>
+              {pdfFiles.length > 0 && currentPdfFile && (
+                <>
+                <Typography variant="h6" align="center" gutterBottom>ラベル付与後の図面</Typography>
+                <PdfPreview preview={currentPdfFile.url} />
+                </>
+              )}
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              {csvFiles.length > 0 && currentCsvFile && (
+                <>
+                <Typography variant="h6" align="center" gutterBottom>設計情報</Typography>
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        {csvColumns.map((c) => (
+                          <TableCell key={c}>{c}</TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {csvRows.map((r, i) => (
+                        <TableRow key={i}>
+                          {csvColumns.map((c) => (
+                            <TableCell key={c}>{String(r[c] ?? '')}</TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                </>
+              )}
+            </Box>
+          </Stack>
+        </Stack>
+      </Container>
+    </Box>
   );
 };

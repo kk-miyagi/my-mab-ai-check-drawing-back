@@ -1,202 +1,213 @@
-import React, { useEffect, useState, ChangeEvent } from 'react';
+import React, { ChangeEvent, useMemo, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
 import { createLabelApi } from '../../api/createLabelApi.ts';
-import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { LocalStorageData } from '../../types/storage.ts';
 import type { OperationIssueRequest, UploadPairRequest } from '../../types/uploadServer.ts';
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
-import type { CreateLabelResponse } from '../../types/createLabel.ts';
-import { PdfPreview } from '../../components/PdfPreview.tsx';
-import { ImagePreview } from '../../components/ImagePreview.tsx';
+import type { CreateLabelRequest, NavigateState } from '../../types/createLabel.ts';
+import {
+  Box,
+  Button,
+  Container,
+  Stack,
+  TextField,
+  Typography
+} from '@mui/material';
+import { Header } from '../../components/Header';
+import { groupIdApi } from '../../api/groupIdApi.ts';
+import { InputFiles, UploadFileItem } from '../../components/InputFiles';
 
 const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'batch-create-label';
 
 type ModelName = {
-  name: string;
+  id: string;
   modelName: string;
-}
+};
 
 type UploadedFile = {
+  id: string;
   file: File;
-  url: string; // プレビュー用のBlob URL
+  url: string;
   isPdf: boolean;
-}
+};
+
+const toUploadedFile = (item: UploadFileItem): UploadedFile => {
+  return {
+    id: item.id,
+    file: item.file,
+    url: item.previewUrl,
+    isPdf: item.kind === 'pdf',
+  };
+};
 
 export const CreateLabelScreen: React.FC = () => {
   const navigate = useNavigate();
   const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [currentFile, setCurrentFile] = useState<UploadedFile | null>();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [title, setTitle] = useState<string>("");
-  const [modelNames, setModelNames] = useState<ModelName[]>([]);
+  const [currentFile, setCurrentFile] = useState<UploadedFile | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // ローディング状態の管理(これがないと一連の処理が完了する前に再度ボタンを押せてしまう)
 
+  const [title, setTitle] = useState<string>(''); // タイトルの状態管理(タイトルは1回の処理で全てのファイルに対して共通の値とするため、currentFileから切り離して管理する)
+  const [modelNames, setModelNames] = useState<ModelName[]>([]); // 機種名の状態管理(機種名はファイルごとに異なる値となるため、currentFileから切り離して管理する。modelNamesはファイルIDと機種名のペアの配列で管理する)
+
+  // タイトルの切り替え
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
   };
 
-  const handleModelNameChange = (e: ChangeEvent<HTMLInputElement>, name: string) => {
+  // 機種名の切り替え
+  const handleModelNameChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, id: string) => {
     const value = e.target.value;
-    setModelNames((prev) => 
-      prev.map((item) => item.name === name ? {...item, modelName: value} : item)
-    )
+    setModelNames((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, modelName: value } : item))
+    );
   };
 
+  // アップロードするファイルの切り替え
+  const handleInputItemsChange = (nextItems: UploadFileItem[]) => {
+    const nextFiles = nextItems.map(toUploadedFile);
+    setFiles(nextFiles);
 
-  const handleSetFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const selectedFiles: UploadedFile[] = Array.from(files).map((file) => ({
-        file: file,
-        url: URL.createObjectURL(file),
-        isPdf: file.type === 'application/pdf' ? true : false,
-      }));
-      const modelName: ModelName[] = Array.from(files).map((file) => ({
-        name: file.name,
-        modelName: ""
-      }));
-      setFiles(selectedFiles)
-      setCurrentFile(selectedFiles[0])
-      setModelNames(modelName)
-    } else {
-      setFiles([])
-      setCurrentFile(null)
+    const modelNameMap = new Map(modelNames.map((item) => [item.id, item.modelName]));
+    setModelNames(
+      nextFiles.map((item) => ({
+        id: item.id,
+        modelName: modelNameMap.get(item.id) ?? '',
+      }))
+    );
+  };
+
+  // 現在選択されているファイルの切り替え
+  const handleCurrentItemChange = useCallback((currentItem: UploadFileItem | null) => {
+    setCurrentFile((prev) => {
+      if (!currentItem) {
+        return null;
+      }
+      if (prev?.id === currentItem.id) {
+        return prev;
+      }
+      return toUploadedFile(currentItem);
+    });
+  }, []);
+
+
+  // 現在選択されているファイルの機種名を取得
+  const currentModelName = useMemo(() => {
+    if (!currentFile) {
+      return '';
     }
-  };
+    return modelNames.find((item) => item.id === currentFile.id)?.modelName ?? '';
+  }, [currentFile, modelNames]);
 
+  // ラベル付与開始ボタンの処理
   const handleStart = async () => {
     setIsLoading(true);
-    // ローカルストレージの初期化
-    const localStorageData: LocalStorageData = {
-      user: 'demo-user',
-      epic: DEFAULT_EPIC,
-      operation: DEFAULT_OPERATION,
-      operationId: null,
-      status: 'start'
-    }
-    window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
-
+    const modelNameMap = new Map(modelNames.map((item) => [item.id, item.modelName]));
+    const requests: NavigateState[] = [];
     try {
-      // オペレーションIDの発行
-      const metaPayload: OperationIssueRequest = {
-          user: localStorageData.user,
-          epic: localStorageData.epic,
-          operation: localStorageData.operation,
-          operation_id: localStorageData.operationId,
-          status: 'start',
-      };
-      const issueResult = await issueOperationIdApi(metaPayload);
-      localStorageData.operationId = issueResult.operation_id
-      window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
-
-      // 画像のアップロード
       for (let i = 0; i < files.length; i++) {
-        const file = [files[i].file]
-        const requestPayload: UploadPairRequest = {
-          user: localStorageData.user,
-          epic: localStorageData.epic,
-          operation: localStorageData.operation,
-          operation_id: localStorageData.operationId,
-          status: 'doing',
-          number: i + 1,
-          files: file
+        const groupIdPayload = {
+          user: 'demo-user',
+          epic: DEFAULT_EPIC,
+          group_id: '',
+          group_status: 'start',
+          others: {},
+          operations: [{ operation: '', operation_id: '', status: '' }],
         };
-        await uploadApi.uploadPair(requestPayload);
+        const groupIdResponse = await groupIdApi(groupIdPayload);
+        const groupId = groupIdResponse.group_id;
+
+        const operationIdPayload: OperationIssueRequest = {
+          user: 'demo-user',
+          epic: DEFAULT_EPIC,
+          group_id: groupId,
+          group_status: 'start',
+          others: {},
+          operations: [{ operation: DEFAULT_OPERATION, operation_id: '', status: 'start' }]
+        };
+        const operationIdResponse = await issueOperationIdApi(operationIdPayload);
+        const operationId = operationIdResponse.operations[0].operation_id;
+
+        const uploadPayload: UploadPairRequest = {
+          user: 'demo-user',
+          epic: DEFAULT_EPIC,
+          group_id: groupId,
+          group_status: 'start',
+          others: { fileName: files[i].file.name },
+          operations: [{ operation: DEFAULT_OPERATION, operation_id: operationId, status: 'doing' }],
+          number: 1,
+          bf_file: files[i].file,
+          af_file: null,
+        };
+        await uploadApi.uploadPair(uploadPayload);
+
+        const createLabelPayload: CreateLabelRequest = {
+          user: 'demo-user',
+          epic: DEFAULT_EPIC,
+          group_id: groupId,
+          group_status: 'doing',
+          others: {
+            title: title,
+            modelName: modelNameMap.get(files[i].id) ?? '',
+          },
+          operations: [{ operation: DEFAULT_OPERATION, operation_id: operationId, status: 'start' }],
+        };
+        await createLabelApi.createLabelStart(createLabelPayload);
       }
-
-      // 実行中画面に切り替え
-      navigate('/create-label-processing');
-
-      // バッチ処理実行
-      let res: CreateLabelResponse;
-      res = await createLabelApi.createLabelStart({
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: localStorageData.status
-      });
+      await navigate('/');
     } catch (e) {
+      window.alert('エラーが発生しました。再度お試しください。');
+    } finally {
       setIsLoading(false);
-      localStorageData.status = 'error';
-      window.localStorage.setItem(localStorageKey.createLabel, JSON.stringify(localStorageData));
-      window.alert("バッチ処理起動に失敗したため、画面を切り替えます");
-      navigate("/create-label");
     }
-  }
-
-  useEffect(() => {
-    return () => {
-      if (files.length > 0) {
-        files.map((file) => (
-          URL.revokeObjectURL(file.url)
-        ))
-      }
-    };
-  }, [files]);
+  };
 
   return (
-    <div className="page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>ラベル付与</h1>
-        <Link to="/hub">前に戻る</Link>
-      </div>
+    <Box>
+      <Header />
+      <Container>
+        <Stack spacing={2} sx={{ py: 2 }}>
+          <Typography variant="h4">ラベル付与</Typography>
+          <Typography variant="body1" color="text.secondary">
+            処理を行いたい図面を選択し、タイトルと機種名を入力して「ラベル付与開始」ボタンを押してください。
+          </Typography>
 
-      <ul>
-        <li>ラベル付与を行いたい図面を1枚アップロードしてください。</li>
-        <li>想定
-          <ul>
-            <li>図面に矩形領域線を追記。</li>
-            <li>図面がPDFファイルもしくは画像形式ファイル(JPAGやPNGなど)</li>
-          </ul>
-        </li>
-      </ul>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              onClick={handleStart}
+              disabled={files.length === 0 || isLoading}
+              startIcon={isLoading ? <Loader2 size={18} className="spin" /> : undefined}
+            >
+              {isLoading ? '処理開始中...' : 'ラベル付与を開始する'}
+            </Button>
+          </Box>
 
-      <div style={{ display: 'grid', gap: 12 }}>
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, background: '#f8fafc', display: 'grid', gap: 10,}}>
-          <label style={{ display: 'grid', gap: 4 }}>
-            <input type="file" multiple accept="image/*, application/pdf" onChange={handleSetFile} />
-          </label>
-        </div>
-      </div>
-
-    {files.length > 0 && currentFile && (
-      <div>
-        <p>タイトル</p>
-        <input type="text" value={title} onChange={handleTitleChange} placeholder="タイトル"/>
-        <p>機種名</p>
-        <input type="text" value={modelNames.find(f => f.name === currentFile.file.name)?.modelName} onChange={e => handleModelNameChange(e, currentFile.file.name)} placeholder="機種名" />
-      </div>
-    )}
-
-      <div style={{ display: 'flex', gap: 10, marginTop: '15px', marginBottom: '15px', overflow: 'auto'}}>
-        {files.length > 0  && (
-          files.map((file) => (
-            <button key={file.file.name} onClick={() => setCurrentFile(file)} style={{
-              opacity: file.url === currentFile?.url ? 1 : 0.4,
-            }}>{file.file.name}</button>
-          ))
-        )}
-      </div>
-
-      {files.length > 0 && currentFile && currentFile.isPdf && (
-        <PdfPreview preview={currentFile.url} />
-      )}
-      {files.length > 0 && currentFile && !currentFile.isPdf && (
-        <ImagePreview  file={currentFile.file} url={currentFile.url} />
-      )}
-
-      <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-        <button className="primary" onClick={handleStart}  disabled={files.length === 0 || isLoading}>
-          {isLoading && (
-            <Loader2 className="spin" size={18} />
-          )}
-          {isLoading ? '処理中...' : '処理開始'}
-        </button>
-      </div>
-
-    </div>
+          <InputFiles
+            onItemsChange={handleInputItemsChange}
+            onCurrentItemChange={handleCurrentItemChange}
+            rightPanel={
+              files.length > 0 && currentFile ? (
+                <Stack spacing={1.5}>
+                  <TextField
+                    label="タイトル"
+                    value={title}
+                    onChange={handleTitleChange}
+                    fullWidth
+                  />
+                  <TextField
+                    label="機種名"
+                    value={currentModelName}
+                    onChange={(e) => handleModelNameChange(e, currentFile.id)}
+                    fullWidth
+                  />
+                </Stack>
+              ) : null
+            }
+          />
+        </Stack>
+      </Container>
+    </Box>
   );
 };

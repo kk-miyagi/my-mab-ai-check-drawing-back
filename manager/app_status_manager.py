@@ -36,14 +36,14 @@ class AppStatusManager(Manager):
         if session_status is not None:
             logger.log(
                 AppLogger.DEBUG,
-                f"request status: {req_status.status}"
+                f"request status: {req_status.group_status}"
             )
             logger.log(
                 AppLogger.DEBUG,
-                f"app session status:{session_status.status}")
+                f"app session status:{session_status.group_status}")
             if (
-                    (req_status.status) < 0 or
-                    (req_status.status < session_status.status)
+                    (req_status.group_status) < 0 or
+                    (req_status.group_status < session_status.group_status)
             ):
                 logger.log(
                     AppLogger.ERROR,

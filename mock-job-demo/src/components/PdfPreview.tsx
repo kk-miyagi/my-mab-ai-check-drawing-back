@@ -1,4 +1,5 @@
 import React from 'react'
+import Paper from '@mui/material/Paper';
 
 type PreviewProps = {
   preview: string;
@@ -6,20 +7,21 @@ type PreviewProps = {
 
 export const PdfPreview: React.FC<PreviewProps> = ({ preview }) => {
   return (
-    <div
-      style={{
+    <Paper
+      elevation={3}
+      sx={{
         width: '100%',
-        maxHeight: '2000px',
+        maxHeight: '80vh',
         height: 'min(80vh, 2000px)',
-        border: '1px solid #ddd',
-        borderRadius: 8,
         overflow: 'hidden',
-        background: '#f8f9fa',
+        bgcolor: '#f8f9fa',
+        borderRadius: 2,
+        p: 0,
       }}
     >
       <iframe
         title="PDFプレビュー"
-        src={preview}
+        src={`${preview}#page=1&view=FitH`}
         style={{
           width: '100%',
           height: '100%',
@@ -28,6 +30,6 @@ export const PdfPreview: React.FC<PreviewProps> = ({ preview }) => {
           background: 'white',
         }}
       />
-    </div>
+    </Paper>
   )
 }
