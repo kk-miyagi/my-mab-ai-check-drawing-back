@@ -1,8 +1,6 @@
 import React, { useState, ChangeEvent, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { LocalStorageData } from '../../types/storage.ts';
-import { OperationIssueRequest } from '../../types/upload.ts';
+import type { OperationIssueRequest, UploadPairRequest } from '../../types/uploadServer.ts';
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import {
@@ -15,6 +13,7 @@ import {
 } from '@mui/material';
 import { Header } from '../../components/Header';
 import { InputFile, UploadFileItem } from '../../components/InputFile';
+import { groupIdApi } from '../../api/groupIdApi.ts';
 
 const DEFAULT_EPIC = 'drawing-compare';
 const DEFAULT_OPERATION = 'upload-base';
@@ -45,48 +44,47 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
   }, []);
 
   const handleStart = async () => {
-    // ローカルストレージの初期化
-    const localStorageData: LocalStorageData = {
-      user: 'demo-user',
-      epic: DEFAULT_EPIC,
-      operation: DEFAULT_OPERATION,
-      operationId: null,
-      status: 'start'
-    }
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-
     try {
-      // オペレーションIDの発行
-      const metaPayload: OperationIssueRequest = {
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: 'start',
+      const groupIdPayload = {
+        user: 'demo-user',
+        epic: DEFAULT_EPIC,
+        group_id: '',
+        group_status: 'start',
+        others: {},
+        operations: [{ operation: '', operation_id: '', status: '' }],
       };
-      const issueResult = await issueOperationIdApi(metaPayload);
-      localStorageData.operationId = issueResult.operation_id
-      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
+      const groupIdResponse = await groupIdApi(groupIdPayload);
+      const groupId = groupIdResponse.group_id;
 
-      // アップロード
-      localStorageData.status = 'doing'
-      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-      const requestPayload = {
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: localStorageData.status,
-        number: 1,
-        files: baseImageFile,
+      const operationIdPayload: OperationIssueRequest = {
+        user: 'demo-user',
+        epic: DEFAULT_EPIC,
+        group_id: groupId,
+        group_status: 'start',
+        others: {},
+        operations: [{ operation: DEFAULT_OPERATION, operation_id: '', status: 'start' }]
       };
-      await uploadApi.uploadPair(requestPayload);
-      navigate("/drawing-compare-upload-target", { state: { baseImageFile }})
+      const operationIdResponse = await issueOperationIdApi(operationIdPayload);
+      const operationId = operationIdResponse.operations[0].operation_id;
+
+      const uploadPayload: UploadPairRequest = {
+        user: 'demo-user',
+        epic: DEFAULT_EPIC,
+        group_id: groupId,
+        group_status: 'start',
+        others: { title: title, modelName: modelName, fileName: baseImageFile[0].name },
+        operations: [{ operation: DEFAULT_OPERATION, operation_id: operationId, status: 'doing' }],
+        number: 1,
+        bf_file: baseImageFile[0],
+        af_file: null,
+      };
+
+      await uploadApi.uploadPair(uploadPayload);
+
+      navigate("/drawing-compare-upload-target", { state: { uploadPayload, baseImageFile }})
     } catch (e) {
-      localStorageData.status = 'error'
-      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
       window.alert("処理に失敗したため、画面を切り替えます")
-      navigate("/drawing-compare-upload-base")
+      navigate("/")
     }
   }
 

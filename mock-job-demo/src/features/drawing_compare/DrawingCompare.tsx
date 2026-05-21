@@ -12,8 +12,6 @@ import { Cropper } from './services/Cropper';
 import { ChageRect } from './services/ChageRect';
 import { CanvasPane } from './components/CanvasPane';
 import { SuggestionScreen } from './components/SuggestionScreen';
-import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { LocalStorageData } from '../../types/storage.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
 import type { Combinations } from '../../types/drawingCompare.ts';
 import {
@@ -30,6 +28,7 @@ export const DrawingCompare: React.FC = () => {
   // アップロードした図面
   const location = useLocation();
   const data = location.state;
+  const requestPayload = data.requestPayload;
   const baseImageFile = data.baseImageFile;
   const compareImageFile = data.compareImageFile;
 
@@ -160,40 +159,13 @@ export const DrawingCompare: React.FC = () => {
   const handleRunComparison = () => {
     const sourceRect = rects.filter((rect) => rect.role === 'source');
     const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
-    navigate("/")
-
-    // ローカルストレージの取得
-    const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingCompare)
-    if (!getLocalStorage) {
-      window.alert("処理に失敗したため、画面を切り替えます")
-      navigate("/")
-      return
-    }
-
-    // ローカルストレージの値を変更
-    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
-    localStorageData.operation = 'batch-drawing-compare'
-    localStorageData.status = 'start'
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-
-    if (!localStorageData.operationId) {
-      return
-    }
 
     try {
       // バッチ
-      const requestPayload  = {
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: localStorageData.status,
-        combinations: combinations
-      };
+      requestPayload.combinations = combinations
       drawingCompareApi.drawingCompareStart(requestPayload)
+      navigate("/")
     } catch (e) {
-      localStorageData.status = 'error'
-      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
       window.alert("処理に失敗したため、画面を切り替えます")
       navigate("/")
     }
