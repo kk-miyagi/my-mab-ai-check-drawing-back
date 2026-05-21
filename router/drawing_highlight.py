@@ -250,8 +250,8 @@ async def drawing_highlight(request: Request):
     req_user = req_status.user
     req_opid = req_status.operation_id
 
-    req_combinations = state.combinations
-    req_combinations = json.loads(req_combinations)
+    raw_combinations = state.combinations
+    req_combinations = json.loads(raw_combinations) if raw_combinations else None
 
     up_base_ope = 'upload-base'
     up_target_ope = 'upload-target'
@@ -259,18 +259,8 @@ async def drawing_highlight(request: Request):
     upload_base_file_dir = f"./multi-fileupload/{req_user}_{req_epic}_{up_base_ope}_{req_opid}"
     upload_target_file_dir = f"./multi-fileupload/{req_user}_{req_epic}_{up_target_ope}_{req_opid}"
 
-    image_extensions = {".jpg", ".jpeg", ".png"}
-    base_image_name = [
-            p.name for p in Path(upload_base_file_dir).iterdir()
-            if p.suffix.lower() in image_extensions][0]
-    target_image_name = [
-            p.name for p in Path(upload_target_file_dir).iterdir()
-            if p.suffix.lower() in image_extensions][0]
-    base_image_path = Path(upload_base_file_dir, base_image_name)
-    target_image_path = Path(upload_target_file_dir, target_image_name)
     _OUT_BASE_DIR = f'./{req_epic}-responce'
     out_dir = f"{_OUT_BASE_DIR}/{req_status.get_hash_key()}"
-    Path(out_dir).mkdir(parents=True, exist_ok=True)
 
     target_status = req_status.status
     match target_status:
@@ -300,6 +290,18 @@ async def drawing_highlight(request: Request):
                     req_status.status = Status.ERROR
                     logger.log(req_status, AppLogger.ERROR, error_msg)
                     app_state.update_app_status(req_status)
+                    return AppRoute.create_responce_from_status(req_status)
+
+                image_extensions = {".jpg", ".jpeg", ".png"}
+                base_image_name = [
+                    p.name for p in Path(upload_base_file_dir).iterdir()
+                    if p.suffix.lower() in image_extensions][0]
+                target_image_name = [
+                    p.name for p in Path(upload_target_file_dir).iterdir()
+                    if p.suffix.lower() in image_extensions][0]
+                base_image_path = Path(upload_base_file_dir, base_image_name)
+                target_image_path = Path(upload_target_file_dir, target_image_name)
+                Path(out_dir).mkdir(parents=True, exist_ok=True)
 
                 if not req_combinations:
                     DrawingHighlight.highlight(
