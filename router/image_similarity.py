@@ -258,9 +258,6 @@ async def image_similarity(request: Request):
                 is_exist_file = os.path.exists(upload_target_file_dir)
 
                 if is_exist_dir and is_exist_file:
-                    app_state.create_new_app_status(
-                        req_status
-                    )
                     # 座標の計算
                     get_image_rect_ope = ImageSimilarity.get_image_rect
                     base_rects = await get_image_rect_ope(

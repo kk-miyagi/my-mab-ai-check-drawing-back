@@ -378,7 +378,6 @@ async def drawing_highlight(request: Request):
 
                 up_status = Status.END
                 req_status.group_status = up_status
-                req_status.operations[0].status = up_status
                 app_state.update_app_status(
                     req_status
                 )
