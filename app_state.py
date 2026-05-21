@@ -1,8 +1,11 @@
 import inspect
 from types import MethodType
+import redis as redis_lib
 import state_func.app_status_func as app_status_func
 import state_func.multi_fileupload_func as multi_fileupload_func
 import state_func.boot_another_process_func as boot_another_process_func
+import state_func.drawing_highlight_func as drawing_highlight_func
+import state_func.image_similarity_func as image_similarity_func
 from app_config import AppConfig
 from app_logger import AppLogger
 
@@ -14,14 +17,22 @@ class AppState:
         self.lock = lock
         self.conf = conf
         self.logger = logger
+        self.redis_client = redis_lib.Redis(
+            host=conf.redis_host,
+            port=conf.redis_port,
+            password=conf.redis_password,
+            ssl=conf.redis_ssl,
+            decode_responses=True
+        )
         self.add_state_methods()
 
     def get_members(self):
-        # 各種app_stateを触る用の関数が定義されているmoduleを追加
         return [
             inspect.getmembers(app_status_func),
             inspect.getmembers(multi_fileupload_func),
-            inspect.getmembers(boot_another_process_func)
+            inspect.getmembers(boot_another_process_func),
+            inspect.getmembers(drawing_highlight_func),
+            inspect.getmembers(image_similarity_func)
         ]
 
     def add_state_methods(self):

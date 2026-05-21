@@ -10,10 +10,5 @@ router = APIRouter(prefix='/api', route_class=AppRoute)
 async def issue_operation_id(request: Request):
     req_status = AppStatus.create_from_request(request.state.body)
     app_state = AppRoute.get_app_state()
-    new_status = app_state.create_new_ope_id(
-            req_status,
-    )
-    print(new_status)
-    return AppRoute.create_responce_from_status(
-        new_status
-    )
+    new_status = app_state.create_new_app_status(req_status)
+    return AppRoute.create_responce_from_status(new_status)

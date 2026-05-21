@@ -1,34 +1,54 @@
+import json
+import dataclasses
 from state.drawing_highlight_info import DrawingHighlightInfo
+
+_PREFIX = "drawing_highlight"
+
+
+def _key(hash_key: str) -> str:
+    return f"{_PREFIX}:{hash_key}"
+
+
+def _serialize(info: DrawingHighlightInfo) -> str:
+    return json.dumps(dataclasses.asdict(info))
+
+
+def _deserialize(data: str) -> DrawingHighlightInfo:
+    d = json.loads(data)
+    return DrawingHighlightInfo(
+        user=d['user'],
+        epic=d['epic'],
+        operation=d['operation'],
+        operation_id=d['operation_id'],
+        status=d['status']
+    )
 
 
 def create_drawing_highlight_info(self):
-    with self.lock:
-        if not hasattr(
-            self.app_state,
-            'DRAWING_HIGHLIGHT_SESSION_KEY'
-        ):
-            self.app_state.DRAWING_HIGHLIGHT_SESSION_KEY = {}
+    pass
 
 
 def get_drawing_highlight_info(self, req_status):
-    with self.lock:
-        ret = self.app_state.DRAWING_HIGHLIGHT_SESSION_KEY[
-            req_status.get_hash_key()
-        ]
-    return ret
+    data = self.redis_client.get(_key(req_status.get_hash_key()))
+    if data is None:
+        return None
+    return _deserialize(data)
 
 
 def update_drawing_highlight_info(self, status):
-    with self.lock:
-        session_dic = self.app_state.DRAWING_HIGHLIGHT_SESSION_KEY
-        if status.get_hash_key() not in session_dic:
-            session_dic[status.get_hash_key()] = DrawingHighlightInfo(
-                status.user,
-                status.epic,
-                status.group_id,
-                status.operation,
-                status.operation_id,
-            )
-        else:
-            info = session_dic[status.get_hash_key()]
-            info.group_status = status.group_status
+    k = _key(status.get_hash_key())
+    data = self.redis_client.get(k)
+    if data is None:
+        info = DrawingHighlightInfo(
+            status.user,
+            status.epic,
+            status.operation,
+            status.operation_id,
+            status.status
+        )
+    else:
+        info = _deserialize(data)
+        info.status = status.status
+    ttl = self.redis_client.ttl(k)
+    expire = ttl if ttl > 0 else self.conf.expire
+    self.redis_client.setex(k, expire, _serialize(info))
