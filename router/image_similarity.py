@@ -188,9 +188,10 @@ class ImageSimilarity:
 async def image_similarity(request: Request):
     ret = None
     state = request.state
+    req_status = AppStatus.create_from_state(state)
+
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
-    req_status = AppStatus.create_from_state(state)
 
     req_epic = req_status.epic
     req_user = req_status.user
@@ -234,6 +235,12 @@ async def image_similarity(request: Request):
                 req_status,
                 AppLogger.DEBUG,
                 "MULTI-FILE-UPLOAD START STATUS ??"
+            )
+            app_state.update_app_status(
+                req_status
+            )
+            return AppRoute.create_responce_from_status(
+                req_status
             )
         case Status.DOING:
             # 座標と類似度の計算
@@ -305,10 +312,16 @@ async def image_similarity(request: Request):
                 ret["target_rects"] = out_target_rects
                 ret["similarities"] = similarities
 
+                out_json = {}
+                out_json["base_rects"] = out_base_rects
+                out_json["target_rects"] = out_target_rects
+                out_json["similarities"] = similarities
+
                 with open(
                     f"{out_dir}/responce.json", "w", encoding="utf-8"
                 ) as f:
-                    json.dump(ret, f, indent=2)
+                    json.dump(out_json, f, indent=2)
+                return ret
 
             except Exception as e:
                 logger.log(

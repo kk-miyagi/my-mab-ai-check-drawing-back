@@ -12,8 +12,6 @@ import { Cropper } from './services/Cropper';
 import { ChageRect } from './services/ChageRect';
 import { CanvasPane } from './components/CanvasPane';
 import { SuggestionScreen } from './components/SuggestionScreen';
-import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { LocalStorageData } from '../../types/storage.ts';
 import { drawingHighlightApi } from '../../api/drawingHighlightApi.ts';
 import type { Combinations } from '../../types/drawingCompare.ts';
 import {
@@ -30,6 +28,7 @@ export const DrawingHighlight: React.FC = () => {
   // アップロードした図面
   const location = useLocation();
   const data = location.state;
+  const requestPayload = data.requestPayload;
   const baseImageFile = data.baseImageFile;
   const compareImageFile = data.compareImageFile;
 
@@ -161,44 +160,12 @@ export const DrawingHighlight: React.FC = () => {
   const handleRunComparison = () => {
     const sourceRect = rects.filter((rect) => rect.role === 'source');
     const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
-    navigate("/")
-
-    // ローカルストレージの取得
-    const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingHighlight)
-    if (!getLocalStorage) {
-      window.alert("処理に失敗したため、画面を切り替えます")
-      navigate("/")
-      return
-    }
-
-    // ローカルストレージの値を変更
-    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
-    localStorageData.operation = 'drawing-highlight'
-    localStorageData.status = 'start'
-    window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
-
-    if (!localStorageData.operationId) {
-      return
-    }
 
     try {
-      localStorageData.status = "doing"
-      window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
-      const requestPayload  = {
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: localStorageData.status,
-        combinations: combinations
-      };
-      const res = drawingHighlightApi.DrawingHighligh(requestPayload)
-      localStorageData.status = 'end'
-      window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
+      requestPayload.combinations = combinations
+      const res = drawingHighlightApi.drawingHighlightEnd(requestPayload)
       navigate("/")
     } catch (e) {
-      localStorageData.status = 'error'
-      window.localStorage.setItem(localStorageKey.drawingHighlight, JSON.stringify(localStorageData));
       window.alert("処理に失敗したため、画面を切り替えます")
       navigate("/")
     }

@@ -241,18 +241,18 @@ class DrawingHighlight:
 async def drawing_highlight(request: Request):
     ret = None
     state = request.state
+    req_status = AppStatus.create_from_state(state)
+
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
-    req_status = AppStatus.create_from_state(state)
 
     req_epic = req_status.epic
     req_ope = req_status.operations[0].operation
     req_user = req_status.user
     req_grid = req_status.group_id
-    req_opid = req_status.operatons[0].operation_id
+    req_opid = req_status.operations[0].operation_id
 
     req_combinations = state.combinations
-    req_combinations = json.loads(req_combinations)
 
     up_base_ope = 'upload-base'
     up_target_ope = 'upload-target'
@@ -274,7 +274,7 @@ async def drawing_highlight(request: Request):
     target_image_path = Path(upload_target_file_dir, target_image_name)
     _OUT_BASE_DIR = f'./{req_epic}-responce'
     out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}"
-    out_dir = f"_{req_ope}_{req_opid}"
+    out_dir += f"_{req_ope}_{req_opid}"
     Path(out_dir).mkdir(parents=True, exist_ok=True)
 
     target_status = req_status.operations[0].status
@@ -286,6 +286,12 @@ async def drawing_highlight(request: Request):
                 AppLogger.DEBUG,
                 "DRAWING-HIGHLIGHT START STATUS ??"
             )
+            app_state.update_app_status(
+                req_status
+            )
+            return AppRoute.create_responce_from_status(
+                req_status
+            )
         case Status.DOING:
             # 差分ハイライト
             try:
@@ -293,6 +299,9 @@ async def drawing_highlight(request: Request):
                     req_status,
                     AppLogger.DEBUG,
                     "DRAWING-HIGHLIGHT DOING STATUS START"
+                )
+                app_state.update_app_status(
+                    req_status
                 )
 
                 is_exist_base_dir = os.path.exists(upload_base_file_dir)
@@ -367,31 +376,14 @@ async def drawing_highlight(request: Request):
                     with open(new_file_name, "wb") as f:
                         f.write(img2pdf.convert(file))
 
-                # 2)ダウンロード先ディレクトリからCSVファイル読み込み
-
-                fname_list = os.listdir(out_dir)
-                file_list = [
-                    f"{out_dir}/{fname}" for fname in fname_list
-                    if fname.endswith('.pdf')
-                ]
-                print(f"file_list: {file_list}")
-                # 3)ZIPに固めてダウンロードの返信を実施
-                io = BytesIO()
-                now = datetime.now().strftime('%Y%m%d%H%M%S')
-                zip_filename = f"drawing-highlight_{now}.zip"
-                with zipfile.ZipFile(
-                        io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
-                    for fpath in file_list:
-                        zip.write(fpath)
+                up_status = Status.END
+                req_status.group_status = up_status
+                req_status.operations[0].status = up_status
                 app_state.update_app_status(
                     req_status
                 )
-                return StreamingResponse(
-                    iter([io.getvalue()]),
-                    media_type="application/x-zip-compressed",
-                    headers={
-                        "Content-Disposition": f"attachment;filename={zip_filename}"
-                    }
+                ret = AppRoute.create_responce_from_status(
+                    req_status
                 )
 
             except Exception as e:
@@ -409,11 +401,35 @@ async def drawing_highlight(request: Request):
                 raise e
 
         case Status.END:
-            # TODO 一応想定外だがどうするか？
             logger.log(
                 req_status,
                 AppLogger.DEBUG,
                 "DRAWING-HIGHLIGHT END STATUS ??"
+            )
+
+            fname_list = os.listdir(out_dir)
+            file_list = [
+                f"{out_dir}/{fname}" for fname in fname_list
+                if fname.endswith('.pdf')
+            ]
+            print(f"file_list: {file_list}")
+
+            io = BytesIO()
+            now = datetime.now().strftime('%Y%m%d%H%M%S')
+            zip_filename = f"drawing-highlight_{now}.zip"
+            with zipfile.ZipFile(
+                    io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
+                for fpath in file_list:
+                    zip.write(fpath)
+            app_state.update_app_status(
+                req_status
+            )
+            return StreamingResponse(
+                iter([io.getvalue()]),
+                media_type="application/x-zip-compressed",
+                headers={
+                    "Content-Disposition": f"attachment;filename={zip_filename}"
+                }
             )
 
     return ret
