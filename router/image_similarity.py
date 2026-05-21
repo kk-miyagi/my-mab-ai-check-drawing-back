@@ -189,6 +189,10 @@ async def image_similarity(request: Request):
                 is_exist_dir = os.path.exists(upload_base_file_dir)
                 is_exist_file = os.path.exists(upload_target_file_dir)
 
+                out_base_rects = {}
+                out_target_rects = {}
+                similarities = {}
+
                 if is_exist_dir and is_exist_file:
                     app_state.create_new_app_status(req_status)
                     get_image_rect_ope = ImageSimilarity.get_image_rect
@@ -201,10 +205,8 @@ async def image_similarity(request: Request):
                     ImageSimilarity.cut_images(base_image_path, out_base_rects, Path(out_dir, "cut_base"))
                     ImageSimilarity.cut_images(target_image_path, out_target_rects, Path(out_dir, "cut_target"))
 
-                    similarities = {}
                     for p in Path(out_dir, "cut_base").iterdir():
-                        data = ImageSimilarity.get_similarity(p, Path(out_dir, "cut_target"))
-                        similarities[p.stem] = data
+                        similarities[p.stem] = ImageSimilarity.get_similarity(p, Path(out_dir, "cut_target"))
                 else:
                     logger.log(
                         req_status, AppLogger.ERROR,
