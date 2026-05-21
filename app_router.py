@@ -22,7 +22,11 @@ class AppRoute(APIRoute):
             "user": status.user,
             "epic": status.epic,
             "group_id": status.group_id,
-            "operations": status.operations,
+            "operations": [{
+                "operation": ope.operation,
+                "operation_id": ope.operation_id,
+                "status": Status.status_to_str(ope.status)
+            } for ope in status.operations],
             "others": status.others,
             "group_status": Status.status_to_str(status.group_status),
             "create_time": status.create_time
