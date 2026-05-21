@@ -1,17 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { CreateLabelScreen } from '../features/label_create/CreateLabelScreen';
 import { HubScreen } from '../pages/HubScreen';
-import { CreateLabelProcessingScreen } from '../features/label_create/CreateLabelProcessingScreen';
 import { CreateLabelResultScreen } from '../features/label_create/CreateLabelResult';
 import { UpdateLabelScreen } from '../features/label_create/UpdateLabelScreen';
-import { UpdateLabelProcessingScreen } from '../features/label_create/UpdateLabelProcessingScreen';
 import { UpdateLabelResultScreen } from '../features/label_create/UpdateLabelResult';
 import { DrawingReviewScreen } from '../features/drawing_review/DrawingReviewScreen';
 import { DrawingReviewUploadExcelScreen } from '../features/drawing_review/DrawingReviewUploadExcelScreen';
 import { DrawingReviewResultScreen } from '../features/drawing_review/DrawingReviewResultScreen';
 import { DrawingCompareUploadBaseFileScreen } from '../features/drawing_compare/DrawingCompareUploadBaseFileScreen';
 import { DrawingCompareUploadCompareFileScreen } from '../features/drawing_compare/DrawingCompareUploadCompareFileScreen';
-import { DrawingCompareProcessingScreen } from '../features/drawing_compare/DrawingCompareProcessingScreen';
 import { DrawingHighlightUploadBeforeFileScreen } from '../features/drawing_highlight/DrawingHighlightUploadBeforeFileScreen';
 import { DrawingHighlightUploadAfterFileScreen } from '../features/drawing_highlight/DrawingHighlightUploadAfterFileScreen';
 import { DrawingCompare } from '../features/drawing_compare/DrawingCompare';
@@ -29,10 +26,8 @@ export const AppRouter = () => {
       <Route path="/" element={<Navigate to="/hub" replace />} />
       <Route path="/hub" element={<HubScreen />} />
       <Route path="/create-label" element={<CreateLabelScreen />} />
-      <Route path="/create-label-processing" element={<CreateLabelProcessingScreen />} />
       <Route path="/create-label-result" element={<CreateLabelResultScreen />} />
       <Route path="/update-label" element={<UpdateLabelScreen />} />
-      <Route path="/update-label-processing" element={<UpdateLabelProcessingScreen />} />
       <Route path="/update-label-result" element={<UpdateLabelResultScreen />} />
       <Route path="/drawing-review" element={<DrawingReviewScreen />} />
       <Route path="/drawing-review-result" element={<DrawingReviewResultScreen />} />
@@ -40,7 +35,6 @@ export const AppRouter = () => {
       <Route path="/drawing-compare-upload-base" element={<DrawingCompareUploadBaseFileScreen />} />
       <Route path="/drawing-compare-upload-target" element={<DrawingCompareUploadCompareFileScreen />} />
       <Route path="/drawing-compare" element={<DrawingCompare />} />
-      <Route path="/drawing-compare-processing" element={<DrawingCompareProcessingScreen />} />
       <Route path="/drawing-compare-result" element={<DrawingCompareResultScreen />} />
       <Route path="/drawing-highlight-upload-before" element={<DrawingHighlightUploadBeforeFileScreen />} />
       <Route path="/drawing-highlight-upload-after" element={<DrawingHighlightUploadAfterFileScreen />} />
