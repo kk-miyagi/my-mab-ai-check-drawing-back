@@ -47,8 +47,6 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
     state = request.state
     req_status = AppStatus.create_from_state(state)
 
-    req_combinations = state.combinations
-
     app_state = AppRoute.get_app_state()
     logger = app_state.getLogger()
 
@@ -78,6 +76,7 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
             app_state.update_app_status(
                 req_status
             )
+            req_combinations = state.combinations
             if req_combinations:
                 out_json_path = Path(f'{out_dir}/combinations.json')
                 out_json_path.parent.mkdir(parents=True, exist_ok=True)

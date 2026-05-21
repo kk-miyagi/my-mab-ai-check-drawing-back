@@ -22,7 +22,7 @@ const NavigateButton: React.FC<{ row: StatusListResponse }> = ({ row }) => {
       group_id: row.group_id,
       group_status: row.group_status,
       others: row.others,
-      operations: [{ operation: "drawing-compare", operation_id: row.operations[0].operation_id, status: "end" }]
+      operations: [{ operation: "batch-drawing-compare", operation_id: row.operations[0].operation_id, status: "end" }]
     }
     const nav = () => navigate('/drawing-compare-result', { state: { drawingComparePayload }});
     const icon = <ChevronRight />;

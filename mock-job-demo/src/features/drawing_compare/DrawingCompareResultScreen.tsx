@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Papa from 'papaparse';
-import { localStorageKey } from '../../constants/localStorageKey';
-import { LocalStorageData } from '../../types/storage.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi';
 import JSZip from 'jszip';
 import {
@@ -16,6 +15,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Paper,
 } from '@mui/material';
 import { Header } from '../../components/Header';
 import { PdfPreview } from '../../components/PdfPreview.tsx';
@@ -45,6 +45,9 @@ type PdfFile = {
 }
 
 export const DrawingCompareResultScreen: React.FC = () => {
+  const location = useLocation();
+  const state = location.state;
+  const drawingComparePayload = state.drawingComparePayload;
   const [basePdfFile, setBasePdfFile] = useState<PdfFile>();
   const [targetPdfFile, setTargetPdfFile] = useState<PdfFile>();
   const [csvRows, setCsvRows] = useState<Row[]>([]);
@@ -73,28 +76,9 @@ export const DrawingCompareResultScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingCompare)
-    if (!getLocalStorage) {
-      return
-    }
-    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
-    if (!localStorageData.operationId) {
-      return
-    }
-
     (async () => {
       try {
-        if (!localStorageData.operationId) {
-          return
-        }
-        const res = await drawingCompareApi.drawingCompareEnd({
-          user: localStorageData.user,
-          epic: localStorageData.epic,
-          operation: localStorageData.operation,
-          operation_id: localStorageData.operationId,
-          status: localStorageData.status,
-        });
-
+        const res = await drawingCompareApi.drawingCompareEnd(drawingComparePayload);
         const zip = await JSZip.loadAsync(res);
         const base = zip.file(/base.*\.pdf$/)[0];
         const target = zip.file(/target.*\.pdf$/)[0];
@@ -194,7 +178,7 @@ export const DrawingCompareResultScreen: React.FC = () => {
           </Stack>
           <Box>
             {csvColumns && (
-              <TableContainer>
+              <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
