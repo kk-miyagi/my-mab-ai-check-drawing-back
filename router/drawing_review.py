@@ -53,7 +53,7 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
     up_image_ope = 'upload-images'
 
     req_user = req_status.user
-    req_opid = req_status.operations[0].operation
+    req_opid = req_status.operations[0].operation_id
     req_grid = req_status.group_id
     upload_excel_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}_{up_excel_ope}_{req_opid}"
     upload_image_dir = f"./multi-fileupload/{req_user}_{up_epic}_{req_grid}_{up_image_ope}_{req_opid}"
@@ -126,8 +126,8 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
                 )
             # 2)ダウンロード先ディレクトリから図面ファイル、CSVファイル読み込み
             ope_dir = f"{req_status.user}_{req_status.epic}_{req_status.group_id}"
-            ope_dir += f"{req_status.operations[0].operation}"
-            ope_dir += f"_{req_status.operation[0].operation_id}/"
+            ope_dir += f"_{req_status.operations[0].operation}"
+            ope_dir += f"_{req_status.operations[0].operation_id}/"
             res_dir = f"./drawing-review-responce/{ope_dir}"
             fname_list = os.listdir(res_dir)
             file_list = [

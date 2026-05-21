@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { LocalStorageData } from '../../types/storage.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { ImagePair, DrawingReviewResponse } from '../../types/drawingReview.ts';
@@ -16,9 +14,6 @@ import {
 } from '@mui/material';
 import { Header } from '../../components/Header';
 import { InputFiles, UploadFileItem } from '../../components/InputFiles';
-
-const DEFAULT_EPIC = 'drawing-review';
-const DEFAULT_OPERATION = 'upload-images';
 
 type Row = Record<string, string | number | boolean | null>;
 
@@ -45,6 +40,7 @@ export const DrawingReviewScreen: React.FC = () => {
   // アップロードしたExcelの中身
   const location = useLocation();
   const data = location.state;
+  const uploadPayload = data.uploadPayload;
 
   // 「図面審査シート」に絞る
   const targetIndex = data.sheets.findIndex(sheet => sheet.name ==="図面審査シート");
@@ -100,66 +96,36 @@ export const DrawingReviewScreen: React.FC = () => {
   }, []);
 
   const handleStart = async () => {
-    // ローカルストレージの取得
-    const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingReview)
-    if (!getLocalStorage) {
-      window.alert("処理に失敗したため、画面を切り替えます");
-      navigate("/drawing-review-upload-excel");
-      return
-    }
-    
-    // ローカルストレージの値を変更
-    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
-    localStorageData.epic = DEFAULT_EPIC
-    localStorageData.operation = DEFAULT_OPERATION
-    localStorageData.status = 'start'
-    window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
-
-    if (!localStorageData.operationId) {
-      return
-    }
-
     try {
       // アップロード
       for (let i = 0; i < imagePairs.length; i++) {
-        localStorageData.status = "doing";
-        window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
         const files: File[] = [imagePairs[i].image1.file, imagePairs[i].image2.file]
         const requestPayload = {
-          user: localStorageData.user,
-          epic: localStorageData.epic,
-          operation: localStorageData.operation,
-          operation_id: localStorageData.operationId,
-          status: localStorageData.status,
+          user: uploadPayload.user,
+          epic: uploadPayload.epic,
+          group_id: uploadPayload.group_id,
+          group_status: 'doing',
+          others: uploadPayload.others,
+          operations: [{operation: 'upload-images', operation_id: uploadPayload.operations[0].operation_id, status: 'doing'}],
           number: i+1,
-          files: files
+          bf_file: files[0],
+          af_file: files[1],
         };
         await uploadApi.uploadPair(requestPayload);
       }
-      
-      localStorageData.status = 'end';
 
-      // ローカルストレージの値を変更
-      localStorageData.status = 'start'
-      localStorageData.operation = 'batch-drawing-review'
-      window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
-
-      // 実行中画面に切り替え
-      navigate("/")
-
-      let res: DrawingReviewResponse;
-      res = await drawingReviewApi.drawingReviewStart({
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: localStorageData.status,
-      })
+      const drawingReviewPayload: DrawingReviewResponse = {
+          user: uploadPayload.user,
+          epic: uploadPayload.epic,
+          group_id: uploadPayload.group_id,
+          group_status: 'doing',
+          others: uploadPayload.others,
+          operations: [{ operation: 'batch-drawing-review', operation_id: uploadPayload.operations[0].operation_id, status: 'start' }],
+      }
+      await drawingReviewApi.drawingReviewStart(drawingReviewPayload);
+      await navigate("/")
     } catch (e) {
-      localStorageData.status = 'error';
-      window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
-      window.alert("バッチ処理起動に失敗したため、画面を切り替えます");
-      navigate("/drawing-review-upload-excel");
+      await navigate("/");
     }
   }
 

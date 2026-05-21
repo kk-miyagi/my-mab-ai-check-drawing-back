@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom';
 import JSZip from 'jszip';
-import { localStorageKey } from '../../constants/localStorageKey';
-import { LocalStorageData } from '../../types/storage.ts';
 import { drawingReviewApi } from '../../api/drawingReviewApi';
+import { useLocation, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import {
   Box,
@@ -52,6 +50,9 @@ export const DrawingReviewResultScreen: React.FC = () => {
   const [sheets, setSheets] = useState<SheetData[]>([]);
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
+  const drawingReviewPayload = useLocation().state.drawingReviewPayload;
+  const navigate = useNavigate();
+
   const handleDownload = async () => {
     try {
       const [excelBlob] = await Promise.all([
@@ -75,29 +76,10 @@ export const DrawingReviewResultScreen: React.FC = () => {
   }
 
   useEffect(() => {
-    const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingReview)
-    if (!getLocalStorage) {
-      return
-    }
-    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
-    if (!localStorageData.operationId) {
-      return
-    }
-
     (async () => {
       try {
-        if (!localStorageData.operationId) {
-          return
-        }
-        const res = await drawingReviewApi.drawingReviewEnd({
-          user: localStorageData.user,
-          epic: localStorageData.epic,
-          operation: localStorageData.operation,
-          operation_id: localStorageData.operationId,
-          status: localStorageData.status,
-        });
-        const data = await res as Blob
-        const zip = await JSZip.loadAsync(data);
+        const res = await drawingReviewApi.drawingReviewEnd(drawingReviewPayload);
+        const zip = await JSZip.loadAsync(res);
         const excelFile = zip.file(/\.xlsx$/)[0]
         if (excelFile) {
           const Blob = await excelFile.async('blob');
@@ -123,7 +105,8 @@ export const DrawingReviewResultScreen: React.FC = () => {
         }
 
       } catch (e) {
-        // TODO
+        window.alert("エラーが発生したため画面を切り替えます");
+        navigate("/");
       }
     })();
   }, []);
