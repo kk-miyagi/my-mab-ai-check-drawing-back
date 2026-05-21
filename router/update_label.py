@@ -88,17 +88,13 @@ async def update_label(request: Request):
     in_op = 'batch-create-label'
 
     req_user = req_status.user
-    req_op = req_status.operations[0].operation
-    req_opid = req_status.operations[0].operation_id
-    req_grid = req_status.group_id
+    req_opid = req_status.operation_id
 
     # ラベル付与していない図面の保存先の指定
-    input_dir = f"./multi-fileupload/{req_user}_{up_epic}"
-    input_dir += f"_{req_grid}_{in_op}_{req_opid}"
+    input_dir = f"./multi-fileupload/{req_user}_{up_epic}_{in_op}_{req_opid}"
 
     # ラベル付与後の図面の保存先の指定
-    output_dir = f"./update-label-response/{req_user}_{up_epic}"
-    output_dir += f"_{req_grid}_{req_op}_{req_opid}"
+    output_dir = f"./update-label-response/{req_status.get_hash_key()}"
 
     # ファイルを取得
     f_list = [
@@ -111,7 +107,7 @@ async def update_label(request: Request):
         raise Exception(
                 f"Input image file not found or multiple files found in {input_dir}")
 
-    target_status = req_status.operations[0].status
+    target_status = req_status.status
     match target_status:
         case Status.START:
             logger.log(

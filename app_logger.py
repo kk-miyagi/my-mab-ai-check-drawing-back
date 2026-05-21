@@ -35,7 +35,6 @@ class LoggerBase:
             self._FORMAT
         )
 
-        # for file outpu
         file_handler = TimedRotatingFileHandler(
             self.log_info[self._INFO_KEY_LOG_FILE],
             self.log_info[self._INFO_KEY_LOG_WHEN],
@@ -44,7 +43,6 @@ class LoggerBase:
             encoding=self.log_info[self._INFO_KEY_LOG_ENCODING])
 
         file_handler.setFormatter(formatter)
-        # for stdout
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(formatter)
 
@@ -69,7 +67,7 @@ class LoggerBase:
             raise conf_loglevel
 
     def log(self, app_status, log_level, message):
-        mess = f"{app_status.group_id} - {message}"
+        mess = f"{app_status.operation_id} - {message}"
         match log_level:
             case self.DEBUG:
                 self.logger.debug(mess)

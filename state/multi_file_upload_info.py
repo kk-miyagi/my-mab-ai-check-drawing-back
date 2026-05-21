@@ -13,9 +13,8 @@ class FileInfo:
 class MultiFileUploadInfo:
     user: str
     epic: str
-    group_id: str
     operation: str
     operation_id: str
-    group_status: str
+    status: str
     file_infos: list[FileInfo]
     sum_number: int
