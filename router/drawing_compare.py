@@ -30,12 +30,12 @@ class DrawingCompareRunner(BackendTaskRunner):
         combinations = self.combinations
         combinations = f'"{str(combinations).strip()}"'
         cut_base_dir = f'{self._BASE_DIR}/{req.user}_{self._UP_EPIC}'
-        cut_base_dir += f'_{req.group_id}_{self._UP_OPE}_{req.operation_id}/cut_base'
-        cut_target_dir = f'{self._BASE_DIR}/{req.user}_{self._UP_EPIC}_{req.group_id}_{self._UP_OPE}_{req.operation_id}/cut_target'
-        out_dir = f'{self._BASE_DIR}/{req.user}_{req.epic}_{req.group_id}_{req.operation}_{req.operation_id}'
+        cut_base_dir += f'_{req.group_id}_{self._UP_OPE}_{req.operations[0].operation_id}/cut_base'
+        cut_target_dir = f'{self._BASE_DIR}/{req.user}_{self._UP_EPIC}_{req.group_id}_{self._UP_OPE}_{req.operations[0].operation_id}/cut_target'
+        out_dir = f'{self._BASE_DIR}/{req.user}_{req.epic}_{req.group_id}_{req.operations[0].operation}_{req.operations[0].operation_id}'
 
-        upload_base_file_dir = f"./multi-fileupload/{req.user}_{self._UP_EPIC}_{req.group_id}_{self._UP_BASE_OPE}_{req.operation_id}"
-        upload_target_file_dir = f"./multi-fileupload/{req.user}_{self._UP_EPIC}_{req.group_id}_{self._UP_TARGET_OPE}_{req.operation_id}"
+        upload_base_file_dir = f"./multi-fileupload/{req.user}_{self._UP_EPIC}_{req.group_id}_{self._UP_BASE_OPE}_{req.operations[0].operation_id}"
+        upload_target_file_dir = f"./multi-fileupload/{req.user}_{self._UP_EPIC}_{req.group_id}_{self._UP_TARGET_OPE}_{req.operations[0].operation_id}"
         upload_base_file_path = list(Path(upload_base_file_dir).glob("*.jpg"))[0].as_posix()
         upload_target_file_path = list(Path(upload_target_file_dir).glob("*.jpg"))[0].as_posix()
 
@@ -81,7 +81,6 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
             if req_combinations:
                 out_json_path = Path(f'{out_dir}/combinations.json')
                 out_json_path.parent.mkdir(parents=True, exist_ok=True)
-                req_combinations = json.loads(req_combinations)
                 with open(out_json_path, 'w', encoding='utf-8') as f:
                     json.dump(
                         req_combinations, f, ensure_ascii=False, indent=2)
