@@ -252,8 +252,6 @@ async def drawing_highlight(request: Request):
     req_grid = req_status.group_id
     req_opid = req_status.operations[0].operation_id
 
-    req_combinations = state.combinations
-
     up_base_ope = 'upload-base'
     up_target_ope = 'upload-target'
 
@@ -303,6 +301,8 @@ async def drawing_highlight(request: Request):
                 app_state.update_app_status(
                     req_status
                 )
+
+                req_combinations = state.combinations
 
                 is_exist_base_dir = os.path.exists(upload_base_file_dir)
                 is_exist_target_dir = os.path.exists(upload_target_file_dir)

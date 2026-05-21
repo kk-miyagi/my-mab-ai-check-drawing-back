@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { Header } from '../../components/Header';
 import { PdfPreview } from '../../components/PdfPreview';
+import { drawingHighlightApi } from '../../api/drawingHighlightApi';
 
 const downloadBlob = (blob: Blob, filename: string) => {
   const url = URL.createObjectURL(blob);
@@ -33,7 +34,7 @@ export const DrawingHighlightResultScreen: React.FC = () => {
 
   const location = useLocation();
   const state = location.state;
-  const data = state.res as Blob;
+  const drawingHighlightPayload = state.drawingHighlightPayload;
   const [baseImageUrl, setBaseImageUrl] = useState<string>();
   const [baseImageFileName, setBaseImageFileName] = useState<string>();
   const [targetImageUrl, setTargetImageUrl] = useState<string>();
@@ -58,7 +59,8 @@ export const DrawingHighlightResultScreen: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const zip = await JSZip.loadAsync(data);
+        const res = await drawingHighlightApi.drawingHighlightEnd(drawingHighlightPayload)
+        const zip = await JSZip.loadAsync(res);
         const base = zip.file(/base.*\.pdf$/)[0];
         const target = zip.file(/target.*\.pdf$/)[0];
 
