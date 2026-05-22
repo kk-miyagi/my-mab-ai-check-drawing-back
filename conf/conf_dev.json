@@ -1,6 +1,12 @@
 {
     "APP_STATUS":{
-       "expire": 86400 
+       "expire": 86400
+    },
+    "REDIS":{
+	"host": "redis-check-drawing-dev.redis.cache.windows.net",
+	"port": 6380,
+	"password": "",
+	"ssl": true
     },
     "LOGGER":{
 	"logger_name": "app_main",
