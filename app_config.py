@@ -24,6 +24,11 @@ class AppConfig:
         '_batch_log_backup_count',
         '_batch_log_file_name',
         '_batch_log_encoding',
+        '_REDIS_CONF_KEY',
+        '_redis_host',
+        '_redis_port',
+        '_redis_password',
+        '_redis_ssl',
         '_initialized'
     )
 
@@ -39,6 +44,8 @@ class AppConfig:
         self.__logger_conf_init(json_conf)
         # batch log setting set config object
         self.__batch_logger_conf_init(json_conf)
+        # redis setting set config object
+        self.__redis_conf_init(json_conf)
 
     def __backend_conf_init(self, json_conf):
         self.__setattr__("_BACKEND_TASKS_CONF_KEY", 'BACKEND_TASKS')
@@ -92,6 +99,14 @@ class AppConfig:
                 '_batch_log_file_name', logger_conf['log_file_name'])
         self.__setattr__(
                 '_batch_log_encoding', logger_conf['log_encoding'])
+
+    def __redis_conf_init(self, conf):
+        self.__setattr__("_REDIS_CONF_KEY", 'REDIS')
+        redis_conf = conf[self._REDIS_CONF_KEY]
+        self.__setattr__('_redis_host', redis_conf['host'])
+        self.__setattr__('_redis_port', redis_conf['port'])
+        self.__setattr__('_redis_password', redis_conf['password'])
+        self.__setattr__('_redis_ssl', redis_conf['ssl'])
 
     @property
     def expire(self):
@@ -152,6 +167,22 @@ class AppConfig:
     @property
     def batch_log_file_name(self):
         return self._batch_log_file_name
+
+    @property
+    def redis_host(self):
+        return self._redis_host
+
+    @property
+    def redis_port(self):
+        return self._redis_port
+
+    @property
+    def redis_password(self):
+        return self._redis_password
+
+    @property
+    def redis_ssl(self):
+        return self._redis_ssl
 
     def __setattr__(self, key, value):
         # 属性変更禁止

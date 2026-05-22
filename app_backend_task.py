@@ -78,8 +78,7 @@ class BackendTaskRunner:
             )
             up_status = Status.ERROR
 
-        req_status.group_status = up_status
-        req_status.operations[0].status = up_status
+        req_status.status = up_status
         # app status update
         app_state.update_app_status(
             req_status
@@ -133,9 +132,4 @@ class BackendTasks:
 
     @classmethod
     def _task_state_key(cls, req_status):
-        return '_'.join(
-            [
-                req_status.epic,
-                req_status.operations[0].operation
-            ]
-        )
+        return '_'.join([req_status.epic, req_status.operation])

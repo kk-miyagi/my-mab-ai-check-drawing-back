@@ -246,38 +246,23 @@ async def drawing_highlight(request: Request):
     req_status = AppStatus.create_from_state(state)
 
     req_epic = req_status.epic
-    req_ope = req_status.operations[0].operation
+    req_ope = req_status.operation
     req_user = req_status.user
-    req_grid = req_status.group_id
-    req_opid = req_status.operatons[0].operation_id
+    req_opid = req_status.operation_id
 
-    req_combinations = state.combinations
-    req_combinations = json.loads(req_combinations)
+    raw_combinations = state.combinations
+    req_combinations = json.loads(raw_combinations) if raw_combinations else None
 
     up_base_ope = 'upload-base'
     up_target_ope = 'upload-target'
 
-    upload_base_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
-    upload_base_file_dir += f"_{req_grid}_{up_base_ope}_{req_opid}"
+    upload_base_file_dir = f"./multi-fileupload/{req_user}_{req_epic}_{up_base_ope}_{req_opid}"
+    upload_target_file_dir = f"./multi-fileupload/{req_user}_{req_epic}_{up_target_ope}_{req_opid}"
 
-    upload_target_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
-    upload_target_file_dir += f"_{req_grid}_{up_target_ope}_{req_opid}"
-
-    image_extensions = {".jpg", ".jpeg", ".png"}
-    base_image_name = [
-            p.name for p in Path(upload_base_file_dir).iterdir()
-            if p.suffix.lower() in image_extensions][0]
-    target_image_name = [
-            p.name for p in Path(upload_target_file_dir).iterdir()
-            if p.suffix.lower() in image_extensions][0]
-    base_image_path = Path(upload_base_file_dir, base_image_name)
-    target_image_path = Path(upload_target_file_dir, target_image_name)
     _OUT_BASE_DIR = f'./{req_epic}-responce'
-    out_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}"
-    out_dir = f"_{req_ope}_{req_opid}"
-    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    out_dir = f"{_OUT_BASE_DIR}/{req_status.get_hash_key()}"
 
-    target_status = req_status.operations[0].status
+    target_status = req_status.status
     match target_status:
         case Status.START:
             # TODO 一応想定外だがどうするか？
@@ -302,19 +287,22 @@ async def drawing_highlight(request: Request):
                     error_msg = "DRAWING-HIGHLIGHT DIR NOT FOUND:"
                     error_msg += f"{upload_base_file_dir} "
                     error_msg += f"or {upload_target_file_dir}"
-                    req_status.group_status = Status.ERROR
-                    logger.log(
-                        req_status,
-                        AppLogger.ERROR,
-                        error_msg
-                    )
+                    req_status.status = Status.ERROR
+                    logger.log(req_status, AppLogger.ERROR, error_msg)
+                    app_state.update_app_status(req_status)
+                    return AppRoute.create_responce_from_status(req_status)
 
-                    up_status = Status.ERROR
-                    req_status.group_status = up_status
-                    req_status.operations[0].status = up_status
-                    app_state.update_app_status(
-                        req_status
-                    )
+                image_extensions = {".jpg", ".jpeg", ".png"}
+                base_image_name = [
+                    p.name for p in Path(upload_base_file_dir).iterdir()
+                    if p.suffix.lower() in image_extensions][0]
+                target_image_name = [
+                    p.name for p in Path(upload_target_file_dir).iterdir()
+                    if p.suffix.lower() in image_extensions][0]
+                base_image_path = Path(upload_base_file_dir, base_image_name)
+                target_image_path = Path(upload_target_file_dir, target_image_name)
+                Path(out_dir).mkdir(parents=True, exist_ok=True)
+
                 if not req_combinations:
                     DrawingHighlight.highlight(
                         base_image_path.as_posix(),
@@ -331,23 +319,20 @@ async def drawing_highlight(request: Request):
                     )
 
                 if req_combinations:
+                    sim_dir = f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_image-similarity_{req_opid}"
                     await DrawingHighlight.loop_highlight(
                         req_combinations,
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/cut_base",
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/cut_target",
+                        f"{sim_dir}/cut_base",
+                        f"{sim_dir}/cut_target",
                         out_dir
                     )
                     await DrawingHighlight.paste_cut_image(
-                        'base',
-                        base_image_path.as_posix(),
-                        out_dir,
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/responce.json"
+                        'base', base_image_path.as_posix(), out_dir,
+                        f"{sim_dir}/responce.json"
                     )
                     await DrawingHighlight.paste_cut_image(
-                        'target',
-                        target_image_path.as_posix(),
-                        out_dir,
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/responce.json"
+                        'target', target_image_path.as_posix(), out_dir,
+                        f"{sim_dir}/responce.json"
                     )
 
                 logger.log(
@@ -400,12 +385,8 @@ async def drawing_highlight(request: Request):
                     AppLogger.ERROR,
                     f"DRAWING-HIGHLIGHT DOING STATUS error !:{e}"
                 )
-                up_status = Status.ERROR
-                req_status.group_status = up_status
-                req_status.operations[0].status = up_status
-                app_state.update_app_status(
-                    req_status
-                )
+                req_status.status = Status.ERROR
+                app_state.update_app_status(req_status)
                 raise e
 
         case Status.END:
