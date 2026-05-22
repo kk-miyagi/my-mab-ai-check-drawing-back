@@ -24,17 +24,12 @@ class AppConfig:
         '_batch_log_backup_count',
         '_batch_log_file_name',
         '_batch_log_encoding',
-        '_initialized',
-        '_DATABASE_CONF_KEY',
-        '_db_name',
-        '_create_user_table',
-        '_insert_user_table',
-        '_get_user_table',
-        '_LOGIN_CONF_KEY',
-        '_secret_key',
-        '_algorithms',
-        '_expire_min',
-        '_secure_cookie'
+        '_REDIS_CONF_KEY',
+        '_redis_host',
+        '_redis_port',
+        '_redis_password',
+        '_redis_ssl',
+        '_initialized'
     )
 
     def __init__(self, config_path):
@@ -49,10 +44,8 @@ class AppConfig:
         self.__logger_conf_init(json_conf)
         # batch log setting set config object
         self.__batch_logger_conf_init(json_conf)
-        # database config object
-        self.__database_conf_init(json_conf)
-        # login config object
-        self.__login_conf_init(json_conf)
+        # redis setting set config object
+        self.__redis_conf_init(json_conf)
 
     def __backend_conf_init(self, json_conf):
         self.__setattr__("_BACKEND_TASKS_CONF_KEY", 'BACKEND_TASKS')
@@ -123,6 +116,14 @@ class AppConfig:
         self.__setattr__(
                 '_batch_log_encoding', logger_conf['log_encoding'])
 
+    def __redis_conf_init(self, conf):
+        self.__setattr__("_REDIS_CONF_KEY", 'REDIS')
+        redis_conf = conf[self._REDIS_CONF_KEY]
+        self.__setattr__('_redis_host', redis_conf['host'])
+        self.__setattr__('_redis_port', redis_conf['port'])
+        self.__setattr__('_redis_password', redis_conf['password'])
+        self.__setattr__('_redis_ssl', redis_conf['ssl'])
+
     @property
     def expire(self):
         return self._expire
@@ -184,36 +185,20 @@ class AppConfig:
         return self._batch_log_file_name
 
     @property
-    def db_name(self):
-        return self._db_name
+    def redis_host(self):
+        return self._redis_host
 
     @property
-    def create_user_table(self):
-        return self._create_user_table
+    def redis_port(self):
+        return self._redis_port
 
     @property
-    def insert_user_table(self):
-        return self._insert_user_table
+    def redis_password(self):
+        return self._redis_password
 
     @property
-    def get_user_table(self):
-        return self._get_user_table
-
-    @property
-    def get_secret_key(self):
-        return self._secret_key
-
-    @property
-    def get_algorithms(self):
-        return self._algorithms
-
-    @property
-    def get_expire_min(self):
-        return self._expire_min
-
-    @property
-    def get_secure_cookie(self):
-        return self._secure_cookie
+    def redis_ssl(self):
+        return self._redis_ssl
 
     def __setattr__(self, key, value):
         # 属性変更禁止
