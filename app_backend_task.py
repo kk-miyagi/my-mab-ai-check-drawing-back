@@ -78,12 +78,25 @@ class BackendTaskRunner:
             )
             up_status = Status.ERROR
 
-        req_status.group_status = up_status
         req_status.operations[0].status = up_status
         # app status update
         app_state.update_app_status(
             req_status
         )
+        state_status = app_state.get_eq_app_status(req_status)
+
+        if all([ope.status == Status.END for ope in state_status.operations]):
+            req_status.group_status = up_status
+            app_state.update_app_status(
+                req_status
+            )
+
+        if any([ope.status == Status.ERROR for ope in state_status.operations]):
+            req_status.group_status = Status.ERROR
+            app_state.update_app_status(
+                req_status
+            )
+
         self.logger.log(
             req_status,
             BatchLogger.INFO,
