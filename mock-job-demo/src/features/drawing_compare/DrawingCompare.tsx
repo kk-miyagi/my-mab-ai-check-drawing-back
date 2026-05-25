@@ -25,25 +25,49 @@ import { Header } from '../../components/Header';
 
 export const DrawingCompare: React.FC = () => {
 
-  // アップロードした図面
   const location = useLocation();
   const data = location.state;
-  const requestPayload = data.requestPayload;
-  const baseImageFile = data.baseImageFile;
-  const compareImageFile = data.compareImageFile;
+
+  const navigateOptions = data?.navigateOptions ?? data ?? {};
+  const [selectedInfoIndex, setSelectedInfoIndex] = useState<number>(0);
+
+  const currentInfo = navigateOptions?.info?.[selectedInfoIndex] ?? null;
+
+  const baseImageFile = currentInfo?.baseImageFile ?? null;
+  const compareImageFile = currentInfo?.compareImageFile ?? null;
 
   // 座標と類似度
-  const baseRects = data.baseRects;
-  const targetRects = data.targetRects;
-  const similarities = data.similarities;
+  const baseRects = currentInfo?.baseRects ?? {};
+  const targetRects = currentInfo?.targetRects ?? {};
+  const similarities = currentInfo?.similarities ?? {};
 
   // 図面の組み合わせ
   const [combinations, setCombinations] = useState<Combinations>({})
+  // 保存済みの rects / combinations を info インデックスごとに保持
+  const [savedRects, setSavedRects] = useState<Record<number, RectModel[]>>({});
+  const [savedCombinations, setSavedCombinations] = useState<Record<number, Combinations>>({});
 
   // 図面のプレビュー
   useEffect(() => {
-    setImages({ source: URL.createObjectURL(baseImageFile[0]), target: URL.createObjectURL(compareImageFile[0]) })
-  }, [])
+    const len = navigateOptions?.info?.length ?? 0;
+    if (len === 0) {
+      setSelectedInfoIndex(0);
+      return;
+    }
+    if (selectedInfoIndex > len - 1) {
+      setSelectedInfoIndex(0);
+    }
+
+    if (!baseImageFile || !compareImageFile) return;
+    const srcUrl = URL.createObjectURL(baseImageFile);
+    const tgtUrl = URL.createObjectURL(compareImageFile);
+    setImages({ source: srcUrl, target: tgtUrl });
+
+    return () => {
+      URL.revokeObjectURL(srcUrl);
+      URL.revokeObjectURL(tgtUrl);
+    };
+  }, [baseImageFile, compareImageFile]);
 
   // サービスは ref に保持して再レンダーでも同じインスタンスを使う。
   const linkManagerRef = useRef(new LinkManager());
@@ -130,6 +154,81 @@ export const DrawingCompare: React.FC = () => {
     setPhase('suggest');
   }
 
+  const handlePrevInfo = () => {
+    if (selectedInfoIndex <= 0) return;
+    const next = selectedInfoIndex - 1;
+
+    setSavedRects(prev => ({ ...prev, [selectedInfoIndex]: rects }));
+    setSavedCombinations(prev => ({ ...prev, [selectedInfoIndex]: combinations }));
+
+    const restoredRects = savedRects[next] ?? [];
+    const restoredCombs = savedCombinations[next] ?? {};
+
+    if (images.source) {
+      try { URL.revokeObjectURL(images.source); } catch (e) {}
+    }
+    if (images.target) {
+      try { URL.revokeObjectURL(images.target); } catch (e) {}
+    }
+
+    setSelectedInfoIndex(next);
+
+    const nextInfo = navigateOptions?.info?.[next];
+    if (nextInfo?.baseImageFile && nextInfo?.compareImageFile) {
+      const srcUrl = URL.createObjectURL(nextInfo.baseImageFile);
+      const tgtUrl = URL.createObjectURL(nextInfo.compareImageFile);
+      setImages({ source: srcUrl, target: tgtUrl });
+
+      try {
+        if (sourceImageRef.current) sourceImageRef.current.src = srcUrl;
+        if (targetImageRef.current) targetImageRef.current.src = tgtUrl;
+      } catch (e) {}
+    } else {
+      setImages({ source: null, target: null });
+    }
+
+    setRects(restoredRects);
+    initializedRef.current = restoredRects.length > 0;
+    setCombinations(restoredCombs);
+  }
+
+  const handleNextInfo = () => {
+    if (!navigateOptions?.info) return;
+    if (selectedInfoIndex >= navigateOptions.info.length - 1) return;
+    const next = selectedInfoIndex + 1;
+
+    setSavedRects(prev => ({ ...prev, [selectedInfoIndex]: rects }));
+    setSavedCombinations(prev => ({ ...prev, [selectedInfoIndex]: combinations }));
+
+    const restoredRects = savedRects[next] ?? [];
+    const restoredCombs = savedCombinations[next] ?? {};
+
+    if (images.source) {
+      try { URL.revokeObjectURL(images.source); } catch (e) {}
+    }
+    if (images.target) {
+      try { URL.revokeObjectURL(images.target); } catch (e) {}
+    }
+
+    setSelectedInfoIndex(next);
+    const nextInfo = navigateOptions?.info?.[next];
+    if (nextInfo?.baseImageFile && nextInfo?.compareImageFile) {
+      const srcUrl = URL.createObjectURL(nextInfo.baseImageFile);
+      const tgtUrl = URL.createObjectURL(nextInfo.compareImageFile);
+      setImages({ source: srcUrl, target: tgtUrl });
+      try {
+        if (sourceImageRef.current) sourceImageRef.current.src = srcUrl;
+        if (targetImageRef.current) targetImageRef.current.src = tgtUrl;
+      } catch (e) {}
+    } else {
+      setImages({ source: null, target: null });
+    }
+
+    setRects(restoredRects);
+    initializedRef.current = restoredRects.length > 0;
+    setCombinations(restoredCombs);
+  }
+
   const handleSelectPhaseClick = (role: RectRole, id: string) => {
     if (role === 'source') {
       // Source を選ぶと候補確認フェーズへ遷移。
@@ -156,18 +255,38 @@ export const DrawingCompare: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const handleRunComparison = () => {
-    const sourceRect = rects.filter((rect) => rect.role === 'source');
-    const result = sourceRect.map(({ id, linkedTargetIds }) => ({ id, linkedTargetIds }));
+  const handleRunComparison = async () => {
+    const allCombinations = { ...savedCombinations, [selectedInfoIndex]: combinations };
+    setSavedCombinations(allCombinations);
 
     try {
-      // バッチ
-      requestPayload.combinations = combinations
-      drawingCompareApi.drawingCompareStart(requestPayload)
-      navigate("/")
+      const infos = navigateOptions?.info ?? [];
+      for (let i = 0; i < infos.length; i++) {
+        const op = (navigateOptions.operations && navigateOptions.operations[i])
+          ? navigateOptions.operations[i]
+          : (navigateOptions.operations && navigateOptions.operations[0])
+            ? navigateOptions.operations[0]
+            : { operation: 'batch-drawing-compare', operation_id: '', status: 'start' };
+
+        const combs = allCombinations[i] ?? {};
+
+        const requestPayload = {
+          user: navigateOptions.user,
+          epic: navigateOptions.epic,
+          group_id: navigateOptions.group_id,
+          group_status: 'doing',
+          others: navigateOptions.others,
+          operations: [op],
+          combinations: combs,
+        };
+
+        await drawingCompareApi.drawingCompareStart(requestPayload);
+      }
+
+      navigate("/");
     } catch (e) {
-      window.alert("処理に失敗したため、画面を切り替えます")
-      navigate("/")
+      window.alert("処理に失敗したため、画面を切り替えます");
+      navigate("/");
     }
   };
 
@@ -357,6 +476,18 @@ export const DrawingCompare: React.FC = () => {
           onSelectSuggestion={handleSuggestionSelect}
         />
       ) : (
+        <>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, mt: 1 }}>
+            <Stack direction='row' spacing={1}>
+              <Button variant="outlined" onClick={handlePrevInfo} disabled={selectedInfoIndex <= 0}>
+                前へ
+              </Button>
+              <Typography>{`${selectedInfoIndex + 1} / ${navigateOptions?.info?.length ?? 0}`}</Typography>
+              <Button variant="outlined" onClick={handleNextInfo} disabled={!navigateOptions?.info || selectedInfoIndex >= (navigateOptions.info.length - 1)}>
+                次へ
+              </Button>
+            </Stack>
+          </Box>
         <Stack direction="row" spacing={2}>
           <CanvasPane
             role="source"
@@ -380,6 +511,7 @@ export const DrawingCompare: React.FC = () => {
             onRectMouseDown={handleRectMouseDown('target')}
           />
         </Stack>
+        </>
       )}
         </Stack>
       </Container>
