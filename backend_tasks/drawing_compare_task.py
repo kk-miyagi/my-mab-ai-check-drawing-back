@@ -40,6 +40,7 @@ def check_draw_list(draw_list, compare_list, draw_kind, out_dir):
     5:文字が完全一致している必要はなく、記載がほぼ同じと総合的に判断できるようだったら判定結果を「有」としてください。
     6:CSV形式で出力してください。値はダブルクォーテーションで囲ってください。
     7:CSV形式以外出力しないでください。
+    8:1行目はヘッダー行で出力してください。
     """
     gemini_res = generate_with_multiple_contents(
         model,
@@ -52,14 +53,14 @@ def check_draw_list(draw_list, compare_list, draw_kind, out_dir):
         kind = "base"
     elif draw_kind == "自社用":
         kind = "target"
-    save_gemini_responce(res, f"{out_dir}/llm_check_{kind}_draw_list.csv")
+    save_gemini_responce(res, f"{out_dir}/check_{kind}.csv")
     
     # 客先のチェック処理の結果を一覧に反映
     res_reader = list(csv.reader(io.StringIO(res)))
     draw_list_reader = list(csv.reader(io.StringIO(draw_list)))
     filtered_reader = [row[1:3] + ["図面比較時に追加"] for row in res_reader[1:] if row[3] == "無"]
     merged_reader = draw_list_reader + filtered_reader
-    save_gemini_responce(merged_reader, f"{out_dir}/llm_new_{kind}_draw_list.csv")
+    save_gemini_responce(merged_reader, f"{out_dir}/check_{kind}.csv")
 
     return None
 
@@ -98,6 +99,7 @@ def get_draw_list(image):
             備考欄記載例:どのような寸法の値か記載。また、"※"印がある場合、対応する注記の記載内容を記載
         2:CSV形式でにて出力してください。
         3:CSV形式以外出力しないでください。
+        4:1行目はヘッダー行で出力してください。
     """
     gemini_res_2 = generate_with_multiple_contents(
         model,
@@ -124,6 +126,7 @@ def get_drawing_compare(base_image_path: str, target_image_paths: list):
         3:値がない場合"-"で表してください
         4:CSV形式にて出力してください。値はダブルクォーテーションで囲ってください。
         5:CSV形式以外出力しないでください
+        6:1行目はヘッダー行で出力してください
     """
 
     res = generate_with_multiple_contents(
@@ -247,9 +250,9 @@ if __name__ == "__main__":
 
     # 図面から一覧を作成
     base_draw_list = get_draw_list(base_image_path)
-    save_gemini_responce(base_draw_list, f"{run_dir}/llm_base_draw_list.csv")
+    save_gemini_responce(base_draw_list, f"{run_dir}/base.csv")
     target_draw_list = get_draw_list(target_image_path)
-    save_gemini_responce(target_draw_list, f"{run_dir}/llm_target_draw_list.csv")
+    save_gemini_responce(target_draw_list, f"{run_dir}/target.csv")
 
     save_cols = ["項目","客先図面の記載内容","客先図面の矩形領域番号","客先図面の記載位置","社内用図面の記載内容","社内用図面の矩形領域番号","社内用図面の記載位置","差分内容","判定結果","判定理由"]
     all_rows = []
@@ -281,7 +284,7 @@ if __name__ == "__main__":
     up_base_file_name = re.search(r"\d+_bf_file_(.*)", up_base_file_name).group(1)
     up_target_file_name = Path(target_image_path).stem
     up_target_file_name = re.search(r"\d+_bf_file_(.*)", up_target_file_name).group(1)
-    with open(f"{out_dir}/{up_base_file_name}_and_{up_target_file_name}_llm_final.csv", "w", newline="", encoding="utf-8-sig") as f:
+    with open(f"{out_dir}/{up_base_file_name}_and_{up_target_file_name}_result.csv", "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=save_cols, quoting=csv.QUOTE_ALL)
         writer.writeheader()
         writer.writerows(all_rows)
