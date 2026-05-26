@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+itsdangerous
+python-multipart
+requests
+Pillow
+pdf2image
+img2pdf
+opencv-python
+numpy
+imagehash
+polars
+redis

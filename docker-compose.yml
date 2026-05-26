@@ -1,0 +1,65 @@
+# docker compose up
+#   redis: shared Redis (queue + state)
+#   api:   FastAPI exposed on :8000
+#   batch: worker(s) draining the queue (scale with `docker compose up --scale batch=N`)
+#
+# `shared_data` is a named volume mounted by both api and batch so the upload
+# pipeline (multi-fileupload → response folders) stays on a common filesystem.
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: mab-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: api_server/Dockerfile
+    image: mab-api
+    container_name: mab-api
+    ports:
+      - "8100:8000"
+    environment:
+      RUN_ENV: DEV
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_SSL: "false"
+      DATA_ROOT: /app/shared_data
+    volumes:
+      - shared_data:/app/shared_data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  batch:
+    build:
+      context: .
+      dockerfile: batch_server/Dockerfile
+    image: mab-batch
+    environment:
+      RUN_ENV: DEV
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_SSL: "false"
+      DATA_ROOT: /app/shared_data
+    volumes:
+      - shared_data:/app/shared_data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  shared_data:

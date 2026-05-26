@@ -1,0 +1,44 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+*.pyo
+
+# Legacy top-level files kept for reference but not used in containers.
+app_backend_task.py
+app_config.py
+app_logger.py
+app_manager.py
+app_router.py
+app_server.py
+app_state.py
+test_app.py
+test_client.py
+backend_tasks/
+manager/
+router/
+state/
+state_func/
+tools/
+conf/
+shell/
+
+# Local runtime data — never bake into the image.
+logs/
+multi-fileupload/
+create-label-responce/
+update-label-response/
+drawing-review-responce/
+drawing-compare-responce/
+drawing-highlight-responce/
+shared_data/
+
+# Frontend, scripts, tests not needed at build time.
+mock-job-demo/
+test_scripts/
+
+# IDE / OS noise.
+.DS_Store
+.idea/
+.vscode/
