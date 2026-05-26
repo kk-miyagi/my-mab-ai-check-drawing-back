@@ -19,31 +19,34 @@ import { CreateLabelListScreen } from '../features/label_create/CreateLabelListS
 import { DrawingReviewListScreen } from '../features/drawing_review/DrawingReviewListScreen';
 import { DrawingCompareListScreen } from '../features/drawing_compare/DrawingCompareListScreen';
 import { DrawingHighlightListScreen } from '../features/drawing_highlight/DrawingHighlightListScreen';
+import { LoginPage } from '../pages/LoginPage';
+import { ProtectedRoute } from './ProtectedRoute';
 
 export const AppRouter = () => {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/hub" replace />} />
-      <Route path="/hub" element={<HubScreen />} />
-      <Route path="/create-label" element={<CreateLabelScreen />} />
-      <Route path="/create-label-result" element={<CreateLabelResultScreen />} />
-      <Route path="/update-label" element={<UpdateLabelScreen />} />
-      <Route path="/update-label-result" element={<UpdateLabelResultScreen />} />
-      <Route path="/drawing-review" element={<DrawingReviewScreen />} />
-      <Route path="/drawing-review-result" element={<DrawingReviewResultScreen />} />
-      <Route path="/drawing-review-upload-excel" element={<DrawingReviewUploadExcelScreen />} />
-      <Route path="/drawing-compare-upload-base" element={<DrawingCompareUploadBaseFileScreen />} />
-      <Route path="/drawing-compare-upload-target" element={<DrawingCompareUploadCompareFileScreen />} />
-      <Route path="/drawing-compare" element={<DrawingCompare />} />
-      <Route path="/drawing-compare-result" element={<DrawingCompareResultScreen />} />
-      <Route path="/drawing-highlight-upload-before" element={<DrawingHighlightUploadBeforeFileScreen />} />
-      <Route path="/drawing-highlight-upload-after" element={<DrawingHighlightUploadAfterFileScreen />} />
-      <Route path="/drawing-highlight" element={<DrawingHighlight />} />
-      <Route path="/drawing-highlight-result" element={<DrawingHighlightResultScreen />} />
-      <Route path="/create-label-list" element={<CreateLabelListScreen />} />
-      <Route path="/drawing-review-list" element={<DrawingReviewListScreen />} />
-      <Route path="/drawing-compare-list" element={<DrawingCompareListScreen />} />
-      <Route path="/drawing-highlight-list" element={<DrawingHighlightListScreen />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/hub" element={<ProtectedRoute><HubScreen /></ProtectedRoute>} />
+      <Route path="/create-label" element={<ProtectedRoute><CreateLabelScreen /></ProtectedRoute>} />
+      <Route path="/create-label-result" element={<ProtectedRoute><CreateLabelResultScreen /></ProtectedRoute>} />
+      <Route path="/update-label" element={<ProtectedRoute><UpdateLabelScreen /></ProtectedRoute>} />
+      <Route path="/update-label-result" element={<ProtectedRoute><UpdateLabelResultScreen /></ProtectedRoute>} />
+      <Route path="/drawing-review" element={<ProtectedRoute><DrawingReviewScreen /></ProtectedRoute>} />
+      <Route path="/drawing-review-result" element={<ProtectedRoute><DrawingReviewResultScreen /></ProtectedRoute>} />
+      <Route path="/drawing-review-upload-excel" element={<ProtectedRoute><DrawingReviewUploadExcelScreen /></ProtectedRoute>} />
+      <Route path="/drawing-compare-upload-base" element={<ProtectedRoute><DrawingCompareUploadBaseFileScreen /></ProtectedRoute>} />
+      <Route path="/drawing-compare-upload-target" element={<ProtectedRoute><DrawingCompareUploadCompareFileScreen /></ProtectedRoute>} />
+      <Route path="/drawing-compare" element={<ProtectedRoute><DrawingCompare /></ProtectedRoute>} />
+      <Route path="/drawing-compare-result" element={<ProtectedRoute><DrawingCompareResultScreen /></ProtectedRoute>} />
+      <Route path="/drawing-highlight-upload-before" element={<ProtectedRoute><DrawingHighlightUploadBeforeFileScreen /></ProtectedRoute>} />
+      <Route path="/drawing-highlight-upload-after" element={<ProtectedRoute><DrawingHighlightUploadAfterFileScreen /></ProtectedRoute>} />
+      <Route path="/drawing-highlight" element={<ProtectedRoute><DrawingHighlight /></ProtectedRoute>} />
+      <Route path="/drawing-highlight-result" element={<ProtectedRoute><DrawingHighlightResultScreen /></ProtectedRoute>} />
+      <Route path="/create-label-list" element={<ProtectedRoute><CreateLabelListScreen /></ProtectedRoute>} />
+      <Route path="/drawing-review-list" element={<ProtectedRoute><DrawingReviewListScreen /></ProtectedRoute>} />
+      <Route path="/drawing-compare-list" element={<ProtectedRoute><DrawingCompareListScreen /></ProtectedRoute>} />
+      <Route path="/drawing-highlight-list" element={<ProtectedRoute><DrawingHighlightListScreen /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/hub" replace />} />
     </Routes>
   )
