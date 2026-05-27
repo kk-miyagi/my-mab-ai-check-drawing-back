@@ -24,7 +24,17 @@ class AppConfig:
         '_batch_log_backup_count',
         '_batch_log_file_name',
         '_batch_log_encoding',
-        '_initialized'
+        '_initialized',
+        '_DATABASE_CONF_KEY',
+        '_db_name',
+        '_create_user_table',
+        '_insert_user_table',
+        '_get_user_table',
+        '_LOGIN_CONF_KEY',
+        '_secret_key',
+        '_algorithms',
+        '_expire_min',
+        '_secure_cookie'
     )
 
     def __init__(self, config_path):
@@ -39,12 +49,32 @@ class AppConfig:
         self.__logger_conf_init(json_conf)
         # batch log setting set config object
         self.__batch_logger_conf_init(json_conf)
+        # database config object
+        self.__database_conf_init(json_conf)
+        # login config object
+        self.__login_conf_init(json_conf)
 
     def __backend_conf_init(self, json_conf):
         self.__setattr__("_BACKEND_TASKS_CONF_KEY", 'BACKEND_TASKS')
         self.__setattr__(
                 '_backend_tasks', json_conf[self._BACKEND_TASKS_CONF_KEY]
         )
+
+    def __database_conf_init(self, conf):
+        self.__setattr__("_DATABASE_CONF_KEY", "DATABASE")
+        db_conf = conf[self._DATABASE_CONF_KEY]
+        self.__setattr__('_db_name', db_conf['db-name'])
+        self.__setattr__('_create_user_table', db_conf['create-user-table'])
+        self.__setattr__('_insert_user_table', db_conf['insert-user-table'])
+        self.__setattr__('_get_user_table', db_conf['get-user-table'])
+
+    def __login_conf_init(self, conf):
+        self.__setattr__("_LOGIN_CONF_KEY", "LOGIN")
+        db_conf = conf[self._LOGIN_CONF_KEY]
+        self.__setattr__('_secret_key', db_conf['secret-key'])
+        self.__setattr__('_algorithms', db_conf['algorithms'])
+        self.__setattr__('_expire_min', db_conf['expire-min'])
+        self.__setattr__('_secure_cookie', db_conf['secure-cookie'])
 
     @property
     def backend_tasks(self):
@@ -152,6 +182,38 @@ class AppConfig:
     @property
     def batch_log_file_name(self):
         return self._batch_log_file_name
+
+    @property
+    def db_name(self):
+        return self._db_name
+
+    @property
+    def create_user_table(self):
+        return self._create_user_table
+
+    @property
+    def insert_user_table(self):
+        return self._insert_user_table
+
+    @property
+    def get_user_table(self):
+        return self._get_user_table
+
+    @property
+    def get_secret_key(self):
+        return self._secret_key
+
+    @property
+    def get_algorithms(self):
+        return self._algorithms
+
+    @property
+    def get_expire_min(self):
+        return self._expire_min
+
+    @property
+    def get_secure_cookie(self):
+        return self._secure_cookie
 
     def __setattr__(self, key, value):
         # 属性変更禁止

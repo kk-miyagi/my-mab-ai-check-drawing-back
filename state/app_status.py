@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from enum import IntEnum
-import json
 
 
 class Status(IntEnum):
