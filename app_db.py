@@ -13,18 +13,23 @@ class AppDB:
 
     def _db_init(self):
         with self._get_connect() as conn:
-            conn.cursor()
-            conn.execute(self.conf.create_user_table)
+            cur = conn.cursor()
+            cur.execute(self.conf.create_user_table)
 
     def _get_connect(self):
         return sqlite3.connect(self.conf.db_name)
 
-    def create_user(self):
-        # TODO
-        pass
+    def create_user(self, user, pw_hash):
+        with self._get_connect() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                    self.conf.insert_user_table,
+                    (user, pw_hash)
+            )
 
     def get_user_hash(self, username):
         with self._get_connect() as conn:
-            conn.cursor()
-            user_hash = conn.execute(self.conf.get_user_table)
+            cur = conn.cursor()
+            cur.execute(self.conf.get_user_table, (username,))
+            user_hash = cur.fetchone()[0]
         return user_hash

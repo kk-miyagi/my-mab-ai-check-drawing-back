@@ -35,7 +35,7 @@
     },
     "DATABASE": {
 	"db-name": "check-drawing.db",
-	"create-user-table": "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL",
+	"create-user-table": "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL)",
 	"insert-user-table": "INSERT INTO users (username, password_hash) VALUES (?, ?)",
 	"get-user-table": "SELECT password_hash FROM users WHERE username = ?"
     },
@@ -43,6 +43,6 @@
 	"secret-key": "check-drawing",
 	"algorithms": "HS256",
 	"expire-min": 1440,
-	"secure-cookie": true
+	"secure-cookie": true 
     }
 }
