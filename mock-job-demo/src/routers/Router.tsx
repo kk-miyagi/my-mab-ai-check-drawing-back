@@ -3,7 +3,6 @@ import { CreateLabelScreen } from '../features/label_create/CreateLabelScreen';
 import { HubScreen } from '../pages/HubScreen';
 import { CreateLabelResultScreen } from '../features/label_create/CreateLabelResult';
 import { UpdateLabelScreen } from '../features/label_create/UpdateLabelScreen';
-import { UpdateLabelResultScreen } from '../features/label_create/UpdateLabelResult';
 import { DrawingReviewScreen } from '../features/drawing_review/DrawingReviewScreen';
 import { DrawingReviewUploadExcelScreen } from '../features/drawing_review/DrawingReviewUploadExcelScreen';
 import { DrawingReviewResultScreen } from '../features/drawing_review/DrawingReviewResultScreen';
@@ -31,7 +30,6 @@ export const AppRouter = () => {
       <Route path="/create-label" element={<ProtectedRoute><CreateLabelScreen /></ProtectedRoute>} />
       <Route path="/create-label-result" element={<ProtectedRoute><CreateLabelResultScreen /></ProtectedRoute>} />
       <Route path="/update-label" element={<ProtectedRoute><UpdateLabelScreen /></ProtectedRoute>} />
-      <Route path="/update-label-result" element={<ProtectedRoute><UpdateLabelResultScreen /></ProtectedRoute>} />
       <Route path="/drawing-review" element={<ProtectedRoute><DrawingReviewScreen /></ProtectedRoute>} />
       <Route path="/drawing-review-result" element={<ProtectedRoute><DrawingReviewResultScreen /></ProtectedRoute>} />
       <Route path="/drawing-review-upload-excel" element={<ProtectedRoute><DrawingReviewUploadExcelScreen /></ProtectedRoute>} />
