@@ -25,6 +25,7 @@ import {
 import { Header } from '../../components/Header';
 import { InputExcelFile } from '../../components/InputExcelFile';
 import { groupIdApi } from '../../api/groupIdApi.ts';
+import { useAuth } from '../../hooks/useAuth.ts';
 
 const DEFAULT_EPIC = 'drawing-review';
 const DEFAULT_OPERATION = 'upload-excel';
@@ -46,6 +47,11 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
 
   const [title, setTitle] = useState<string>("");
   const [modelName, setModelName] = useState<string>("");
+
+  const { user } = useAuth();
+  if (!user) {
+    return null;
+  }
 
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -92,7 +98,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
   const handleStart = async () => {    
     try {
       const groupIdPayload = {
-        user: 'demo-user',
+        user: user,
         epic: DEFAULT_EPIC,
         group_id: '',
         group_status: 'start',
@@ -103,7 +109,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
       const groupId = groupIdResponse.group_id;
 
       const operationIdPayload: OperationIssueRequest = {
-        user: 'demo-user',
+        user: user,
         epic: DEFAULT_EPIC,
         group_id: groupId,
         group_status: 'start',
@@ -114,7 +120,7 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
       const operationId = operationIdResponse.operations[0].operation_id;
 
       const uploadPayload: UploadPairRequest = {
-        user: 'demo-user',
+        user: user,
         epic: DEFAULT_EPIC,
         group_id: groupId,
         group_status: 'start',
