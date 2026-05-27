@@ -6,12 +6,16 @@ from app_manager import Managers
 from app_state import AppState
 from manager.session_manager import SessionManager
 from manager.app_status_manager import AppStatusManager
+from manager.login_manager import LoginManager
 from app_router import AppRoute
 from app_config import AppConfig
 from app_logger import AppLogger, BatchLogger
+from app_db import AppDB
+from app_login import AppLogin
 from app_backend_task import BackendTasks
 from state.app_status import AppStatus
 import router.issue_operation_id as issue_operation_id
+import router.login as login
 import router.issue_group_id as issue_group_id
 import router.status_list as status_list
 import router.multi_fileupload as multi_fileupload
@@ -137,11 +141,23 @@ class AppServer():
         )
         self.app_state = app_state
         self.app_state.system_encode = 'utf-8'
+        self.app_db = AppDB(
+                self.app.state,
+                self.conf,
+                self.logger
+        )
+        self.app_login = AppLogin(
+            self.conf
+        )
         # manager setup
         self.setup_managers(app_state)
 
         # routing setup
-        self.setup_routers(app_state)
+        self.setup_routers(
+             app_state,
+             self.app_db,
+             self.app_login
+        )
 
         # backend task setu
         # batch original logger
@@ -154,14 +170,22 @@ class AppServer():
     def setup_managers(self, app_state: AppState):
         MANAGERS.add_manager(
                 SessionManager(
-                    self.app, app_state, self.logger))
+                    self.app, app_state, self.logger, self.app_login))
         MANAGERS.add_manager(
                 AppStatusManager(
-                    self.app, app_state, self.logger))
+                    self.app, app_state, self.logger, self.app_login))
+        MANAGERS.add_manager(
+                LoginManager(
+                    self.app, app_state, self.logger, self.app_login))
         MANAGERS.setup_managers()
 
-    def setup_routers(self, app_state: AppState):
-        AppRoute.set_app_state(app_state)
+    def setup_routers(self, app_state: AppState, app_db: AppDB,
+                      app_login: AppLogin):
+        AppRoute.setup(
+            app_state,
+            app_db,
+            app_login
+        )
         self.app.include_router(issue_operation_id.router)
         self.app.include_router(issue_group_id.router)
         self.app.include_router(status_list.router)
@@ -175,6 +199,7 @@ class AppServer():
         self.app.include_router(drawing_compare.router)
         self.app.include_router(drawing_highlight.router)
         self.app.include_router(update_label_init.router)
+        self.app.include_router(login.router)
 
     def start(self, env_str):
         import uvicorn

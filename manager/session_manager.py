@@ -1,7 +1,7 @@
 import time
 import uuid
-from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.sessions import SessionMiddleware
 from app_manager import Manager, ManagerException
 from app_logger import AppLogger
 
@@ -56,5 +56,5 @@ class SessionManager(Manager):
             error_log['message'] = "some session error"
 
         return JSONResponse(
-                content=error_log,
-                status_code=http_status)
+                    content=error_log,
+                    status_code=http_status)
