@@ -11,6 +11,7 @@ import { localStorageKey } from '../constants/localStorageKey';
 type AuthContextType = {
   user: string | null;
   login: (loginRequest: LoginRequest) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,6 +27,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const logout = async () => {
+    setUser(null);
+    localStorage.removeItem(localStorageKey.user);
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem(localStorageKey.user);
 
@@ -35,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user , login }}>
+    <AuthContext.Provider value={{ user , login, logout }}>
       {children}
     </AuthContext.Provider>
   );

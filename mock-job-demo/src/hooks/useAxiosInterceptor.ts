@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { http } from '../api/http';
+import { useAuth } from './useAuth';
 
 export const useAxiosInterceptor = () => {
   const navigate = useNavigate();
+  const { logout }  = useAuth();
 
   useEffect(() => {
     const responseInterceptor = http.interceptors.response.use(
@@ -18,6 +20,7 @@ export const useAxiosInterceptor = () => {
             navigate('/login', { state: { errorMessage } });
             break;
           case 403:
+            logout();
             errorMessage = '認証に失敗しました。再度ログインしてください。';
             navigate('/login', { state: { errorMessage } });
             break;
@@ -32,5 +35,5 @@ export const useAxiosInterceptor = () => {
     return () => {
       http.interceptors.response.eject(responseInterceptor);
     };
-  }, [navigate]);
+  }, [navigate, logout]);
 };
