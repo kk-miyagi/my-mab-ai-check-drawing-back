@@ -14,4 +14,5 @@ export const ENDPOINTS = {
   drawingHighlight: `${PREFIX}/drawing-highlight/`,
   issueGroupId: `${PREFIX}/issue/group-id/`,
   statusList: `${PREFIX}/status-list/`,
+  login: `${PREFIX}/login/`,
 };
