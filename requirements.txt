@@ -16,3 +16,4 @@ polars
 pysqlite3 
 passlib
 python-jose
+bcrypt==4.3.0
