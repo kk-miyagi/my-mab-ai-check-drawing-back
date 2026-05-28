@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request, Response, status
 router = APIRouter(prefix='/api', route_class=AppRoute)
 
 
-@router.post('/login')
+@router.post('/login/')
 async def login(request: Request, response: Response):
     req_status = AppStatus.create_from_request(request.state.body)
     user_info = req_status.others
