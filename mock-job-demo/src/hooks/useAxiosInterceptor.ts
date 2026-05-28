@@ -15,13 +15,24 @@ export const useAxiosInterceptor = () => {
 
         let errorMessage = '';
         switch (status) {
+          case 400:
+            logout();
+            errorMessage = 'セッションが無効です。再度ログインしてください。';
+            navigate('/login', { state: { errorMessage } });
+            break;
           case 401:
+            logout();
             errorMessage = 'ユーザーが見つかりませんでした。';
             navigate('/login', { state: { errorMessage } });
             break;
           case 403:
             logout();
             errorMessage = '認証に失敗しました。再度ログインしてください。';
+            navigate('/login', { state: { errorMessage } });
+            break;
+          case 503:
+            logout();
+            errorMessage = 'サービスが利用できません。しばらくしてから再度お試しください。';
             navigate('/login', { state: { errorMessage } });
             break;
           default:
