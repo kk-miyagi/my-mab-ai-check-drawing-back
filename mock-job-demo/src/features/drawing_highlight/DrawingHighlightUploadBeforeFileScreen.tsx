@@ -54,7 +54,7 @@ export const DrawingHighlightUploadBeforeFileScreen: React.FC = () => {
       const groupIdPayload = {
         user: user,
         epic: DEFAULT_EPIC,
-        group_id: '',
+        group_id: 'init',
         group_status: 'start',
         others: {},
         operations: [{ operation: '', operation_id: '', status: '' }],
