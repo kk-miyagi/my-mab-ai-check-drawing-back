@@ -1,5 +1,6 @@
 from state.app_status import AppStatus
 from app_logger import AppLogger
+from app_router import Status
 
 
 class ManagerException(Exception):
@@ -74,6 +75,18 @@ class Managers:
             except ManagerException as e:
                 ret = m.get_except_responce(
                         e, request)
+                self.app_status_error(m, body)
                 break
 
         return ret
+
+    def app_status_error(self, manager, body):
+        req_status = AppStatus.create_from_request(body)
+        app_state = manager.app_state
+        app_state.create_app_status()
+        state_status = app_state.get_eq_app_status(req_status)
+        if state_status is not None:
+            req_status.status = Status.ERROR
+            manager.app_state.update_app_status(
+                    req_status
+            )
