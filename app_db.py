@@ -28,8 +28,11 @@ class AppDB:
             )
 
     def get_user_hash(self, username):
+        ret = None
         with self._get_connect() as conn:
             cur = conn.cursor()
             cur.execute(self.conf.get_user_table, (username,))
-            user_hash = cur.fetchone()[0]
-        return user_hash
+            user_hash = cur.fetchone()
+            if user_hash is not None:
+                ret = user_hash[0]
+        return ret
