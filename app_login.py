@@ -1,5 +1,4 @@
 from fastapi import status
-from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta, timezone
 from passlib.context import CryptContext
 from jose import jwt, JWTError
@@ -40,7 +39,6 @@ class AppLogin:
         return encoded_jwt
 
     def set_token_with_cookie(self, dic, response):
-        response = JSONResponse(content=response)
         new_access_token = self.create_jwt_token(
                 dic
         )

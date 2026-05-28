@@ -17,7 +17,7 @@ class LoginManager(Manager):
         # /login以外のリクエストの場合
         if request.url.path != '/api/login/':
             logger.log(AppLogger.ERROR, f"{self.LOGIN_EXPIRE_ERROR}")
-            token = request.cookies.get('access_token')
+            token = request.cookies.get('access_token')[7:]
             if token is None or (not self.app_login.is_current_user(token)):
                 raise ManagerException(self.LOGIN_EXPIRE_ERROR)
 

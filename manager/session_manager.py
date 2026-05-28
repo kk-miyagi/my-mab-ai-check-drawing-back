@@ -51,7 +51,7 @@ class SessionManager(Manager):
         http_status = 503
         if exp.message == self.SESSION_EXPIRE_ERROR:
             error_log['message'] = "session expire error"
-            http_status = 402
+            http_status = 400
         else:
             error_log['message'] = "some session error"
 
