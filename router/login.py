@@ -1,5 +1,6 @@
 from app_router import AppRoute
 from app_logger import AppLogger
+from fastapi.responses import JSONResponse
 from state.app_status import AppStatus
 from fastapi import APIRouter, HTTPException, Request, Response, status
 
@@ -36,7 +37,7 @@ async def login(request: Request, response: Response):
         # JWT token set cookie
         ret = app_login.set_token_with_cookie(
                 {'sub': username},
-                ret
+                JSONResponse(content=ret)
         )
     else:
         # TODO log and status
