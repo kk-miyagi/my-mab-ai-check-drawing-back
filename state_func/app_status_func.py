@@ -54,7 +54,7 @@ def create_new_app_status(self, status):
     with self.lock:
         status_dic = self.app_state.APP_STATUS_SESSION_KEY
         ret_id = status.group_id
-        if AppStatus._is_none_and_black(ret_id):
+        if ret_id == 'init' or AppStatus._is_none_and_black(ret_id):
             ret_id = str(uuid.uuid4())
         ret_time = time.time()
         ret = AppStatus(
