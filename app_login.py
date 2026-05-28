@@ -20,7 +20,7 @@ class AppLogin:
 
     def authenticate_user(self, db: AppDB, username: str, password: str):
         user_hash = db.get_user_hash(username)
-        if not user_hash:
+        if user_hash is None:
             return False
         if not self.verify_password(password, user_hash):
             return False
