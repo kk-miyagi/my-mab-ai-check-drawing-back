@@ -1,0 +1,13 @@
+{
+  "DUMMYtype": "service_account",
+  "DUMMYproject_id": "mab-ai-check-drawing",
+  "DUMMYprivate_key_id": "8137e9c43f68f7d4c6974b4bdc4a3e72ab79fc04",
+  "DUMMYprivate_key": "-----BEGIN DUMMY KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCzIa8DHxFYeJkj\n0G4+IzWJzVNYmycLQ9Q2Glom7bV7ULjT4epJDtq/j3XBV2urbK3N6/EBi/BRn/wn\nY9tktij7wjVV0k23KDiWz4kuNNQjswHYfAqIVy6FG0IEKPCeQJG1YoooC+uz+5yZ\n5pOcPpzHRDqSI/BdVdWdqCzxOKF8d9uLrJGm0ivMpcW6t4uTBUph4/hgcjAiFPyv\nzphAPF3fwmszdzj0Rd4C1nmV3e+swD5y1/l/RDen1Q8qilEpUA4RVRHcYZhT1Qjb\nb56rL4OFJH9f3o5qhI0JHVNCxaPNW2UzE5rOB2eIhHj3m08fcZqcD2rRDDZ6CVF3\ns1aZHmOBAgMBAAECggEAV2C23e7ppx4slSu2mtjR5MYjQbVs9jG/8iQolZSeUeiu\nP6yTe8+jJI32ArmB67y3ixrsFLUOJMLFXPF4s0en9iZlnddX0V/tOqNBZyid0kwf\nOlpHSPo91u/U4/KUbJ1Sdgf7HE20S7cQTIIMvspL72d4qpCdTunvqVe/lGrrWqrL\nRzTfNmJZuPlKHSq+dPr/aP6dDpYLZsamt1khO5yYgBtl0HvVayoN6tkiIr3NU8Ts\n3XIW235zXzIregLEQwex2/qzuE3zd8q84LAQVfr6zmrQ5G2fmW6QYwtd3AwzoMtX\nf7oU6MZoI1HmSfExOgfHqzv4uNAqnBWb0fy+HLrzgQKBgQDjBpt0UVZRIaPHKE6K\nqJEPbfi6vAtWNA98wLTkFe2TobjJgFVqOwEBxwlD4EQLCM7lFqf0YrpySoRKiR/M\nwab+Htqfb9cpDjo8p59iiFl5zse3rf1aeDHNwqlBAFn4sv2FnZ6+VHk7ZyUXmqNY\no72ecQlpwMQgS5aoMnFDEEXlDwKBgQDJ/kZdTs8CKz1r0EHU14shS5MKSQWFpZzW\n0iUJ2FK6oxl43B6vZ4cHoTj9XbSr3fd+f48vSPTEW7vMOH5DRPhVnpT4zmrSJAyq\nipSlqk4Wcy2iamVmHcX73e9SxtMSA5FxThOTKaQTMhO1MTeNlaQVYpoWrc7Zm1rk\n6tv1F6LObwKBgD1GtkTSA2NImiUSKwjf8K9idmUohkLRMHDyrqB1jrdvSioRGnze\nyinJqCWK7bKwwO8yi0i6MSrSFBzuIAgrKMCkYUvxavio320prSpyNPxcpKleK+j0\nUjUAWqCx0JcA8M7UuVkUAdjXwTo6weYV5ANU7T5/CjDRViu12b5JMSRfAoGAJrSQ\nqySEyjea52PamXxL7q9al6fyZO+dJBTUgBRxlc3W/a/AOYAvAalFEFe6XQyFdjnf\nKAJk1JN3YuSYXS+EHnPqu9ph4a6CttMjNLNzjx226t5UW8Lswxx91XC/1T3Vys5Z\nNePOytbXq+qoaHr6HHbuy9W2Q0BfpGnUiBxlWAUCgYAgxG31a/A0TsaR9LLMnWOi\ndWgGfH3b4yelE02b6Yja94R1TM+iZ92iVutXBQFW375+YqsPeqHYuXpL8/ENQEwq\nitO/n8er0bBTdImOOqxNNgAxvAFyduWYATsIGNcyteHlLOuF5VRtxUhtXIefknRl\neWZphyIHbCG4OprV4ZDh8w==\n-----END DUMMY KEY-----\n",
+  "DUMMYclient_email": "mab-ai-check-drawing-sa@mab-ai-check-drawing.iam.gserviceaccount.com",
+  "DUMMYclient_id": "108740142280186579396",
+  "DUMMYauth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "DUMMYtoken_uri": "https://oauth2.googleapis.com/token",
+  "DUMMYauth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "DUMMYclient_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/mab-ai-check-drawing-sa%40mab-ai-check-drawing.iam.gserviceaccount.com",
+  "DUMMYuniverse_domain": "googleapis.com"
+}
