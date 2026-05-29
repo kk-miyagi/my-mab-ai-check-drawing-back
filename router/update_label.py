@@ -52,18 +52,12 @@ def _annotate_matches(
             if hasattr(font, "getbbox"):
                 bbox = font.getbbox(label_text)
                 label_height = bbox[3] - bbox[1]
-                label_weight = bbox[2] - bbox[0]
             else:
                 label_height = 14
-                label_weight = 40 * 2
                 if hasattr(font, "getsize"):
                     label_height = font.getsize(label_text)[1]
             label_x = rect[0]
             label_y = max(rect[1] - label_height - 4, 0)
-            if not box_on and ((rect[3] - rect[1]) > 2 * label_height):
-                label_y = min(rect[1] + label_height + 4, rect[3])
-            if not box_on and ((rect[2] - rect[0]) * 0.7 < label_weight):
-                label_x = min(rect[0] - label_weight - 4, rect[0])
 
             label_anchor = (label_x, label_y)
             drawer.text(label_anchor, label_text, fill=outline, font=font)
@@ -175,6 +169,24 @@ async def update_label(request: Request):
                 for key, info in info_dict.items():
                     f.write(f"{key},{info[0]},{info[1]},{info[2]}\n")
             print("Info CSV saved at:", csv_path)
+
+            box_on = False
+            annotated_path = _annotate_matches(
+                Path(input_img),
+                ordered_matches,
+                suffix="_update_label_no_box",
+                outline=(220, 20, 60),
+                output_dir=output_dir,
+                box_on=box_on
+            )
+            print("Annotated image saved at:", annotated_path)
+
+            # PDFへの変換
+            new_file_name = Path(annotated_path).with_suffix(".pdf")
+            with open(new_file_name, "wb") as f:
+                f.write(img2pdf.convert(Path(annotated_path)))
+            print("Annotated PDF saved at:", new_file_name)
+
             app_state.update_app_status(
                 req_status
             )

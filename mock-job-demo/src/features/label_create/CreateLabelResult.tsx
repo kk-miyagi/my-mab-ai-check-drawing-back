@@ -10,6 +10,7 @@ import {
   Container,
   Paper,
   Stack,
+  Switch,
   Typography,
   Table,
   TableBody,
@@ -19,6 +20,9 @@ import {
   TableRow,
 } from '@mui/material';
 import { Header } from '../../components/Header';
+import {
+  Download,
+} from '@mui/icons-material';
 
 type Row = Record<string, string | number | boolean | null>;
 
@@ -63,6 +67,7 @@ export const CreateLabelResultScreen: React.FC = () => {
   const [currentImageFile, setCurrentImageFile] = useState<ImageFile | null>();
   const [csvRows, setCsvRows] = useState<Row[]>([]);
   const [csvColumns, setCsvColumns] = useState<string[]>([]);
+  const [isBoxOn, setIsBoxOn] = useState(false);
 
   const updateLabelPayload = useLocation().state.updateLabelPayload;
 
@@ -85,9 +90,20 @@ export const CreateLabelResultScreen: React.FC = () => {
     }
   };
 
+  const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsBoxOn(event.target.checked);
+    if (event.target.checked) {
+      setCurrentPdfFile(pdfFiles[1]);
+    } else {
+      setCurrentPdfFile(pdfFiles[0]);
+    }
+  };
+
   useEffect(() => {
 
     (async () => {
+      setPdfFiles([]);
+      setCsvFiles([]);
       try {
         const res = await createLabelApi.updateLabelEnd({
           user: updateLabelPayload.user,
@@ -98,16 +114,15 @@ export const CreateLabelResultScreen: React.FC = () => {
           operations: [{ operation: "update-label", operation_id: updateLabelPayload.operations[0].operation_id, status: "end" }]
         });
 
-        // TODO: 複数出力がある場合
         const zip = await JSZip.loadAsync(res);
-        const pdfFile = zip.file(/\.pdf$/)[0];
+        const pdfFile1 = zip.file(/no_box.*\.pdf$/i)[0];
+        const pdfFile2 = zip.file(/^(?!.*no_box).*\.pdf$/i)[0];
         const csvFile = zip.file(/\.csv$/)[0];
-        const imgFile = zip.file(/\.jpg$/)[0];
 
-        if (pdfFile) {
-          const pdfBlob = await pdfFile.async('blob');
+        if (pdfFile1) {
+          const pdfBlob = await pdfFile1.async('blob');
           const url = URL.createObjectURL(new Blob([pdfBlob], { type: "application/pdf" }));
-          const path = pdfFile.name;
+          const path = pdfFile1.name;
           const filename = path.split("/").pop()!;
           const file: PdfFile = {
             fileName: filename,
@@ -117,17 +132,23 @@ export const CreateLabelResultScreen: React.FC = () => {
           setCurrentPdfFile([file][0]);
         }
 
-        if (imgFile) {
-          const imgfBlob = await imgFile.async('blob');
-          const url = URL.createObjectURL(imgfBlob);
-          const path = imgFile.name;
+        if (pdfFile2) {
+          const pdfBlob = await pdfFile2.async('blob');
+          const url = URL.createObjectURL(new Blob([pdfBlob], { type: "application/pdf" }));
+          const path = pdfFile2.name;
           const filename = path.split("/").pop()!;
-          const file: ImageFile = {
+          const file: PdfFile = {
             fileName: filename,
             url: url
           };
-          setImageFiles([file]);
-          setCurrentImageFile([file][0]);
+          setPdfFiles(prev => {
+            if (prev.length >= 2) {
+              const next = [...prev];
+              next[1] = file;
+              return next;
+            }
+            return [...prev, file];
+          });
         }
 
         if (csvFile) {
@@ -167,16 +188,6 @@ export const CreateLabelResultScreen: React.FC = () => {
     })();
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (pdfFiles.length > 0) {
-        pdfFiles.map((file) => (
-          URL.revokeObjectURL(file.url)
-        ))
-      }
-    };
-  }, [pdfFiles]);
-
   return (
     <Box>
       <Header />
@@ -188,9 +199,14 @@ export const CreateLabelResultScreen: React.FC = () => {
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Switch
+            checked={isBoxOn}
+            onChange={handleSwitchChange}
+          />
             <Button
               variant="contained"
               onClick={handleDownload}
+              startIcon={<Download />}
             >
               ダウンロード
             </Button>
