@@ -1,8 +1,6 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { LocalStorageData } from '../../types/storage.ts';
-import { OperationIssueRequest } from '../../types/upload.ts';
+import { useNavigate } from 'react-router-dom'
+import type { OperationIssueRequest, UploadPairRequest } from '../../types/uploadServer.ts';
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import * as XLSX from 'xlsx';
@@ -26,6 +24,8 @@ import {
 } from '@mui/material';
 import { Header } from '../../components/Header';
 import { InputExcelFile } from '../../components/InputExcelFile';
+import { groupIdApi } from '../../api/groupIdApi.ts';
+import { useAuth } from '../../hooks/useAuth.ts';
 
 const DEFAULT_EPIC = 'drawing-review';
 const DEFAULT_OPERATION = 'upload-excel';
@@ -47,6 +47,11 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
 
   const [title, setTitle] = useState<string>("");
   const [modelName, setModelName] = useState<string>("");
+
+  const { user } = useAuth();
+  if (!user) {
+    return null;
+  }
 
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -90,52 +95,47 @@ export const DrawingReviewUploadExcelScreen: React.FC = () => {
     }
   }
 
-  const handleStart = async () => {
-    // ローカルストレージの初期化
-    const localStorageData: LocalStorageData = {
-      user: 'demo-user',
-      epic: DEFAULT_EPIC,
-      operation: DEFAULT_OPERATION,
-      operationId: null,
-      status: 'start'
-    }
-    window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
-    
+  const handleStart = async () => {    
     try {
-      // オペレーションIDの発行
-      const metaPayload: OperationIssueRequest = {
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: 'start',
+      const groupIdPayload = {
+        user: user,
+        epic: DEFAULT_EPIC,
+        group_id: 'init',
+        group_status: 'start',
+        others: {},
+        operations: [{ operation: '', operation_id: '', status: '' }],
       };
-      const issueResult = await issueOperationIdApi(metaPayload);
-      localStorageData.operationId = issueResult.operation_id
-      window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
-    
-      // アップロード
-      localStorageData.status = 'doing';
-      window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData))
-      const requestPayload = {
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: localStorageData.status,
+      const groupIdResponse = await groupIdApi(groupIdPayload);
+      const groupId = groupIdResponse.group_id;
+
+      const operationIdPayload: OperationIssueRequest = {
+        user: user,
+        epic: DEFAULT_EPIC,
+        group_id: groupId,
+        group_status: 'start',
+        others: {},
+        operations: [{ operation: DEFAULT_OPERATION, operation_id: '', status: 'start' }]
+      };
+      const operationIdResponse = await issueOperationIdApi(operationIdPayload);
+      const operationId = operationIdResponse.operations[0].operation_id;
+
+      const uploadPayload: UploadPairRequest = {
+        user: user,
+        epic: DEFAULT_EPIC,
+        group_id: groupId,
+        group_status: 'start',
+        others: { title: title, modelName: modelName, fileName: excelFile[0].name },
+        operations: [{ operation: DEFAULT_OPERATION, operation_id: operationId, status: 'doing' }],
         number: 1,
-        files: excelFile,
+        bf_file: excelFile[0],
+        af_file: null,
       };
-      await uploadApi.uploadPair(requestPayload);
-      localStorageData.status = 'end';
-      window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData))
-      
-      await navigate("/drawing-review", { state: { sheets }})
+      await uploadApi.uploadPair(uploadPayload);
+
+      await navigate("/drawing-review", { state: { uploadPayload, sheets }})
     } catch (e) {
-      localStorageData.status = 'error';
-      window.localStorage.setItem(localStorageKey.drawingReview, JSON.stringify(localStorageData));
       window.alert("処理に失敗したため、画面を切り替えます");
-      navigate("/drawing-review-upload-excel");
+      navigate("/");
     }
   }
 

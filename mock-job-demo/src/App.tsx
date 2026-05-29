@@ -2,16 +2,24 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { AppRouter } from './routers/Router';
+import { AuthProvider } from './components/AuthContext';
 import {
   CssBaseline,
   ThemeProvider
 } from '@mui/material';
 import { theme } from './styles/theme';
+import { useAxiosInterceptor } from './hooks/useAxiosInterceptor';
+
+const AxiosInterceptorSetup = () => {
+  useAxiosInterceptor();
+  return null;
+};
 
 export const App: React.FC = () => {
 
   return (
     <MemoryRouter initialEntries={['/']}>
+      <AxiosInterceptorSetup />
       <AppRouter />
     </MemoryRouter>
   );
@@ -28,7 +36,9 @@ createRoot(rootElement).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </ThemeProvider>
   </React.StrictMode>
 );

@@ -120,7 +120,16 @@ export function CanvasPane({
         }}
         
       >
-        <img ref={imageRef} src={imageSrc ?? undefined} alt={role} className="image-content" draggable={false} />
+        <img ref={imageRef} src={imageSrc ?? undefined} alt={role} draggable={false}
+        style={{
+          display: 'block',
+          pointerEvents: 'none',
+          width: 'auto',
+          height: 'auto',
+          maxWidth: '100%',
+          maxHeight: 'calc(100vh - 160px)',
+          objectFit: 'contain',
+        }}/>
         {visibleRects.map((rect, index) => {
           // source & current
           if (rect.role === 'source' && currentSourceId === rect.id) {

@@ -17,6 +17,7 @@ import {
 import { Header } from '../../components/Header';
 import { groupIdApi } from '../../api/groupIdApi.ts';
 import { InputFiles, UploadFileItem } from '../../components/InputFiles';
+import { useAuth } from '../../hooks/useAuth.ts';
 
 const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'batch-create-label';
@@ -43,6 +44,10 @@ const toUploadedFile = (item: UploadFileItem): UploadedFile => {
 };
 
 export const CreateLabelScreen: React.FC = () => {
+  const { user } = useAuth();
+  if (!user) {
+    return null;
+  }
   const navigate = useNavigate();
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [currentFile, setCurrentFile] = useState<UploadedFile | null>(null);
@@ -108,9 +113,9 @@ export const CreateLabelScreen: React.FC = () => {
     try {
       for (let i = 0; i < files.length; i++) {
         const groupIdPayload = {
-          user: 'demo-user',
+          user: user,
           epic: DEFAULT_EPIC,
-          group_id: '',
+          group_id: 'init',
           group_status: 'start',
           others: {},
           operations: [{ operation: '', operation_id: '', status: '' }],
@@ -119,7 +124,7 @@ export const CreateLabelScreen: React.FC = () => {
         const groupId = groupIdResponse.group_id;
 
         const operationIdPayload: OperationIssueRequest = {
-          user: 'demo-user',
+          user: user,
           epic: DEFAULT_EPIC,
           group_id: groupId,
           group_status: 'start',
@@ -130,7 +135,7 @@ export const CreateLabelScreen: React.FC = () => {
         const operationId = operationIdResponse.operations[0].operation_id;
 
         const uploadPayload: UploadPairRequest = {
-          user: 'demo-user',
+          user: user,
           epic: DEFAULT_EPIC,
           group_id: groupId,
           group_status: 'start',
@@ -143,7 +148,7 @@ export const CreateLabelScreen: React.FC = () => {
         await uploadApi.uploadPair(uploadPayload);
 
         const createLabelPayload: CreateLabelRequest = {
-          user: 'demo-user',
+          user: user,
           epic: DEFAULT_EPIC,
           group_id: groupId,
           group_status: 'doing',

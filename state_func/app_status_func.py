@@ -54,7 +54,7 @@ def create_new_app_status(self, status):
     with self.lock:
         status_dic = self.app_state.APP_STATUS_SESSION_KEY
         ret_id = status.group_id
-        if AppStatus._is_none_and_black(ret_id):
+        if ret_id == 'init' or AppStatus._is_none_and_black(ret_id):
             ret_id = str(uuid.uuid4())
         ret_time = time.time()
         ret = AppStatus(
@@ -111,9 +111,8 @@ def update_app_status(self, status):
             state_status.group_status = status.group_status
             for ope in status.operations:
                 for state_op in state_status.operations:
-                    if (
-                            state_op.operation == ope.operation
-                            ) and (state_op.operation_id == ope.operation_id):
+                    if str(state_op.operation_id) == str(ope.operation_id):
+                        state_op.operation = ope.operation
                         state_op.status = ope.status
 
             for k in status.others.keys():

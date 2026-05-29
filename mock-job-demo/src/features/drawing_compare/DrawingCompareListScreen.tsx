@@ -1,48 +1,60 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@mui/material';
 import { ChevronRight } from '@mui/icons-material';
 import { StatusList, StatusBadge } from '../../components/StatusList';
+import type { StatusListResponse, Status } from '../../types/statusList';
+import type { DrawingCompareRequest } from '../../types/drawingCompare';
 
-type ProcessStatus = 'start' | 'doing' | 'end' | 'error';
-
-interface ProcessItem {
-  title: string;
-  modelName: string;
-  createdAt: string;
-  status: ProcessStatus;
-}
-
-const NavigateButton: React.FC<{ status: ProcessStatus }> = ({ status }) => {
+const NavigateButton: React.FC<{ row: StatusListResponse }> = ({ row }) => {
+  if(!row.operations || row.operations.length === 0) {
+    return null;
+  }
+  const navigate = useNavigate();
+  const status = row.group_status as Status;
   if (status === 'start' || status === 'doing' || status === 'error') {
     return;
   }
-  const config = {
-    end: {label: '詳細', icon: <ChevronRight />}
+  if (status === 'end') {
+    const drawingComparePayload : DrawingCompareRequest = {
+      user: row.user,
+      epic: row.epic,
+      group_id: row.group_id,
+      group_status: row.group_status,
+      others: row.others,
+      operations: row.operations.map(op => ({
+        operation: "batch-drawing-compare",
+        operation_id: op.operation_id,
+        status: "end",
+      })),
+    }
+    const nav = () => navigate('/drawing-compare-result', { state: { drawingComparePayload }});
+    const icon = <ChevronRight />;
+    const label = '詳細';
+    return (
+      <Button variant="outlined" color='inherit' onClick={nav}>{icon}{label}</Button>
+    )
   }
-  const { label, icon } = config[status];
-  return(
-    <Button variant="outlined" color='inherit'>{icon}{label}</Button>
-  );
 }
 
 export const DrawingCompareListScreen: React.FC = () => {
   const columns: Array<{
     id: string;
     label: string;
-    render: (row?: ProcessItem) => React.ReactNode;
+    render: (row?: StatusListResponse) => React.ReactNode;
   }> = [
-    { id: 'title', label: 'タイトル', render: (r) => r?.title },
-    { id: 'modelName', label: '機種名', render: (r) => r?.modelName },
-    { id: 'createdAt', label: '開始時間', render: (r) => r?.createdAt },
+    { id: 'title', label: 'タイトル', render: (r) => r?.others.title },
+    { id: 'modelName', label: '機種名', render: (r) => r?.others.modelName },
+    { id: 'createdAt', label: '開始時間', render: (r) => r?.create_time },
     {
       id: 'status',
       label: 'ステータス',
-      render: (r) => <StatusBadge status={(r as ProcessItem).status} epic="drawing-compare" />,
+      render: (r) => <StatusBadge status={(r as StatusListResponse).group_status} epic="drawing-compare" />,
     },
     {
       id: 'action',
       label: '操作',
-      render: (r) => <NavigateButton status={(r as ProcessItem).status} />,
+      render: (r) => <NavigateButton row={r as StatusListResponse} />,
     },
   ];
   return (

@@ -785,13 +785,13 @@ export const UpdateLabelScreen: React.FC = () => {
           <Typography variant="body1" color="text.secondary">
             図面の空き領域をドラッグして矩形を追加、選択して矩形の編集ができます。<br />
             右下の「▶」ボタンから寸法情報の一覧を開いて内容を編集できます。<br />
-            画面での操作が終わったら「ラベル編集処理を開始する」ボタンを押してください。
+            画面での操作が終わったら「完了」ボタンを押してください。
           </Typography>
 
           <Stack direction="row" divider={<Divider orientation="vertical" flexItem />} spacing={2} sx={{ justifyContent: 'flex-end', width: '100%'}}>
             <Button variant="contained" onClick={handleRemoveItem}>一覧に戻る</Button>
             <Button variant="contained" disabled={imageFile.length === 0 || csvFile.length === 0} onClick={handleStart} >
-              ラベル編集処理を開始する
+              完了
             </Button>
           </Stack>
 

@@ -1,8 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react';
-import { localStorageKey } from '../../constants/localStorageKey.ts';
-import { LocalStorageData } from '../../types/storage.ts';
 import { uploadApi } from '../../api/uploadApi.ts';
 import { drawingCompareApi } from '../../api/drawingCompareApi.ts';
 import { imageSimilarityApi } from '../../api/imageSimilarityApi.ts';
@@ -15,176 +13,219 @@ import {
   Typography,
 } from '@mui/material';
 import { Header } from '../../components/Header';
-import { InputFile } from '../../components/InputFile';
+import type { OperationIssueRequest, UploadPairRequest } from '../../types/uploadServer.ts';
+import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
+import { InputFiles, UploadFileItem } from '../../components/InputFiles';
 
-const DEFAULT_EPIC = 'drawing-compare';
-const DEFAULT_OPERATION = 'upload-target';
+type UploadedFile = {
+  id: string;
+  file: File;
+  url: string;
+  isPdf: boolean;
+};
+
+const toUploadedFile = (item: UploadFileItem): UploadedFile => {
+  return {
+    id: item.id,
+    file: item.file,
+    url: item.previewUrl,
+    isPdf: item.kind === 'pdf',
+  };
+};
+
+type NavigateOptions = {
+  user: string;
+  epic: string;
+  group_id: string;
+  others: Record<string, any>;
+  operations: { operation: string; operation_id: string; status: string }[];
+  info: {
+    operation_id: string;
+    baseImageFile: File;
+    compareImageFile: File;
+    baseRects: Record<string, any>;
+    targetRects: Record<string, any>;
+    similarities: Record<string, any>;
+  }[];
+}
 
 export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
 
   const navigate = useNavigate();
 
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [currentFile, setCurrentFile] = useState<UploadedFile | null>(null);
+
+  const [baseImages, setBaseImages] = useState<File[]>([]);
+  const [compareImages, setCompareImages] = useState<File[]>([]);
+
   const location = useLocation();
   const data = location.state;
-  const baseImageFile = data.baseImageFile;
+  const uploadPayload = data.uploadPayload;
+  const baseImageFile = data.baseImageFile[0];
 
-  const [compareImageFile, setCompareImageFile] = useState<File[]>([]);
+  // アップロードするファイルの切り替え
+  const handleInputItemsChange = (nextItems: UploadFileItem[]) => {
+    const nextFiles = nextItems.map(toUploadedFile);
+    setFiles(nextFiles);
+  };
+
+  // 現在選択されているファイルの切り替え
+  const handleCurrentItemChange = useCallback((currentItem: UploadFileItem | null) => {
+    setCurrentFile((prev) => {
+      if (!currentItem) {
+        return null;
+      }
+      if (prev?.id === currentItem.id) {
+        return prev;
+      }
+      return toUploadedFile(currentItem);
+    });
+  }, []);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleFilesChange = useCallback((files: File[]) => {
-    setCompareImageFile(files);
-  }, []);
-
-  const isPdf = compareImageFile.length > 0
-    && (compareImageFile[0].type === 'application/pdf'
-      || compareImageFile[0].name.toLowerCase().endsWith('.pdf'));
+  const isPdf = files.some(f =>
+    (f.file?.type === 'application/pdf')
+    || (f.file?.name?.toLowerCase().endsWith('.pdf'))
+    || Boolean(f.isPdf)
+  );
 
   const handleStart = async () => {
     setIsLoading(true);
-    // ローカルストレージの取得
-    const getLocalStorage = window.localStorage.getItem(localStorageKey.drawingCompare)
-    if (!getLocalStorage) {
-      window.alert("処理に失敗したため、画面を切り替えます")
-      navigate("/drawing-compare-upload-base")
-      return
-    }
 
-    // ローカルストレージの値を変更
-    const localStorageData: LocalStorageData  = JSON.parse(getLocalStorage);
-    localStorageData.epic = DEFAULT_EPIC
-    localStorageData.operation = DEFAULT_OPERATION
-    localStorageData.status = 'start'
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-   
-    if (!localStorageData.operationId) {
-      return
-    }
+    const navigateOptions: NavigateOptions = {
+      user: uploadPayload.user,
+      epic: uploadPayload.epic,
+      group_id: uploadPayload.group_id,
+      others: uploadPayload.others,
+      operations: [],
+      info: []
+    };
 
     try {
-      // アップロード
-      localStorageData.status = 'doing'
-      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-      const requestPayload = {
-        user: localStorageData.user,
-        epic: localStorageData.epic,
-        operation: localStorageData.operation,
-        operation_id: localStorageData.operationId,
-        status: localStorageData.status,
-        number: 1,
-        files: compareImageFile,
-      };
-      await uploadApi.uploadPair(requestPayload);
-      localStorageData.status = 'end'
-      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-    } catch (e) {
-      localStorageData.status = 'error'
-      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-      window.alert("アップロードに失敗しました。再度アップロードしてください。")
-      navigate("/drawing-compare-upload-base")
-    }
-    
-    // ローカルストレージの値を変更
-    localStorageData.operation = 'image-similarity'
-    localStorageData.status = 'start'
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
+      let operationId: string = uploadPayload.operations[0].operation_id;
+      let baseImage: File;
+      let compareImage: File;
+      let baseRects: {};
+      let targetRects = {};
+      let similarities = {};
+      for (let i = 0; i < files.length; i++) {
+        if (i > 0) {
+          const operationIdPayload: OperationIssueRequest = {
+            user: uploadPayload.user,
+            epic: uploadPayload.epic,
+            group_id: uploadPayload.group_id,
+            group_status: uploadPayload.group_status,
+            others: uploadPayload.others,
+            operations: [{ operation: 'issue-operation-id', operation_id: '', status: 'start' }]
+          };
+          const operationIdResponse = await issueOperationIdApi(operationIdPayload);
+          const opId = operationIdResponse.operations[i].operation_id
+          if (!opId) {
+            return
+          }
+          operationId = opId;
+        }
 
-    // 座標と類似度計算
-    localStorageData.status = 'doing'
-    window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-    const requestSimilarityPayload = {
-      user: localStorageData.user,
-      epic: localStorageData.epic,
-      operation: localStorageData.operation,
-      operation_id: localStorageData.operationId,
-      status: localStorageData.status,
-    }
-    const requestSimilarityPayloadEnd = {
-      user: localStorageData.user,
-      epic: localStorageData.epic,
-      operation: localStorageData.operation,
-      operation_id: localStorageData.operationId,
-      status: 'end',
-    }
-    try {
-      const res = await imageSimilarityApi.getImageSimilarity(requestSimilarityPayload)
-      const baseRects = res.base_rects
-      const targetRects = res.target_rects
-      const similarities = res.similarities
-
-
-      if (Object.keys(baseRects).length === 0 && Object.keys(targetRects).length === 0) {
-        localStorageData.status = 'end'
-        window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-        localStorageData.operation = 'batch-drawing-compare'
-        localStorageData.status = 'start'
-        window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-        navigate("/")
-        const requestPayload  = {
-          user: localStorageData.user,
-          epic: localStorageData.epic,
-          operation: localStorageData.operation,
-          operation_id: localStorageData.operationId,
-          status: localStorageData.status,
-          combinations: {}
+        // ファイルのアップロード
+        const baseUploadPayload = {
+          user: uploadPayload.user,
+          epic: uploadPayload.epic,
+          group_id: uploadPayload.group_id,
+          group_status: 'doing',
+          others: uploadPayload.others,
+          operations: [{operation: 'upload-base', operation_id: operationId, status: 'doing'}],
+          number: 1,
+          bf_file: baseImageFile,
+          af_file: null
         };
-        await drawingCompareApi.drawingCompareStart(requestPayload)
-        localStorageData.status = 'end'
-        window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-        return
+        await uploadApi.uploadPair(baseUploadPayload);
+
+        const requestPayload = {
+          user: uploadPayload.user,
+          epic: uploadPayload.epic,
+          group_id: uploadPayload.group_id,
+          group_status: 'doing',
+          others: uploadPayload.others,
+          operations: [{operation: 'upload-target', operation_id: operationId, status: 'doing'}],
+          number: 1,
+          bf_file: files[i].file,
+          af_file: null
+        };
+        await uploadApi.uploadPair(requestPayload);
+
+        // 座標と類似度計算
+        const requestSimilarityPayload = {
+          user: uploadPayload.user,
+          epic: uploadPayload.epic,
+          group_id: uploadPayload.group_id,
+          group_status: 'doing',
+          others: uploadPayload.others,
+          operations: [{operation: 'image-similarity', operation_id: operationId, status: 'doing'}]
+        }
+        const res = await imageSimilarityApi.getImageSimilarity(requestSimilarityPayload);
+        baseRects = res.base_rects
+        targetRects = res.target_rects
+        similarities = res.similarities
+
+        if (Object.keys(baseRects).length === 0 && Object.keys(targetRects).length === 0) {
+          const requestPayload  = {
+            user: uploadPayload.user,
+            epic: uploadPayload.epic,
+            group_id: uploadPayload.group_id,
+            group_status: 'doing',
+            others: uploadPayload.others,
+            operations: [{operation: 'batch-drawing-compare', operation_id: operationId, status: 'start'}],
+            combinations: {}
+          };
+          await drawingCompareApi.drawingCompareStart(requestPayload)
+          continue;
+        }
+
+        baseImage = baseImageFile;
+        compareImage = files[i].file;
+
+        if (isPdf) {
+          const requestSimilarityPayloadEnd = {
+            user: uploadPayload.user,
+            epic: uploadPayload.epic,
+            group_id: uploadPayload.group_id,
+            group_status: 'doing',
+            others: uploadPayload.others,
+            operations: [{operation: 'image-similarity', operation_id: operationId, status: 'end'}]
+          }
+          const zipJpegFile = await imageSimilarityApi.getImageSimilarityEnd(requestSimilarityPayloadEnd)
+          const zip = await JSZip.loadAsync(zipJpegFile);
+          const baseImgFile = zip.file(/upload-base/)[0];
+          const imgBaseBlob = await baseImgFile.async('blob');
+          const targetImgFile = zip.file(/upload-target/)[0]
+          const imgTargetBlob = await targetImgFile.async('blob');
+
+          const baseName = baseImgFile.name.split("/").pop() || baseImgFile.name;
+          const targetName = targetImgFile.name.split("/").pop() || targetImgFile.name;
+          baseImage = new File([imgBaseBlob], baseName, { type: imgBaseBlob.type });
+          compareImage = new File([imgTargetBlob], targetName, { type: imgTargetBlob.type });
+        }
+        navigateOptions.operations.push({ operation: 'batch-drawing-compare', operation_id: operationId, status: 'start' });
+        navigateOptions.info.push({
+          operation_id: operationId,
+          baseImageFile: baseImage,
+          compareImageFile: compareImage,
+          baseRects: baseRects,
+          targetRects: targetRects,
+          similarities: similarities
+        });
       }
 
-      if (Object.keys(baseRects).length > 0 && Object.keys(targetRects).length === 0) {
-        setIsLoading(false);
-        localStorageData.status = 'error'
-        window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-        window.alert("自社図面に矩形領域が無いようです。図面を確認して再度アップロードしてください。")
-        navigate("/drawing-compare-upload-base")
-        return
+      if (files.length === 1) {
+        navigate("/");
       }
+      navigate("/drawing-compare",  { state: { navigateOptions }});
 
-      if (Object.keys(baseRects).length === 0 && Object.keys(targetRects).length > 0) {
-        setIsLoading(false);
-        localStorageData.status = 'error'
-        window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-        window.alert("客先図面に矩形領域が無いようです。図面を確認して再度アップロードしてください。")
-        navigate("/drawing-compare-upload-base")
-        return
-      }
-
-      if (Object.keys(baseRects).length > 0 && Object.keys(targetRects).length > 0 && Object.keys(similarities).length === 0 ) {
-        setIsLoading(false);
-        localStorageData.status = 'error'
-        window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-        window.alert("図面の類似度計算に失敗しました。")
-        navigate("/drawing-compare-upload-base")
-        return
-      }
-
-      if (isPdf) {
-        const zipJpegFile = await imageSimilarityApi.getImageSimilarityEnd(requestSimilarityPayloadEnd)
-        const zip = await JSZip.loadAsync(zipJpegFile);
-        const baseImgFile = zip.file(/demo-user_drawing-compare_upload-base/)[0]
-        const imgBaseBlob = await baseImgFile.async('blob');
-        const targetImgFile = zip.file(/demo-user_drawing-compare_upload-target/)[0]
-        const imgTargetBlob = await targetImgFile.async('blob');
-
-        const baseImageFile = [new File([imgBaseBlob], baseImgFile.name.split("/").pop(), { type: imgBaseBlob.type })]
-        const compareImageFile = [new File([imgTargetBlob], targetImgFile.name.split("/").pop(), { type: imgTargetBlob.type })]
-        localStorageData.status = 'end'
-        window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-        navigate("/drawing-compare",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
-      } else {
-        localStorageData.status = 'end'
-        window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-        navigate("/drawing-compare",  { state: { baseImageFile, compareImageFile, baseRects, targetRects, similarities }})
-      }
-    } catch (err) {
-      setIsLoading(false);
-      localStorageData.status = 'error'
-      window.localStorage.setItem(localStorageKey.drawingCompare, JSON.stringify(localStorageData));
-      window.alert("処理に失敗したため、画面を切り替えます")
-      navigate("/drawing-compare-upload-base")
+    } catch (e) {
+      window.alert("アップロードに失敗しました。再度アップロードしてください。")
+      navigate("/")
     }
   }
 
@@ -202,14 +243,14 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
             <Button
               variant="contained"
               onClick={handleStart}
-              disabled={compareImageFile.length === 0 || isLoading}
+              disabled={files.length === 0 || isLoading}
               startIcon={isLoading ? <Loader2 size={18} className="spin" /> : undefined}
             >
               {isLoading ? '読み込み中' : '次へ'}
             </Button>
           </Box>
 
-          <InputFile onFilesChange={handleFilesChange} />
+          <InputFiles onItemsChange={handleInputItemsChange} onCurrentItemChange={handleCurrentItemChange} />
         </Stack>
       </Container>
     </Box>

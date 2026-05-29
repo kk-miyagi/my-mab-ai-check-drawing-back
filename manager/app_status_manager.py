@@ -76,10 +76,10 @@ class AppStatusManager(Manager):
         http_status = 503
         if exp.message == self.NO_VALUE_ERROR:
             error_log['message'] = "app status no value error"
-            http_status = 401
+            http_status = 400
         elif exp.message == self.INVALID_STATUS_ERROR:
             error_log['message'] = "invalid app status error"
-            http_status = 401
+            http_status = 400
         else:
             error_log['message'] = "some error app status"
 

@@ -13,6 +13,7 @@ logs/*
 !/logs/.gitkeep
 
 .venv/
+*.db
 
 backend_tasks/logs/*.json
 create-label-responce/*

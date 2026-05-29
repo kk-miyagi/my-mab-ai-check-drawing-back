@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { Header } from './Header';
 import { statusListApi } from '../api/statusListApi';
+import { useAuth } from '../hooks/useAuth';
 
 type ProcessStatus = 'start' | 'doing' | 'end' | 'error' | 'comp';
 
@@ -71,12 +72,13 @@ type StatusListProps = {
 }
 
 export const StatusList: React.FC<StatusListProps> = ({ epic, title, columns }) => {
+  const { user } = useAuth();
   const [items, setItems] = useState<any[]>([]);
   const [snackOpen, setSnackOpen] = useState(false);
 
   const fetchData = async () => {
     const payload = {
-      user: "demo-user",
+      user: user,
       epic: epic,
       group_id: "demo-group-id",
       group_status: "start",

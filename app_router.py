@@ -9,12 +9,22 @@ from typing import Any, Callable, Coroutine
 class AppRoute(APIRoute):
 
     @classmethod
-    def set_app_state(cls, app_state):
+    def setup(cls, app_state, app_db, app_login):
         cls.app_state = app_state
+        cls.app_db = app_db
+        cls.app_login = app_login
 
     @classmethod
     def get_app_state(cls):
         return cls.app_state
+
+    @classmethod
+    def get_app_db(cls):
+        return cls.app_db
+
+    @classmethod
+    def get_app_login(cls):
+        return cls.app_login
 
     @classmethod
     def create_responce_from_status(cls, status):
@@ -22,7 +32,11 @@ class AppRoute(APIRoute):
             "user": status.user,
             "epic": status.epic,
             "group_id": status.group_id,
-            "operations": status.operations,
+            "operations": [{
+                "operation": ope.operation,
+                "operation_id": ope.operation_id,
+                "status": Status.status_to_str(ope.status)
+            } for ope in status.operations],
             "others": status.others,
             "group_status": Status.status_to_str(status.group_status),
             "create_time": status.create_time

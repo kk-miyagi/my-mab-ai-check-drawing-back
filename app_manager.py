@@ -1,5 +1,6 @@
 from state.app_status import AppStatus
 from app_logger import AppLogger
+from app_router import Status
 
 
 class ManagerException(Exception):
@@ -12,10 +13,11 @@ class ManagerException(Exception):
 class Manager:
     NOT_OVERRIDE_ERROR = "NOT_OVERRIDE_ERROR"
 
-    def __init__(self, app, app_state, logger):
+    def __init__(self, app, app_state, logger, app_login):
         self.app = app
         self.app_state = app_state
         self.logger = logger
+        self.app_login = app_login
 
     def setup(self):
         raise ManagerException(self.NOT_OVERRIDE_ERROR)
@@ -44,8 +46,9 @@ class Manager:
             self, exp, request):
         logger = self.get_manager_logger()
         logger.log(AppLogger.INFO, "except responce START")
-        self.get_child_except_responce(exp, request)
+        ret = self.get_child_except_responce(exp, request)
         logger.log(AppLogger.INFO, "except responce END")
+        return ret
 
     def get_child_except_responce(
             self, exp, request):
@@ -72,6 +75,18 @@ class Managers:
             except ManagerException as e:
                 ret = m.get_except_responce(
                         e, request)
-                continue
+                self.app_status_error(m, body)
+                break
 
         return ret
+
+    def app_status_error(self, manager, body):
+        req_status = AppStatus.create_from_request(body)
+        app_state = manager.app_state
+        app_state.create_app_status()
+        state_status = app_state.get_eq_app_status(req_status)
+        if state_status is not None:
+            req_status.status = Status.ERROR
+            manager.app_state.update_app_status(
+                    req_status
+            )

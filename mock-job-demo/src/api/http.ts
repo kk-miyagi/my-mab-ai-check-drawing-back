@@ -4,6 +4,6 @@ const baseURL = (import.meta.env?.VITE_API_BASE as string | undefined) ?? '';
 
 export const http = axios.create({
   baseURL,
-  withCredentials: false,
+  withCredentials: true,
   timeout: 120000, // allow large batches/uploads without premature timeout
 });
