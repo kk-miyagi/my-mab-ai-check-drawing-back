@@ -10,6 +10,7 @@ from utils.simple_multi_genemipronpt import (
 from utils.gemini_response import (
     get_raw_response,
 )
+import re
 
 
 # サービスアカウントキーファイルのパスを設定
@@ -175,7 +176,7 @@ def read_excel_to_list(excel_path: str) -> list[list]:
 def write_result(excel_path: str, save_dir: str, data: list[list]) -> None:
     wb = openpyxl.load_workbook(excel_path)
 
-    file_name = f"result_{Path(excel_path).stem}.xlsx"
+    file_name = f"{Path(re.sub(r'\d+_(af|bf)_file_', '', Path(excel_path).name)).stem}_review_result.xlsx"
     print(f"アウトプット用のファイル名: {file_name}")
 
     save_sheet_name = "AI判定結果"

@@ -40,11 +40,13 @@ const fetchAsBlob = async (url: string): Promise<Blob> => {
 };
 
 type PdfFile = {
+  path: string;
   fileName: string;
   url: string;
 }
 
 type CsvFile = {
+  path: string;
   fileName: string;
   url: string;
   rows: Row[];
@@ -97,8 +99,8 @@ export const DrawingCompareResultScreen: React.FC = () => {
             operations: [op],
           });
           const zip = await JSZip.loadAsync(res);
-          const base = zip.file(/base.*\.pdf$/)[0];
-          const target = zip.file(/target.*\.pdf$/)[0];
+          const base = zip.file(/_compare_result_0\.pdf$/)[0];
+          const target = zip.file(/_compare_result_1\.pdf$/)[0];
           const csvFile = zip.file(/\.csv$/)[0];
           if (base) {
             const pdfBlob = await base.async('blob');
@@ -106,11 +108,12 @@ export const DrawingCompareResultScreen: React.FC = () => {
             const path = base.name;
             const filename = path.split("/").pop()!;
             const file: PdfFile = {
-              fileName: `${i}_${filename}`,
+              path: path,
+              fileName: filename,
               url: url
             };
             setBasePdfFile(prev => {
-              const exists = prev.some(f => f.fileName === file.fileName);
+              const exists = prev.some(f => f.path === file.path);
               if (exists) {
                 return prev;
               }
@@ -123,11 +126,12 @@ export const DrawingCompareResultScreen: React.FC = () => {
             const path = target.name;
             const filename = path.split("/").pop()!;
             const file: PdfFile = {
-              fileName: `${i}_${filename}`,
+              path: path,
+              fileName: filename,
               url: url
             };
             setTargetPdfFile(prev => {
-              const exists = prev.some(f => f.fileName === file.fileName);
+              const exists = prev.some(f => f.path === file.path);
               if (exists) {
                 return prev;
               }
@@ -157,14 +161,15 @@ export const DrawingCompareResultScreen: React.FC = () => {
             });
 
             const csvObj: CsvFile = {
-              fileName: `${i}_${filename}`,
+              path: path,
+              fileName: filename,
               url,
               rows: projected,
               columns: projected.length ? Object.keys(projected[0]) : [],
             };
 
             setCsvFiles(prev => {
-              const exists = prev.some(f => f.fileName === csvObj.fileName);
+              const exists = prev.some(f => f.path === csvObj.path);
               if (exists) return prev;
               return [...prev, csvObj];
             });

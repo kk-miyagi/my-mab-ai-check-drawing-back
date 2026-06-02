@@ -83,7 +83,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                         files = []
                         for i, image in enumerate(images):
                             new_file_name = file_name.with_stem(
-                                    f"{file_name.stem}_{i}")
+                                    f"{file_name.stem}")
                             save_path = new_file_name.with_suffix(".jpg")
                             image.save(save_path, 'JPEG')
                             files.append(save_path.as_posix())
