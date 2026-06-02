@@ -1,0 +1,9 @@
+Pillow
+pdf2image
+img2pdf
+opencv-python
+numpy
+openpyxl
+google-cloud-vision
+google-genai
+redis

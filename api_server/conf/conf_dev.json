@@ -1,0 +1,42 @@
+{
+    "APP_STATUS": {
+        "expire": 86400
+    },
+    "REDIS": {
+        "host": "redis",
+        "port": 6379,
+        "password": "",
+        "ssl": false
+    },
+    "QUEUE": {
+        "stream": "jobs:batch",
+        "group": "batch-workers",
+        "block_ms": 5000,
+        "max_retries": 3
+    },
+    "LOGGER": {
+        "logger_name": "app_main",
+        "log_level": "DEBUG",
+        "log_backup_count": 60,
+        "log_file_name": "./logs/app_main.log",
+        "log_interval": 1,
+        "log_when": "D",
+        "log_encoding": "utf-8"
+    },
+    "BATCH_LOGGER": {
+        "logger_name": "app_batch",
+        "log_level": "DEBUG",
+        "log_backup_count": 60,
+        "log_file_name": "./logs/app_batch.log",
+        "log_interval": 1,
+        "log_when": "D",
+        "log_encoding": "utf-8"
+    },
+    "ROUTING": {
+        "epic-init": [],
+        "issue/operation-id": [],
+        "multi-fileupload": [],
+        "check-status": [],
+        "demo-create-label": []
+    }
+}
