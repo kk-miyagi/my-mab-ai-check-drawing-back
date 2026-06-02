@@ -52,12 +52,18 @@ def _annotate_matches(
             if hasattr(font, "getbbox"):
                 bbox = font.getbbox(label_text)
                 label_height = bbox[3] - bbox[1]
+                label_weight = bbox[2] - bbox[0]
             else:
                 label_height = 14
+                label_weight = 40 * 2
                 if hasattr(font, "getsize"):
                     label_height = font.getsize(label_text)[1]
             label_x = rect[0]
             label_y = max(rect[1] - label_height - 4, 0)
+            if not box_on and ((rect[3] - rect[1]) > 2 * label_height):
+                label_y = min(rect[1] + label_height + 4, rect[3])
+            if not box_on and ((rect[2] - rect[0]) * 0.7 < label_weight):
+                label_x = min(rect[0] - label_weight - 4, rect[0])
 
             label_anchor = (label_x, label_y)
             drawer.text(label_anchor, label_text, fill=outline, font=font)
