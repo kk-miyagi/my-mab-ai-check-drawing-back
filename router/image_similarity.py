@@ -15,6 +15,9 @@ import zipfile
 from datetime import datetime
 from test_scripts.test_similarity_image import calc_image_similarity
 from tools.sort_manga_panels import sort_mange_panels
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from tools.is_single_page_pdf import is_single_page_pdf
 
 router = APIRouter(prefix='/api', route_class=AppRoute)
 
@@ -207,6 +210,23 @@ async def image_similarity(request: Request):
 
     upload_target_file_dir = f"./multi-fileupload/{req_user}_{req_epic}"
     upload_target_file_dir += f"_{req_grid}_{up_target_ope}_{req_opid}"
+
+
+    for file in list(Path(upload_base_file_dir).glob("*.pdf")) + \
+        list(Path(upload_target_file_dir).glob("*.pdf")):
+        if not is_single_page_pdf(file):
+            logger.log(
+                req_status,
+                AppLogger.ERROR,
+                f"IMAGE-SIMILARITY PDF FILE IS NOT SINGLE PAGE:{file}"
+            )
+            req_status.group_status = Status.ERROR
+            app_state.update_app_status(
+                req_status
+            )
+            return AppRoute.create_responce_from_status(
+                req_status
+            )
 
     base_file_list = ImageSimilarity.loop_pdf_to_jpeg(upload_base_file_dir)
     target_file_list = ImageSimilarity.loop_pdf_to_jpeg(upload_target_file_dir)
