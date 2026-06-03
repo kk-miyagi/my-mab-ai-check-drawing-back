@@ -175,6 +175,24 @@ async def update_label(request: Request):
                 for key, info in info_dict.items():
                     f.write(f"{key},{info[0]},{info[1]},{info[2]}\n")
             print("Info CSV saved at:", csv_path)
+
+            box_on = False
+            annotated_path = _annotate_matches(
+                Path(input_img),
+                ordered_matches,
+                suffix="_update_label_no_box",
+                outline=(220, 20, 60),
+                output_dir=output_dir,
+                box_on=box_on
+            )
+            print("Annotated image saved at:", annotated_path)
+
+            # PDFへの変換
+            new_file_name = Path(annotated_path).with_suffix(".pdf")
+            with open(new_file_name, "wb") as f:
+                f.write(img2pdf.convert(Path(annotated_path)))
+            print("Annotated PDF saved at:", new_file_name)
+
             app_state.update_app_status(
                 req_status
             )
