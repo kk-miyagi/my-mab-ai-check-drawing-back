@@ -1,6 +1,7 @@
 from app_config import AppConfig
 from logging.handlers import TimedRotatingFileHandler
 import logging
+import os
 
 
 class LoggerBase:
@@ -35,6 +36,15 @@ class LoggerBase:
             self._FORMAT
         )
 
+<<<<<<< HEAD
+=======
+        # ログ出力先ディレクトリを自動生成（コンテナの空ボリューム対応）
+        log_dir = os.path.dirname(self.log_info[self._INFO_KEY_LOG_FILE])
+        if log_dir:
+            os.makedirs(log_dir, exist_ok=True)
+
+        # for file outpu
+>>>>>>> f99d355 (build docker container separate backend_task (such as batch server) and fastapi server)
         file_handler = TimedRotatingFileHandler(
             self.log_info[self._INFO_KEY_LOG_FILE],
             self.log_info[self._INFO_KEY_LOG_WHEN],

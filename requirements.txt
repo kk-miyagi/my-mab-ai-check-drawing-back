@@ -14,3 +14,9 @@ openpyxl
 imagehash
 polars
 redis
+<<<<<<< HEAD
+=======
+passlib
+python-jose
+bcrypt==4.3.0
+>>>>>>> f99d355 (build docker container separate backend_task (such as batch server) and fastapi server)
