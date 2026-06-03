@@ -52,6 +52,9 @@ class AppConfig:
 
         # backend task cofig setting
         self.__backend_conf_init(json_conf)
+        # redis / queue setting
+        self.__redis_conf_init(json_conf)
+        self.__queue_conf_init(json_conf)
         # app status setting
         self.__app_status_conf_init(json_conf)
         # log setting set config object
@@ -101,6 +104,59 @@ class AppConfig:
     @property
     def backend_tasks(self):
         return self._backend_tasks
+
+    def __redis_conf_init(self, conf):
+        self.__setattr__("_REDIS_CONF_KEY", 'REDIS')
+        redis_conf = conf.get(self._REDIS_CONF_KEY, {})
+        self.__setattr__('_redis_host', redis_conf.get('host', 'localhost'))
+        self.__setattr__('_redis_port', redis_conf.get('port', 6379))
+        self.__setattr__('_redis_db', redis_conf.get('db', 0))
+        self.__setattr__('_redis_password', redis_conf.get('password', ''))
+        self.__setattr__('_redis_ssl', redis_conf.get('ssl', False))
+
+    def __queue_conf_init(self, conf):
+        self.__setattr__("_QUEUE_CONF_KEY", 'QUEUE')
+        queue_conf = conf.get(self._QUEUE_CONF_KEY, {})
+        self.__setattr__('_queue_stream', queue_conf.get('stream', 'jobs:batch'))
+        self.__setattr__('_queue_group', queue_conf.get('group', 'batch-workers'))
+        self.__setattr__('_queue_consumer', queue_conf.get('consumer', ''))
+        self.__setattr__('_queue_block_ms', queue_conf.get('block_ms', 5000))
+
+    @property
+    def redis_host(self):
+        return self._redis_host
+
+    @property
+    def redis_port(self):
+        return self._redis_port
+
+    @property
+    def redis_db(self):
+        return self._redis_db
+
+    @property
+    def redis_password(self):
+        return self._redis_password
+
+    @property
+    def redis_ssl(self):
+        return self._redis_ssl
+
+    @property
+    def queue_stream(self):
+        return self._queue_stream
+
+    @property
+    def queue_group(self):
+        return self._queue_group
+
+    @property
+    def queue_consumer(self):
+        return self._queue_consumer
+
+    @property
+    def queue_block_ms(self):
+        return self._queue_block_ms
 
     def __app_status_conf_init(self, conf):
         self.__setattr__("_APP_STATUS_CONF_KEY", 'APP_STATUS')

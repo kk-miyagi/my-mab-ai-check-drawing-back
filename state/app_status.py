@@ -85,3 +85,51 @@ class AppStatus:
             self.operation or '',
             self.operation_id or ''
         ])
+
+    @staticmethod
+    def _status_to_int(val):
+        # Status(IntEnum) はそのまま int 化。None / 文字列はそのまま保持。
+        return int(val) if isinstance(val, int) else val
+
+    @staticmethod
+    def _int_to_status(val):
+        return Status(val) if isinstance(val, int) else val
+
+    def to_dict(self):
+        """Redis 保存用に JSON シリアライズ可能な dict へ変換する。"""
+        return {
+            self.APP_STATUS_USER: self.user,
+            self.APP_STATUS_EPIC: self.epic,
+            self.APP_STATUS_GRP_ID: self.group_id,
+            self.APP_STATUS_GRP_STATUS: self._status_to_int(self.group_status),
+            self.APP_STATUS_OPERATIONS: [
+                {
+                    Operation.APP_STATUS_OPE: o.operation,
+                    Operation.APP_STATUS_OPE_ID: str(o.operation_id),
+                    Operation.APP_STATUS_STATUS: self._status_to_int(o.status),
+                }
+                for o in self.operations
+            ],
+            self.APP_STATUS_OTHERS: self.others,
+            self.APP_STATUS_TIME: self.create_time,
+        }
+
+    @classmethod
+    def from_dict(cls, d):
+        operations = [
+            Operation(
+                o[Operation.APP_STATUS_OPE],
+                o[Operation.APP_STATUS_OPE_ID],
+                cls._int_to_status(o[Operation.APP_STATUS_STATUS]),
+            )
+            for o in d.get(cls.APP_STATUS_OPERATIONS, [])
+        ]
+        return cls(
+            d[cls.APP_STATUS_USER],
+            d[cls.APP_STATUS_EPIC],
+            d[cls.APP_STATUS_GRP_ID],
+            cls._int_to_status(d.get(cls.APP_STATUS_GRP_STATUS)),
+            operations,
+            d.get(cls.APP_STATUS_OTHERS, {}),
+            d.get(cls.APP_STATUS_TIME, -1),
+        )
