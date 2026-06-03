@@ -11,6 +11,10 @@ import img2pdf
 from pathlib import Path
 import os
 import zipfile
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from tools.is_single_page_pdf import is_single_page_pdf
 
 router = APIRouter(prefix='/api', route_class=AppRoute)
 
@@ -83,7 +87,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                         files = []
                         for i, image in enumerate(images):
                             new_file_name = file_name.with_stem(
-                                    f"{file_name.stem}_{i}")
+                                    f"{file_name.stem}")
                             save_path = new_file_name.with_suffix(".jpg")
                             image.save(save_path, 'JPEG')
                             files.append(save_path.as_posix())
@@ -103,6 +107,22 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                             print("PDFファイルではないようなので、変換せず後続処理を実行")
                             return []
 
+                    for file in list(Path(upload_dir).glob("*.pdf")):
+                        if not is_single_page_pdf(file):
+                            up_status = Status.ERROR
+                            logger.log(
+                                req_status,
+                                AppLogger.DEBUG,
+                                f"PDF file {file} is not a single page."
+                            )
+                            req_status.group_status = up_status
+                            req_status.operations[0].status = up_status
+                            app_state.update_app_status(
+                                req_status
+                            )
+                            return  AppRoute.create_responce_from_status(
+                                req_status
+                            )
                     loop_pdf_to_jpeg(upload_dir)
 
                 # 別プロセスにてラベル付与実行

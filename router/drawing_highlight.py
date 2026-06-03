@@ -13,6 +13,7 @@ from datetime import datetime
 import json
 import shutil
 import img2pdf
+import re
 
 
 router = APIRouter(prefix='/api', route_class=AppRoute)
@@ -198,22 +199,34 @@ class DrawingHighlight:
         return dst_bgr
 
     @classmethod
-    async def paste_cut_image(cls, kind, img_path, out_dir, rects_json):
+    async def paste_cut_image(cls, kind, img_path, out_dir, rects_json, req_combinations):
         print(f"貼り付け開始: {kind}, {img_path}")
+        if kind == 'base':
+            file_name = f"{Path(re.sub(r'\d+_(af|bf)_file_', '', Path(img_path).name)).stem}_highlight_result_0"
+            target = req_combinations.keys()
+        if kind == 'target':
+            file_name = f"{Path(re.sub(r'\d+_(af|bf)_file_', '', Path(img_path).name)).stem}_highlight_result_1"
+            target = set(v for values in req_combinations.values() for v in values)
         # 最初に元画像をコピーする
-        save_img = f'{out_dir}/{kind}_output_img.jpg'
+        save_img = f'{out_dir}/{file_name}.jpg'
         shutil.copy(img_path, save_img)
 
         with open(rects_json, 'r') as f:
             res = json.load(f)
             for key, rect in res[f'{kind}_rects'].items():
+                if key not in target:
+                    print(f"スキップ: {key} は貼り付け対象ではありません。")
+                    continue
                 # 元の画像
                 img = cv.imread(save_img)
 
                 # 切った画像
                 x, y, _, _ = rect[0], rect[1], rect[2], rect[3]
                 cut_img_path = f'{out_dir}/{key}_highlight.jpeg'
-                cut_img = cv.imread(cut_img_path)
+                if os.path.exists(cut_img_path):
+                    cut_img = cv.imread(cut_img_path)
+                else:
+                    raise FileNotFoundError(f"切り取った画像が見つかりません: {cut_img_path}")
 
                 # 貼り付け
                 out = DrawingHighlight.paste_simple(
@@ -222,6 +235,7 @@ class DrawingHighlight:
                 print(f"貼り付け先: {save_img}")
                 print(f"切った画像: {cut_img_path}")
         print(f"貼り付け終了: {kind}")
+        return save_img
 
     @classmethod
     async def loop_highlight(
@@ -330,13 +344,15 @@ async def drawing_highlight(request: Request):
                         target_image_path.as_posix(),
                         out_dir
                     )
+                    file_name_1 = f"{Path(re.sub(r'\d+_(af|bf)_file_', '', base_image_path.name)).stem}_highlight_result_0"
                     shutil.copy(
                         f"{out_dir}/{base_image_path.stem}_highlight.jpeg",
-                        f"{out_dir}/base_output_img.jpg"
+                        f"{out_dir}/{file_name_1}.jpg"
                     )
+                    file_name_2 = f"{Path(re.sub(r'\d+_(af|bf)_file_', '', target_image_path.name)).stem}_highlight_result_1"
                     shutil.copy(
                         f"{out_dir}/{target_image_path.stem}_highlight.jpeg",
-                        f"{out_dir}/target_output_img.jpg"
+                        f"{out_dir}/{file_name_2}.jpg"
                     )
 
                 if req_combinations:
@@ -346,18 +362,22 @@ async def drawing_highlight(request: Request):
                         f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/cut_target",
                         out_dir
                     )
-                    await DrawingHighlight.paste_cut_image(
+                    file_name_1 = await DrawingHighlight.paste_cut_image(
                         'base',
                         base_image_path.as_posix(),
                         out_dir,
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/responce.json"
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/responce.json",
+                        req_combinations
                     )
-                    await DrawingHighlight.paste_cut_image(
+                    file_name_1 = Path(file_name_1).stem
+                    file_name_2 = await DrawingHighlight.paste_cut_image(
                         'target',
                         target_image_path.as_posix(),
                         out_dir,
-                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/responce.json"
+                        f"{_OUT_BASE_DIR}/{req_user}_{req_epic}_{req_grid}_image-similarity_{req_opid}/responce.json",
+                        req_combinations
                     )
+                    file_name_2 = Path(file_name_2).stem
 
                 logger.log(
                     req_status,
@@ -367,8 +387,8 @@ async def drawing_highlight(request: Request):
 
                 # pdf変換
                 image_files = [
-                    f"{out_dir}/target_output_img.jpg",
-                    f"{out_dir}/base_output_img.jpg"
+                    f"{out_dir}/{file_name_1}.jpg",
+                    f"{out_dir}/{file_name_2}.jpg",
                 ]
                 for file in image_files:
                     file = Path(file)

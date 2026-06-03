@@ -116,7 +116,7 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
             user: uploadPayload.user,
             epic: uploadPayload.epic,
             group_id: uploadPayload.group_id,
-            group_status: uploadPayload.group_status,
+            group_status: 'doing',
             others: uploadPayload.others,
             operations: [{ operation: 'issue-operation-id', operation_id: '', status: 'start' }]
           };
@@ -218,10 +218,11 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
         });
       }
 
-      if (files.length === 1) {
+      if (files.length === 1 && Object.keys(similarities).length === 0) {
         navigate("/");
+      } else {
+        navigate("/drawing-compare",  { state: { navigateOptions }});
       }
-      navigate("/drawing-compare",  { state: { navigateOptions }});
 
     } catch (e) {
       window.alert("アップロードに失敗しました。再度アップロードしてください。")
