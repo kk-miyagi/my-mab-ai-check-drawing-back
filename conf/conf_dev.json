@@ -1,12 +1,19 @@
 {
     "APP_STATUS":{
-       "expire": 1209600
+       "expire": 86400
     },
     "REDIS":{
-	"host": "redis-check-drawing-dev.redis.cache.windows.net",
-	"port": 6380,
+	"host": "localhost",
+	"port": 6379,
+	"db": 0,
 	"password": "",
-	"ssl": true
+	"ssl": false
+    },
+    "QUEUE":{
+	"stream": "jobs:batch",
+	"group": "batch-workers",
+	"consumer": "",
+	"block_ms": 5000
     },
     "LOGGER":{
 	"logger_name": "app_main",

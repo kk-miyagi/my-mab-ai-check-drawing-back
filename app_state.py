@@ -12,18 +12,15 @@ from app_logger import AppLogger
 
 class AppState:
 
-    def __init__(self, app_state, lock, conf: AppConfig, logger: AppLogger):
+    def __init__(self, app_state, lock, conf: AppConfig, logger: AppLogger,
+                 redis=None):
+        # app_state: FastAPI 側は request/app.state、batch 側は None。
+        # redis: app_status をプロセス/コンテナ間で共有するためのクライアント。
         self.app_state = app_state
         self.lock = lock
         self.conf = conf
         self.logger = logger
-        self.redis_client = redis_lib.Redis(
-            host=conf.redis_host,
-            port=conf.redis_port,
-            password=conf.redis_password,
-            ssl=conf.redis_ssl,
-            decode_responses=True
-        )
+        self.redis = redis
         self.add_state_methods()
 
     def get_members(self):
