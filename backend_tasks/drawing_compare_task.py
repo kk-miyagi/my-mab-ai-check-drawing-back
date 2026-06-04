@@ -15,6 +15,7 @@ from utils.simple_multi_genemipronpt import (
 from utils.gemini_response import (
     get_raw_response,
 )
+import sys
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'mab-ai-check-drawing-sa-key.json'
 model = "gemini-2.5-pro"
@@ -181,8 +182,12 @@ def draw_texts(
                 fill=(220, 20, 60),
                 font=font
             )
-
-        output_path = f"{output_dir}/{kind}_{Path(image_path).name}"
+        f_name = Path(re.sub(r'\d+_(af|bf)_file_', '', Path(image_path).name)).stem
+        if kind == 'base':
+            file_name = f"{f_name}_compare_result_0"
+        if kind == 'target':
+            file_name = f"{f_name}_compare_result_1"
+        output_path = f"{output_dir}/{file_name}.jpg"
         img.save(output_path)
     return None
 
@@ -241,8 +246,11 @@ if __name__ == "__main__":
 
     # 組み合わせ情報を読み込み
     combinations_json_path = f"{out_dir}/combinations.json"
-    with open(combinations_json_path, 'r', encoding='utf-8') as f:
-        combinations: dict = json.load(f)
+    if not os.path.exists(combinations_json_path):
+        combinations = None
+    else:
+        with open(combinations_json_path, 'r', encoding='utf-8') as f:
+            combinations: dict = json.load(f)
 
     run_timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     run_dir = f"{out_dir}/job_{run_timestamp}"
@@ -284,7 +292,7 @@ if __name__ == "__main__":
     up_base_file_name = re.search(r"\d+_bf_file_(.*)", up_base_file_name).group(1)
     up_target_file_name = Path(target_image_path).stem
     up_target_file_name = re.search(r"\d+_bf_file_(.*)", up_target_file_name).group(1)
-    with open(f"{out_dir}/{up_base_file_name}_and_{up_target_file_name}_result.csv", "w", newline="", encoding="utf-8-sig") as f:
+    with open(f"{out_dir}/{up_base_file_name}_and_{up_target_file_name}_compare_result.csv", "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=save_cols, quoting=csv.QUOTE_ALL)
         writer.writeheader()
         writer.writerows(all_rows)
@@ -310,3 +318,4 @@ if __name__ == "__main__":
 
     end = time.time()
     print(end - start)
+    sys.exit(0)

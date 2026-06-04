@@ -61,8 +61,8 @@ export const DrawingHighlightResultScreen: React.FC = () => {
       try {
         const res = await drawingHighlightApi.drawingHighlightEnd(drawingHighlightPayload)
         const zip = await JSZip.loadAsync(res);
-        const base = zip.file(/base.*\.pdf$/)[0];
-        const target = zip.file(/target.*\.pdf$/)[0];
+        const base = zip.file(/_highlight_result_0\.pdf$/)[0];
+        const target = zip.file(/_highlight_result_1\.pdf$/)[0];
 
         if (base) {
           const pdfBlob = await base.async('blob');

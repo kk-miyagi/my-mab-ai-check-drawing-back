@@ -8,6 +8,10 @@ from datetime import datetime
 from io import BytesIO
 import os
 import zipfile
+from pathlib import Path
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from tools.is_single_page_pdf import is_single_page_pdf
 
 router = APIRouter(prefix='/api', route_class=AppRoute)
 
@@ -71,6 +75,20 @@ async def drawing_review(request: Request, background_tasks: BackgroundTasks):
             )
             if os.path.exists(upload_excel_dir) and os.path.exists(
                     upload_image_dir):
+                for file in list(Path(upload_excel_dir).glob("*.pdf")):
+                    if not is_single_page_pdf(file):
+                        logger.log(
+                            req_status,
+                            AppLogger.ERROR,
+                            f"DRAWING-REVIEW PDF FILE IS NOT SINGLE PAGE:{file}"
+                        )
+                        req_status.group_status = Status.ERROR
+                        app_state.update_app_status(
+                            req_status
+                        )
+                        return AppRoute.create_responce_from_status(
+                            req_status
+                        )
                 # 別プロセスにてラベル付与実行
                 BackendTasks.set_backend_runner(
                     req_status,

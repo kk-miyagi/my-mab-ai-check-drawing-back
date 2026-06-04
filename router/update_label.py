@@ -12,6 +12,7 @@ import img2pdf
 from tools.sort_manga_panels import sort_mange_panels
 from typing import List, Dict, Optional
 from PIL import Image, ImageDraw, ImageFont
+import re
 
 router = APIRouter(prefix='/api', route_class=AppRoute)
 
@@ -69,7 +70,8 @@ def _annotate_matches(
             drawer.text(label_anchor, label_text, fill=outline, font=font)
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
-        output_path = Path(f"{output_dir}/{annotated_path.name}")
+        file_name = re.sub(r'\d+_(af|bf)_file_', '', annotated_path.name)
+        output_path = Path(f"{output_dir}/{file_name}")
         img.save(output_path)
 
     return output_path
@@ -155,7 +157,7 @@ async def update_label(request: Request):
             annotated_path = _annotate_matches(
                 Path(input_img),
                 ordered_matches,
-                suffix="_update_label",
+                suffix="_label_result",
                 outline=(220, 20, 60),
                 output_dir=output_dir,
                 box_on=box_on
@@ -169,12 +171,30 @@ async def update_label(request: Request):
             print("Annotated PDF saved at:", new_file_name)
 
             # infoはcsv形式で出力する
-            csv_path = f"{output_dir}/info.csv"
+            csv_path = f"{annotated_path.with_suffix('.csv')}"
             with open(csv_path, "w", encoding="utf-8") as f:
                 f.write("No,項目,寸法値または品質指定等の記載内容,備考\n")
                 for key, info in info_dict.items():
                     f.write(f"{key},{info[0]},{info[1]},{info[2]}\n")
             print("Info CSV saved at:", csv_path)
+
+            box_on = False
+            annotated_path = _annotate_matches(
+                Path(input_img),
+                ordered_matches,
+                suffix="_label_result_no_box",
+                outline=(220, 20, 60),
+                output_dir=output_dir,
+                box_on=box_on
+            )
+            print("Annotated image saved at:", annotated_path)
+
+            # PDFへの変換
+            new_file_name = Path(annotated_path).with_suffix(".pdf")
+            with open(new_file_name, "wb") as f:
+                f.write(img2pdf.convert(Path(annotated_path)))
+            print("Annotated PDF saved at:", new_file_name)
+
             app_state.update_app_status(
                 req_status
             )

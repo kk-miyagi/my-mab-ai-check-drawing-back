@@ -84,11 +84,6 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
                     json.dump(
                         req_combinations, f, ensure_ascii=False, indent=2)
             else:
-                # app_status 作成
-                app_state.create_new_app_status(
-                    req_status
-                )
-
                 # 別プロセスにてラベル付与実行
                 BackendTasks.set_backend_runner(
                     req_status,
