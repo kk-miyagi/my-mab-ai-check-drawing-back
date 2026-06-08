@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react';
 import { uploadApi } from '../../api/uploadApi.ts';
@@ -14,6 +14,8 @@ import {
 } from '@mui/material';
 import { Header } from '../../components/Header';
 import { InputFile } from '../../components/InputFile';
+import { usePdfValidator } from '../../hooks/usePdfValidator.ts';
+import { AlertPdf } from '../../components/AlertPdf.tsx';
 
 const DEFAULT_EPIC = 'drawing-highlight';
 const DEFAULT_OPERATION = 'upload-target';
@@ -30,6 +32,22 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
   const [compareImageFile, setCompareImageFile] = useState<File[]>([]);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const [pdfError, setPdfError] = useState<string[]>([]);
+
+  const { allSinglePageFromFiles } = usePdfValidator();
+
+  useEffect(() => {
+    const run = async () => {
+      const result = await allSinglePageFromFiles(compareImageFile);
+        if (result.length > 0) {
+          setPdfError(result);
+        } else {
+          setPdfError([]);
+        }
+    };
+    run();
+  }, [compareImageFile, allSinglePageFromFiles]);  
 
   const handleFilesChange = useCallback((files: File[]) => {
     setCompareImageFile(files);
@@ -150,12 +168,14 @@ export const DrawingHighlightUploadAfterFileScreen: React.FC = () => {
             <Button
               variant="contained"
               onClick={handleStart}
-              disabled={compareImageFile.length === 0 || isLoading}
+              disabled={compareImageFile.length === 0 || isLoading || pdfError.length > 0}
               startIcon={isLoading ? <Loader2 size={18} className="spin" /> : undefined}
             >
               {isLoading ? '読み込み中' : '次へ'}
             </Button>
           </Box>
+
+          <AlertPdf pdfError={pdfError} />
 
           <InputFile onFilesChange={handleFilesChange} />
         </Stack>

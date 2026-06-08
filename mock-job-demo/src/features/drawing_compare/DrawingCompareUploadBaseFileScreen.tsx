@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useCallback } from 'react'
+import React, { useState, ChangeEvent, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { OperationIssueRequest, UploadPairRequest } from '../../types/uploadServer.ts';
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
@@ -15,6 +15,8 @@ import { Header } from '../../components/Header';
 import { InputFile, UploadFileItem } from '../../components/InputFile';
 import { groupIdApi } from '../../api/groupIdApi.ts';
 import { useAuth } from '../../hooks/useAuth.ts';
+import { usePdfValidator } from '../../hooks/usePdfValidator.ts';
+import { AlertPdf } from '../../components/AlertPdf.tsx';
 
 const DEFAULT_EPIC = 'drawing-compare';
 const DEFAULT_OPERATION = 'upload-base';
@@ -27,6 +29,22 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
 
   const [title, setTitle] = useState<string>("");
   const [modelName, setModelName] = useState<string>("");
+
+  const [pdfError, setPdfError] = useState<string[]>([]);
+
+  const { allSinglePageFromFiles } = usePdfValidator();
+
+  useEffect(() => {
+    const run = async () => {
+      const result = await allSinglePageFromFiles(baseImageFile);
+        if (result.length > 0) {
+          setPdfError(result);
+        } else {
+          setPdfError([]);
+        }
+    };
+    run();
+  }, [baseImageFile, allSinglePageFromFiles]);
 
   const { user } = useAuth();
   if (!user) {
@@ -108,11 +126,13 @@ export const DrawingCompareUploadBaseFileScreen: React.FC = () => {
             <Button
               variant="contained"
               onClick={handleStart}
-              disabled={baseImageFile.length === 0}
+              disabled={baseImageFile.length === 0 || pdfError.length > 0}
             >
               次へ
             </Button>
           </Box>
+
+          <AlertPdf pdfError={pdfError} />
 
           <InputFile
             onFilesChange={handleFilesChange}

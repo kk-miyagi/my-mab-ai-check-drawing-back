@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react';
 import { uploadApi } from '../../api/uploadApi.ts';
@@ -16,6 +16,8 @@ import { Header } from '../../components/Header';
 import type { OperationIssueRequest, UploadPairRequest } from '../../types/uploadServer.ts';
 import { issueOperationIdApi } from '../../api/issueOperationIdApi.ts';
 import { InputFiles, UploadFileItem } from '../../components/InputFiles';
+import { usePdfValidator } from '../../hooks/usePdfValidator.ts';
+import { AlertPdf } from '../../components/AlertPdf.tsx';
 
 type UploadedFile = {
   id: string;
@@ -84,6 +86,22 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
   }, []);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const [pdfError, setPdfError] = useState<string[]>([]);
+
+  const { allSinglePageFromFiles } = usePdfValidator();
+
+  useEffect(() => {
+    const run = async () => {
+      const result = await allSinglePageFromFiles(files.map((f) => f.file));
+        if (result.length > 0) {
+          setPdfError(result);
+        } else {
+          setPdfError([]);
+        }
+    };
+    run();
+  }, [files, allSinglePageFromFiles]);  
 
   const isPdf = files.some(f =>
     (f.file?.type === 'application/pdf')
@@ -244,12 +262,14 @@ export const DrawingCompareUploadCompareFileScreen: React.FC = () => {
             <Button
               variant="contained"
               onClick={handleStart}
-              disabled={files.length === 0 || isLoading}
+              disabled={files.length === 0 || isLoading || pdfError.length > 0}
               startIcon={isLoading ? <Loader2 size={18} className="spin" /> : undefined}
             >
               {isLoading ? '読み込み中' : '次へ'}
             </Button>
           </Box>
+
+          <AlertPdf pdfError={pdfError} />
 
           <InputFiles onItemsChange={handleInputItemsChange} onCurrentItemChange={handleCurrentItemChange} />
         </Stack>

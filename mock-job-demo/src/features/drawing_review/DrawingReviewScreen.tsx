@@ -14,6 +14,8 @@ import {
 } from '@mui/material';
 import { Header } from '../../components/Header';
 import { InputFiles, UploadFileItem } from '../../components/InputFiles';
+import { usePdfValidator } from '../../hooks/usePdfValidator.ts';
+import { AlertPdf } from '../../components/AlertPdf.tsx';
 
 type Row = Record<string, string | number | boolean | null>;
 
@@ -75,6 +77,22 @@ export const DrawingReviewScreen: React.FC = () => {
   const [validationMessage02, setValidationMessage02] = useState<string[]>([]);
   const [validationMessage03, setValidationMessage03] = useState<string[]>([]);
   const [validationMessage04, setValidationMessage04] = useState<string[]>([]);
+
+  const [pdfError, setPdfError] = useState<string[]>([]);
+
+  const { allSinglePageFromFiles } = usePdfValidator();
+
+  useEffect(() => {
+    const run = async () => {
+      const result = await allSinglePageFromFiles(files.map((f) => f.file));
+        if (result.length > 0) {
+          setPdfError(result);
+        } else {
+          setPdfError([]);
+        }
+    };
+    run();
+  }, [files, allSinglePageFromFiles]);
 
   // アップロードするファイルの切り替え
   const handleInputItemsChange = (nextItems: UploadFileItem[]) => {
@@ -223,7 +241,7 @@ export const DrawingReviewScreen: React.FC = () => {
             <Button
               variant="contained"
               onClick={handleStart}
-              disabled={validationMessage01.length > 0 || validationMessage02.length > 0|| validationMessage03.length > 0 || validationMessage04.length > 0}
+              disabled={validationMessage01.length > 0 || validationMessage02.length > 0|| validationMessage03.length > 0 || validationMessage04.length > 0 || pdfError.length > 0}
             >
               処理開始
             </Button>
@@ -256,6 +274,8 @@ export const DrawingReviewScreen: React.FC = () => {
               <ul>{validationMessage04.map((i) => (<li>{i}</li>))}</ul>
             </Alert>
           )}
+
+          <AlertPdf pdfError={pdfError} />
 
           <InputFiles
             onItemsChange={handleInputItemsChange}
