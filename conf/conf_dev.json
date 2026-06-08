@@ -1,6 +1,6 @@
 {
     "APP_STATUS":{
-       "expire": 86400
+       "expire": 1209600
     },
     "REDIS":{
 	"host": "redis-check-drawing-dev.redis.cache.windows.net",
@@ -50,5 +50,17 @@
 	"algorithms": "HS256",
 	"expire-min": 1440,
 	"secure-cookie": false
+    },
+    "DATA_RETENTION": {
+        "api_key": "dev-data-retention-key",
+        "source_dirs": [
+            "./multi-fileupload",
+            "./create-label-responce",
+            "./drawing-compare-responce",
+            "./drawing-highlight-responce",
+            "./drawing-review-responce",
+            "./update-label-response"
+        ],
+        "deletion_dir": "./to-delete"
     }
 }

@@ -15,7 +15,8 @@ class LoginManager(Manager):
         logger = self.get_manager_logger()
 
         # /login以外のリクエストの場合
-        if request.url.path != '/api/login/':
+        if request.url.path not in (
+                '/api/login/', '/api/data-retention/delete/'):
             logger.log(AppLogger.ERROR, f"{self.LOGIN_EXPIRE_ERROR}")
             token = request.cookies.get('access_token')
             if token is None or (
