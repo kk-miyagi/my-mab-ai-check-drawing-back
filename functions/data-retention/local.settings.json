@@ -1,0 +1,9 @@
+{
+    "IsEncrypted": false,
+    "Values": {
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "FUNCTIONS_WORKER_RUNTIME": "python",
+        "APP_ENV": "DEV",
+        "RETENTION_SCHEDULE": "0 0 18 * * *"
+    }
+}

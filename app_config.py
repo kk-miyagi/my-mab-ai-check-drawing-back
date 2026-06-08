@@ -29,6 +29,20 @@ class AppConfig:
         '_redis_port',
         '_redis_password',
         '_redis_ssl',
+        '_DATABASE_CONF_KEY',
+        '_db_name',
+        '_create_user_table',
+        '_insert_user_table',
+        '_get_user_table',
+        '_LOGIN_CONF_KEY',
+        '_secret_key',
+        '_algorithms',
+        '_expire_min',
+        '_secure_cookie',
+        '_DATA_RETENTION_CONF_KEY',
+        '_data_retention_api_key',
+        '_data_retention_source_dirs',
+        '_data_retention_deletion_dir',
         '_initialized'
     )
 
@@ -46,6 +60,12 @@ class AppConfig:
         self.__batch_logger_conf_init(json_conf)
         # redis setting set config object
         self.__redis_conf_init(json_conf)
+        # database config object
+        self.__database_conf_init(json_conf)
+        # login config object
+        self.__login_conf_init(json_conf)
+        # data retention config object
+        self.__data_retention_conf_init(json_conf)
 
     def __backend_conf_init(self, json_conf):
         self.__setattr__("_BACKEND_TASKS_CONF_KEY", 'BACKEND_TASKS')
@@ -68,6 +88,15 @@ class AppConfig:
         self.__setattr__('_algorithms', db_conf['algorithms'])
         self.__setattr__('_expire_min', db_conf['expire-min'])
         self.__setattr__('_secure_cookie', db_conf['secure-cookie'])
+
+    def __data_retention_conf_init(self, conf):
+        self.__setattr__("_DATA_RETENTION_CONF_KEY", "DATA_RETENTION")
+        dr_conf = conf[self._DATA_RETENTION_CONF_KEY]
+        self.__setattr__('_data_retention_api_key', dr_conf['api_key'])
+        self.__setattr__(
+                '_data_retention_source_dirs', dr_conf['source_dirs'])
+        self.__setattr__(
+                '_data_retention_deletion_dir', dr_conf['deletion_dir'])
 
     @property
     def backend_tasks(self):
@@ -199,6 +228,50 @@ class AppConfig:
     @property
     def redis_ssl(self):
         return self._redis_ssl
+
+    @property
+    def db_name(self):
+        return self._db_name
+
+    @property
+    def create_user_table(self):
+        return self._create_user_table
+
+    @property
+    def insert_user_table(self):
+        return self._insert_user_table
+
+    @property
+    def get_user_table(self):
+        return self._get_user_table
+
+    @property
+    def get_secret_key(self):
+        return self._secret_key
+
+    @property
+    def get_algorithms(self):
+        return self._algorithms
+
+    @property
+    def get_expire_min(self):
+        return self._expire_min
+
+    @property
+    def get_secure_cookie(self):
+        return self._secure_cookie
+
+    @property
+    def data_retention_api_key(self):
+        return self._data_retention_api_key
+
+    @property
+    def data_retention_source_dirs(self):
+        return self._data_retention_source_dirs
+
+    @property
+    def data_retention_deletion_dir(self):
+        return self._data_retention_deletion_dir
 
     def __setattr__(self, key, value):
         # 属性変更禁止

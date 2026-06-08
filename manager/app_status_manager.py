@@ -13,6 +13,9 @@ class AppStatusManager(Manager):
         pass
 
     def child_start(self, request, body):
+        # API-key protected machine endpoint: skip status checks
+        if request.url.path == '/api/data-retention/delete/':
+            return
 
         state = self.app_state
 
