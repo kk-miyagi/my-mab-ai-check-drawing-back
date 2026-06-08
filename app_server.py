@@ -28,6 +28,7 @@ import router.image_similarity as image_similarity
 import router.drawing_compare as drawing_compare
 import router.drawing_highlight as drawing_highlight
 import router.update_label_init as update_label_init
+import router.data_retention as data_retention
 import threading
 import json
 
@@ -41,7 +42,7 @@ class AppMiddleware(BaseHTTPMiddleware):
     # router側ではリクエスト内容を基本stateオブジェクトから取得する
     async def dispatch(self, request, call_next):
         # manager 処理の実行
-        content_type = dict(request.headers)['content-type']
+        content_type = request.headers.get('content-type', '')
         if (
               content_type == 'application/x-www-form-urlencoded' or
               content_type.startswith('multipart/form-data')):
@@ -93,6 +94,10 @@ class AppMiddleware(BaseHTTPMiddleware):
                 request.state.rects = body_json['rects']
             if 'info' in body_json:
                 request.state.info = body_json['info']
+            request.state.body = body_json
+        else:
+            # その他の content-type は空ボディ扱い（500 を避ける）
+            body_json = {}
             request.state.body = body_json
 
         res = MANAGERS.start_managers(request, body_json)
@@ -200,6 +205,7 @@ class AppServer():
         self.app.include_router(drawing_highlight.router)
         self.app.include_router(update_label_init.router)
         self.app.include_router(login.router)
+        self.app.include_router(data_retention.router)
 
     def start(self, env_str):
         import uvicorn
