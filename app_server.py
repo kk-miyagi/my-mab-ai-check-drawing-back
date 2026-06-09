@@ -28,6 +28,8 @@ import router.image_similarity as image_similarity
 import router.drawing_compare as drawing_compare
 import router.drawing_highlight as drawing_highlight
 import router.update_label_init as update_label_init
+import router.trouble_init as trouble_init
+import router.trouble as trouble
 import threading
 import json
 
@@ -203,6 +205,8 @@ class AppServer():
         self.app.include_router(drawing_compare.router)
         self.app.include_router(drawing_highlight.router)
         self.app.include_router(update_label_init.router)
+        self.app.include_router(trouble_init.router)
+        self.app.include_router(trouble.router)
         self.app.include_router(login.router)
 
     def start(self, env_str):
