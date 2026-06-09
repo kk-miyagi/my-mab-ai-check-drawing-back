@@ -15,4 +15,6 @@ export const ENDPOINTS = {
   issueGroupId: `${PREFIX}/issue/group-id/`,
   statusList: `${PREFIX}/status-list/`,
   login: `${PREFIX}/login/`,
+  troubleInit: `${PREFIX}/trouble-init/`,
+  trouble: `${PREFIX}/trouble/`,
 };
