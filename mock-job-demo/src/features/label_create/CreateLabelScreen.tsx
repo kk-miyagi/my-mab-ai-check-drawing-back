@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useMemo, useState, useCallback } from 'react';
+import React, { ChangeEvent, useMemo, useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { createLabelApi } from '../../api/createLabelApi.ts';
@@ -18,6 +18,8 @@ import { Header } from '../../components/Header';
 import { groupIdApi } from '../../api/groupIdApi.ts';
 import { InputFiles, UploadFileItem } from '../../components/InputFiles';
 import { useAuth } from '../../hooks/useAuth.ts';
+import { usePdfValidator } from '../../hooks/usePdfValidator.ts';
+import { AlertPdf } from '../../components/AlertPdf.tsx';
 
 const DEFAULT_EPIC = 'create-label';
 const DEFAULT_OPERATION = 'batch-create-label';
@@ -52,6 +54,7 @@ export const CreateLabelScreen: React.FC = () => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [currentFile, setCurrentFile] = useState<UploadedFile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false); // ローディング状態の管理(これがないと一連の処理が完了する前に再度ボタンを押せてしまう)
+  const [pdfError, setPdfError] = useState<string[]>([]);
 
   const [title, setTitle] = useState<string>(''); // タイトルの状態管理(タイトルは1回の処理で全てのファイルに対して共通の値とするため、currentFileから切り離して管理する)
   const [modelNames, setModelNames] = useState<ModelName[]>([]); // 機種名の状態管理(機種名はファイルごとに異なる値となるため、currentFileから切り離して管理する。modelNamesはファイルIDと機種名のペアの配列で管理する)
@@ -96,6 +99,19 @@ export const CreateLabelScreen: React.FC = () => {
     });
   }, []);
 
+  const { allSinglePageFromFiles } = usePdfValidator();
+
+  useEffect(() => {
+    const run = async () => {
+      const result = await allSinglePageFromFiles(files.map((f) => f.file));
+        if (result.length > 0) {
+          setPdfError(result);
+        } else {
+          setPdfError([]);
+        }
+    };
+    run();
+  }, [files, allSinglePageFromFiles]);  
 
   // 現在選択されているファイルの機種名を取得
   const currentModelName = useMemo(() => {
@@ -182,12 +198,14 @@ export const CreateLabelScreen: React.FC = () => {
             <Button
               variant="contained"
               onClick={handleStart}
-              disabled={files.length === 0 || isLoading}
+              disabled={files.length === 0 || isLoading || pdfError.length > 0}
               startIcon={isLoading ? <Loader2 size={18} className="spin" /> : undefined}
             >
               {isLoading ? '処理開始中...' : 'ラベル付与を開始する'}
             </Button>
           </Box>
+
+          <AlertPdf pdfError={pdfError} />
 
           <InputFiles
             onItemsChange={handleInputItemsChange}
