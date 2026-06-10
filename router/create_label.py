@@ -82,8 +82,7 @@ async def create_label(request: Request, background_tasks: BackgroundTasks):
                                 AppLogger.DEBUG,
                                 f"PDF file {file} is not a single page."
                             )
-                            req_status.group_status = up_status
-                            req_status.operations[0].status = up_status
+                            req_status.status = up_status
                             app_state.update_app_status(
                                 req_status
                             )

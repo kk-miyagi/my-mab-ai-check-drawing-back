@@ -16,10 +16,10 @@ class FakeRedis:
         return self._data.get(key)
 
 
-def _status(group_status, create_time):
+def _status(status, create_time):
     return json.dumps({
-        "user": "u", "epic": "e", "group_id": "g",
-        "group_status": group_status, "operations": [], "others": {},
+        "user": "u", "epic": "e", "operation": "o", "operation_id": "g",
+        "status": status,
         "create_time": create_time,
     })
 
@@ -48,7 +48,7 @@ def test_scan_returns_expired_final_only():
 def test_scan_skips_missing_create_time_and_corrupt():
     now = 10 * 86400
     redis = FakeRedis({
-        "app_status:u_e_g1": json.dumps({"group_status": 2}),  # no create_time
+        "app_status:u_e_g1": json.dumps({"status": 2}),  # no create_time
         "app_status:u_e_g2": "not-json",
     })
     assert retention_core.scan_expired_hash_keys(redis, _config(), now) == []

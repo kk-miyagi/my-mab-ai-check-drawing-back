@@ -354,13 +354,14 @@ async def drawing_highlight(request: Request):
                         f"{sim_dir}/cut_target",
                         out_dir
                     )
-                    await DrawingHighlight.paste_cut_image(
+                    file_name_1 = await DrawingHighlight.paste_cut_image(
                         'base', base_image_path.as_posix(), out_dir,
-                        f"{sim_dir}/responce.json"
+                        f"{sim_dir}/responce.json", req_combinations
                     )
-                    await DrawingHighlight.paste_cut_image(
+                    file_name_1 = Path(file_name_1).stem
+                    file_name_2 = await DrawingHighlight.paste_cut_image(
                         'target', target_image_path.as_posix(), out_dir,
-                        f"{sim_dir}/responce.json"
+                        f"{sim_dir}/responce.json", req_combinations
                     )
                     file_name_2 = Path(file_name_2).stem
 
@@ -382,7 +383,7 @@ async def drawing_highlight(request: Request):
                         f.write(img2pdf.convert(file))
 
                 up_status = Status.END
-                req_status.group_status = up_status
+                req_status.status = up_status
                 app_state.update_app_status(
                     req_status
                 )
