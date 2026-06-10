@@ -19,7 +19,8 @@ import {
   Compare,
   Label,
   List,
-  Rule
+  Rule,
+  Search,
 } from '@mui/icons-material';
 
 type feature = {
@@ -76,6 +77,16 @@ export const HubScreen: React.FC = () => {
       accentColor: "#854F0B",
       onNew: () => navigate('/drawing-review-upload-excel'),
       onList: () => navigate('/drawing-review-list')
+    },
+    {
+      id: "trouble",
+      title: "過去トラブル検索",
+      descripttion: "過去のトラブル事例を検索して確認します。",
+      icon: Search,
+      color: "#F3E9FF",
+      accentColor: "#6B46C1",
+      onNew: () => navigate('/trouble-search'),
+      onList: () => navigate('/trouble-list')
     }
   ]
 
@@ -117,7 +128,7 @@ export const HubScreen: React.FC = () => {
                       </Stack>
                     </CardContent>
                     <CardActions sx={{ml: 2, gap: 1}}>
-                      <Button variant='contained' startIcon={<Add />} onClick={f.onNew}>新規</Button>
+                      <Button variant='contained' startIcon={f.id === 'trouble' ? <Search /> : <Add />} onClick={f.onNew}>{f.id === 'trouble' ? '検索' : '新規'}</Button>
                       <Button variant='outlined' startIcon={<List />} onClick={f.onList}>一覧</Button>
                     </CardActions>
                   </Card>

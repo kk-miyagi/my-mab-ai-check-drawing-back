@@ -30,3 +30,6 @@ drawing-highlight-responce/*
 
 update-label-response/*
 !/update-label-response/.gitkeep
+
+trouble-response/*
+!/trouble-response/.gitkeep

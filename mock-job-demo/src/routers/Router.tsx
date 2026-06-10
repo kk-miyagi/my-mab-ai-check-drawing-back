@@ -18,6 +18,9 @@ import { CreateLabelListScreen } from '../features/label_create/CreateLabelListS
 import { DrawingReviewListScreen } from '../features/drawing_review/DrawingReviewListScreen';
 import { DrawingCompareListScreen } from '../features/drawing_compare/DrawingCompareListScreen';
 import { DrawingHighlightListScreen } from '../features/drawing_highlight/DrawingHighlightListScreen';
+import { TroubleSearch } from '../features/trouble/TroubleSearch';
+import { TroubleResult } from '../features/trouble/TroubleResult';
+import { TroubleListScreen } from '../features/trouble/TroubleListScreen';
 import { LoginPage } from '../pages/LoginPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
@@ -45,6 +48,9 @@ export const AppRouter = () => {
       <Route path="/drawing-review-list" element={<ProtectedRoute><DrawingReviewListScreen /></ProtectedRoute>} />
       <Route path="/drawing-compare-list" element={<ProtectedRoute><DrawingCompareListScreen /></ProtectedRoute>} />
       <Route path="/drawing-highlight-list" element={<ProtectedRoute><DrawingHighlightListScreen /></ProtectedRoute>} />
+      <Route path="/trouble-search" element={<ProtectedRoute><TroubleSearch /></ProtectedRoute>} />
+      <Route path="/trouble-result" element={<ProtectedRoute><TroubleResult /></ProtectedRoute>} />
+      <Route path="/trouble-list" element={<ProtectedRoute><TroubleListScreen /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/hub" replace />} />
     </Routes>
   )
