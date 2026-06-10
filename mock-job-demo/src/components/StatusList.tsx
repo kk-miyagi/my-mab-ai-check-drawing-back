@@ -64,6 +64,7 @@ export const StatusBadge: React.FC<{ status: ProcessStatus, epic: string }> = ({
 type StatusListProps = {
   epic: string;
   title: string;
+  subtitle?: string;
   columns: Array<{
     id: string;
     label: string;
@@ -71,7 +72,7 @@ type StatusListProps = {
   }>
 }
 
-export const StatusList: React.FC<StatusListProps> = ({ epic, title, columns }) => {
+export const StatusList: React.FC<StatusListProps> = ({ epic, title, subtitle, columns }) => {
   const { user } = useAuth();
   const [items, setItems] = useState<any[]>([]);
   const [snackOpen, setSnackOpen] = useState(false);
@@ -157,6 +158,22 @@ export const StatusList: React.FC<StatusListProps> = ({ epic, title, columns }) 
         }))
       );
     }
+    if (epic === "trouble-search") {
+      setItems(
+        res.map((item: any) => ({
+          user: item.user,
+          epic: item.epic,
+          group_id: item.group_id,
+          group_status: item.group_status,
+          others: {
+            search_keys: item.others.search_keys ?? [],
+            search_items: item.others.search_items ?? {},
+          },
+          operations: item.operations,
+          create_time: new Date(item.create_time * 1000).toLocaleString(),
+        }))
+      );
+    }
   };
   const handleSnackClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') return;
@@ -171,7 +188,7 @@ export const StatusList: React.FC<StatusListProps> = ({ epic, title, columns }) 
       <Container>
         <Stack spacing={2} sx={{ py: 2 }}>
           <Typography variant="h4">{title}</Typography>
-          <Typography variant="h5" sx={{ mt: 2 }}>処理一覧</Typography>
+          <Typography variant="h5" sx={{ mt: 2 }}>{subtitle ? subtitle : '処理一覧'}</Typography>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
             <Button variant="contained" size="small" onClick={() => { fetchData(); setSnackOpen(true); }}>一覧を更新</Button>
           </Box>
