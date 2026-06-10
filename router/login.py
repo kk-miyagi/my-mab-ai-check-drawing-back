@@ -10,7 +10,7 @@ router = APIRouter(prefix='/api', route_class=AppRoute)
 @router.post('/login/')
 async def login(request: Request, response: Response):
     req_status = AppStatus.create_from_request(request.state.body)
-    user_info = req_status.others
+    user_info = request.state.body.get('others')
 
     app_state = AppRoute.get_app_state()
     app_db = AppRoute.get_app_db()
