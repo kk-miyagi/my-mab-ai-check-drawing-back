@@ -153,7 +153,7 @@ async def image_similarity(request: Request):
                 AppLogger.ERROR,
                 f"IMAGE-SIMILARITY PDF FILE IS NOT SINGLE PAGE:{file}"
             )
-            req_status.group_status = Status.ERROR
+            req_status.status = Status.ERROR
             app_state.update_app_status(
                 req_status
             )

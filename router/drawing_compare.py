@@ -53,6 +53,8 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
     req_user = req_status.user
     req_opid = req_status.operation_id
 
+    req_combinations = state.combinations
+
     cut_base_dir = f'{base_dir}/{req_user}_{up_epic}_{up_ope}_{req_opid}/cut_base'
     cut_target_dir = f'{base_dir}/{req_user}_{up_epic}_{up_ope}_{req_opid}/cut_target'
     out_dir = f'{base_dir}/{req_status.get_hash_key()}'

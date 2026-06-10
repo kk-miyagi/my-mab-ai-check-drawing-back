@@ -46,7 +46,7 @@ def scan_expired_hash_keys(redis_client, config, now):
         create_time = d.get("create_time")
         if create_time is None or (now - create_time) <= expire_sec:
             continue
-        if d.get("group_status") not in target:
+        if d.get("status") not in target:
             continue
         hash_keys.append(_strip_prefix(key, prefix))
     return hash_keys

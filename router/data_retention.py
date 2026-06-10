@@ -41,7 +41,7 @@ async def delete_retention_files(request: Request):
             status_code=409,
             content={"message": "app status not found",
                      "hash_key": hash_key, "moved_count": 0})
-    if status_obj.group_status not in _FINAL_STATUSES:
+    if status_obj.status not in _FINAL_STATUSES:
         return JSONResponse(
             status_code=409,
             content={"message": "app status not final",
