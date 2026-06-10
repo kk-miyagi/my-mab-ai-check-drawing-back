@@ -1,0 +1,26 @@
+.git
+.gitignore
+**/__pycache__/
+*.pyc
+*.pyo
+.venv/
+node_modules/
+mock-job-demo/
+
+# runtime data (Docker では named volume を使用)
+logs/
+multi-fileupload/
+create-label-responce/
+drawing-review-responce/
+drawing-compare-responce/
+drawing-highlight-responce/
+update-label-response/
+backend_tasks/logs/
+
+# secrets / db （イメージに焼かずマウントする）
+*.db
+mab-ai-check-drawing-sa-key.json
+mab-ai-check-drawing-sa-key 1.json
+
+.DS_Store
+docker-summary.md

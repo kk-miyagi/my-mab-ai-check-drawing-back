@@ -13,8 +13,10 @@ img2pdf
 openpyxl
 imagehash
 polars
-pysqlite3 
+redis
+<<<<<<< HEAD
+=======
 passlib
 python-jose
 bcrypt==4.3.0
-pypdf
+>>>>>>> f99d355 (build docker container separate backend_task (such as batch server) and fastapi server)

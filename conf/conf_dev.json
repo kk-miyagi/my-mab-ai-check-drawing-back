@@ -1,6 +1,29 @@
 {
     "APP_STATUS":{
-       "expire": 86400 
+<<<<<<< HEAD
+       "expire": 1209600
+    },
+    "REDIS":{
+	"host": "redis-check-drawing-dev.redis.cache.windows.net",
+	"port": 6380,
+	"password": "",
+	"ssl": true
+=======
+       "expire": 86400
+    },
+    "REDIS":{
+	"host": "localhost",
+	"port": 6379,
+	"db": 0,
+	"password": "",
+	"ssl": false
+    },
+    "QUEUE":{
+	"stream": "jobs:batch",
+	"group": "batch-workers",
+	"consumer": "",
+	"block_ms": 5000
+>>>>>>> f99d355 (build docker container separate backend_task (such as batch server) and fastapi server)
     },
     "LOGGER":{
 	"logger_name": "app_main",
@@ -44,5 +67,17 @@
 	"algorithms": "HS256",
 	"expire-min": 1440,
 	"secure-cookie": false
+    },
+    "DATA_RETENTION": {
+        "api_key": "dev-data-retention-key",
+        "source_dirs": [
+            "./multi-fileupload",
+            "./create-label-responce",
+            "./drawing-compare-responce",
+            "./drawing-highlight-responce",
+            "./drawing-review-responce",
+            "./update-label-response"
+        ],
+        "deletion_dir": "./to-delete"
     }
 }

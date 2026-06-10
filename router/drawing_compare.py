@@ -27,18 +27,14 @@ class DrawingCompareRunner(BackendTaskRunner):
 
     def get_cmd(self, base_cmd, app_state, req_status):
         req = req_status
-        combinations = self.combinations
-        combinations = f'"{str(combinations).strip()}"'
-        cut_base_dir = f'{self._BASE_DIR}/{req.user}_{self._UP_EPIC}'
-        cut_base_dir += f'_{req.group_id}_{self._UP_OPE}_{req.operations[0].operation_id}/cut_base'
-        cut_target_dir = f'{self._BASE_DIR}/{req.user}_{self._UP_EPIC}_{req.group_id}_{self._UP_OPE}_{req.operations[0].operation_id}/cut_target'
-        out_dir = f'{self._BASE_DIR}/{req.user}_{req.epic}_{req.group_id}_{req.operations[0].operation}_{req.operations[0].operation_id}'
-
-        upload_base_file_dir = f"./multi-fileupload/{req.user}_{self._UP_EPIC}_{req.group_id}_{self._UP_BASE_OPE}_{req.operations[0].operation_id}"
-        upload_target_file_dir = f"./multi-fileupload/{req.user}_{self._UP_EPIC}_{req.group_id}_{self._UP_TARGET_OPE}_{req.operations[0].operation_id}"
+        combinations = f'"{str(self.combinations).strip()}"'
+        cut_base_dir = f'{self._BASE_DIR}/{req.user}_{self._UP_EPIC}_{self._UP_OPE}_{req.operation_id}/cut_base'
+        cut_target_dir = f'{self._BASE_DIR}/{req.user}_{self._UP_EPIC}_{self._UP_OPE}_{req.operation_id}/cut_target'
+        out_dir = f'{self._BASE_DIR}/{req.get_hash_key()}'
+        upload_base_file_dir = f"./multi-fileupload/{req.user}_{self._UP_EPIC}_{self._UP_BASE_OPE}_{req.operation_id}"
+        upload_target_file_dir = f"./multi-fileupload/{req.user}_{self._UP_EPIC}_{self._UP_TARGET_OPE}_{req.operation_id}"
         upload_base_file_path = list(Path(upload_base_file_dir).glob("*.jpg"))[0].as_posix()
         upload_target_file_path = list(Path(upload_target_file_dir).glob("*.jpg"))[0].as_posix()
-
         return f"{base_cmd} {upload_base_file_path} {upload_target_file_path} {cut_base_dir} {cut_target_dir} {out_dir}"
 
 
@@ -55,132 +51,78 @@ async def drawing_compare(request: Request, background_tasks: BackgroundTasks):
     up_ope = 'image-similarity'
 
     req_user = req_status.user
-    req_opid = req_status.operations[0].operation_id
-    req_grid = req_status.group_id
-    req_op = req_status.operations[0].operation
+    req_opid = req_status.operation_id
 
-    cut_base_dir = f'{base_dir}/{req_user}_{up_epic}_{req_grid}_{up_ope}_{req_opid}/cut_base'
-    cut_target_dir = f'{base_dir}/{req_user}_{up_epic}_{req_grid}_{up_ope}_{req_opid}/cut_target'
+    req_combinations = state.combinations
 
-    out_dir = f'{base_dir}/{req_user}_{up_epic}_{req_grid}_{req_op}_{req_opid}'
+    cut_base_dir = f'{base_dir}/{req_user}_{up_epic}_{up_ope}_{req_opid}/cut_base'
+    cut_target_dir = f'{base_dir}/{req_user}_{up_epic}_{up_ope}_{req_opid}/cut_target'
+    out_dir = f'{base_dir}/{req_status.get_hash_key()}'
 
-    target_status = req_status.operations[0].status
+    target_status = req_status.status
     match target_status:
         case Status.START:
-            logger.log(
-                req_status,
-                AppLogger.DEBUG,
-                "DRAWING-COMPARE START STATUS START"
-            )
-
-            app_state.update_app_status(
-                req_status
-            )
-            req_combinations = state.combinations
+            logger.log(req_status, AppLogger.DEBUG, "DRAWING-COMPARE START STATUS START")
+            app_state.update_app_status(req_status)
             if req_combinations:
                 out_json_path = Path(f'{out_dir}/combinations.json')
                 out_json_path.parent.mkdir(parents=True, exist_ok=True)
                 with open(out_json_path, 'w', encoding='utf-8') as f:
-                    json.dump(
-                        req_combinations, f, ensure_ascii=False, indent=2)
+                    json.dump(req_combinations, f, ensure_ascii=False, indent=2)
             else:
-                # 別プロセスにてラベル付与実行
+                app_state.create_new_app_status(req_status)
                 BackendTasks.set_backend_runner(
                     req_status,
                     DrawingCompareRunner(req_combinations),
                     background_tasks
                 )
-                return AppRoute.create_responce_from_status(
-                    req_status
-                )
+                return AppRoute.create_responce_from_status(req_status)
 
             if os.path.exists(cut_base_dir) and os.path.exists(cut_target_dir):
-
-                # 別プロセスにてラベル付与実行
                 BackendTasks.set_backend_runner(
                     req_status,
                     DrawingCompareRunner(req_combinations),
                     background_tasks
                 )
             else:
-                req_status.group_status = Status.ERROR
                 logger.log(
-                    req_status,
-                    AppLogger.ERROR,
-                    f"DRAWING-COMPARE UPLOAD DIR NOT FOUND:{cut_base_dir} or {cut_target_dir}"
-                )
-                up_status = Status.ERROR
-                req_status.group_status = up_status
-                req_status.operations[0].status = up_status
-                app_state.update_app_status(
-                    req_status
-                )
-            return AppRoute.create_responce_from_status(
-                req_status
-            )
-        case Status.DOING:
-            logger.log(
-                req_status,
-                AppLogger.DEBUG,
-                "DRAWING-COMPARE DOING STATUS START"
-            )
-            # requestと同じステータス
-            app_state.update_app_status(
-                req_status
-            )
-            return AppRoute.create_responce_from_status(
-                req_status
-            )
-        case Status.END:
-            logger.log(
-                req_status,
-                AppLogger.DEBUG,
-                "DRAWING-COMPARE END STATUS START"
-            )
-            # 1)status END確認
-            app_status = app_state.get_eq_app_status(req_status)
-            if app_status is None or app_status.group_status != Status.END:
-                logger.log(
-                    req_status,
-                    AppLogger.ERROR,
-                    f"DRAWING-COMPARE REQUEST IS NOT END:{req_status.group_status}"
-                )
-                up_status = Status.ERROR
-                req_status.group_status = up_status
-                req_status.operations[0].status = up_status
-                app_state.update_app_status(
-                    req_status
-                )
-                return AppRoute.create_responce_from_status(
-                    req_status
-                )
-            # 2)ダウンロード先ディレクトリからCSVファイル読み込み
-            ope_dir = f"{req_status.user}_{req_status.epic}_"
-            ope_dir += f"{req_status.group_id}_{req_status.operations[0].operation}"
-            ope_dir += f"_{req_status.operations[0].operation_id}/"
+                    req_status, AppLogger.ERROR,
+                    f"DRAWING-COMPARE UPLOAD DIR NOT FOUND:{cut_base_dir} or {cut_target_dir}")
+                req_status.status = Status.ERROR
+                app_state.update_app_status(req_status)
+            return AppRoute.create_responce_from_status(req_status)
 
-            res_dir = f"./drawing-compare-responce/{ope_dir}"
+        case Status.DOING:
+            logger.log(req_status, AppLogger.DEBUG, "DRAWING-COMPARE DOING STATUS START")
+            app_state.update_app_status(req_status)
+            return AppRoute.create_responce_from_status(req_status)
+
+        case Status.END:
+            logger.log(req_status, AppLogger.DEBUG, "DRAWING-COMPARE END STATUS START")
+            app_status = app_state.get_eq_app_status(req_status)
+            if app_status is None or app_status.status != Status.END:
+                logger.log(
+                    req_status, AppLogger.ERROR,
+                    f"DRAWING-COMPARE REQUEST IS NOT END:{req_status.status}")
+                req_status.status = Status.ERROR
+                app_state.update_app_status(req_status)
+                return AppRoute.create_responce_from_status(req_status)
+
+            res_dir = f"./drawing-compare-responce/{req_status.get_hash_key()}/"
             fname_list = os.listdir(res_dir)
             extensions = ('.csv', '.jpg', 'pdf')
             file_list = [
-                res_dir + fname
-                for fname in fname_list if fname.endswith(extensions)
+                res_dir + fname for fname in fname_list if fname.endswith(extensions)
             ]
-            # 3)ZIPに固めてダウンロードの返信を実施
             io = BytesIO()
             now = datetime.now().strftime('%Y%m%d%H%M%S')
             zip_filename = f"drawing-compare_{now}.zip"
-            with zipfile.ZipFile(
-                    io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
+            with zipfile.ZipFile(io, mode='w', compression=zipfile.ZIP_DEFLATED) as zip:
                 for fpath in file_list:
                     zip.write(fpath)
-            app_state.update_app_status(
-                req_status
-            )
+            app_state.update_app_status(req_status)
             return StreamingResponse(
                 iter([io.getvalue()]),
                 media_type="application/x-zip-compressed",
-                headers={
-                   "Content-Disposition": f"attachment;filename={zip_filename}"
-                }
+                headers={"Content-Disposition": f"attachment;filename={zip_filename}"}
             )

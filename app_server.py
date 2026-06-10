@@ -13,7 +13,9 @@ from app_logger import AppLogger, BatchLogger
 from app_db import AppDB
 from app_login import AppLogin
 from app_backend_task import BackendTasks
+from app_redis import create_redis_client
 from state.app_status import AppStatus
+import os
 import router.issue_operation_id as issue_operation_id
 import router.login as login
 import router.issue_group_id as issue_group_id
@@ -28,6 +30,7 @@ import router.image_similarity as image_similarity
 import router.drawing_compare as drawing_compare
 import router.drawing_highlight as drawing_highlight
 import router.update_label_init as update_label_init
+import router.data_retention as data_retention
 import threading
 import json
 
@@ -41,7 +44,7 @@ class AppMiddleware(BaseHTTPMiddleware):
     # router側ではリクエスト内容を基本stateオブジェクトから取得する
     async def dispatch(self, request, call_next):
         # manager 処理の実行
-        content_type = dict(request.headers)['content-type']
+        content_type = request.headers.get('content-type', '')
         if (
               content_type == 'application/x-www-form-urlencoded' or
               content_type.startswith('multipart/form-data')):
@@ -53,10 +56,9 @@ class AppMiddleware(BaseHTTPMiddleware):
                 return
             request.state.user = form_data.get('user')
             request.state.epic = form_data.get('epic')
-            request.state.group_id = form_data.get('group_id')
-            request.state.group_status = form_data.get('group_status')
-            request.state.operations = json.loads(form_data.get('operations'))
-            request.state.others = json.loads(form_data.get('others'))
+            request.state.operation = form_data.get('operation')
+            request.state.operation_id = form_data.get('operation_id')
+            request.state.status = form_data.get('status')
             request.state.bf_file = form_data.get('bf_file')
             request.state.af_file = form_data.get('af_file')
             request.state.bf_file_csv = form_data.get('bf_file_csv')
@@ -66,12 +68,11 @@ class AppMiddleware(BaseHTTPMiddleware):
             request.state.combinations = form_data.get('combinations')
 
             body_json = {
-                         'user': request.state.user,
-                         'epic': request.state.epic,
-                         'group_id': request.state.group_id,
-                         'operations': request.state.operations,
-                         'others': request.state.others,
-                         'group_status': request.state.group_status
+                'user': request.state.user,
+                'epic': request.state.epic,
+                'operation': request.state.operation,
+                'operation_id': request.state.operation_id,
+                'status': request.state.status,
             }
         elif content_type == 'application/json':
             body_json = await request.json()
@@ -79,14 +80,12 @@ class AppMiddleware(BaseHTTPMiddleware):
                 request.state.user = body_json['user']
             if 'epic' in body_json:
                 request.state.epic = body_json['epic']
-            if 'operations' in body_json:
-                request.state.operations = body_json['operations']
-            if 'others' in body_json:
-                request.state.others = body_json['others']
-            if 'group_id' in body_json:
-                request.state.group_id = body_json['group_id']
-            if 'group_status' in body_json:
-                request.state.group_status = body_json['group_status']
+            if 'operation' in body_json:
+                request.state.operation = body_json['operation']
+            if 'operation_id' in body_json:
+                request.state.operation_id = body_json['operation_id']
+            if 'status' in body_json:
+                request.state.status = body_json['status']
             if 'number' in body_json:
                 request.state.number = body_json['number']
             if 'sum_number' in body_json:
@@ -97,6 +96,10 @@ class AppMiddleware(BaseHTTPMiddleware):
                 request.state.rects = body_json['rects']
             if 'info' in body_json:
                 request.state.info = body_json['info']
+            request.state.body = body_json
+        else:
+            # その他の content-type は空ボディ扱い（500 を避ける）
+            body_json = {}
             request.state.body = body_json
 
         res = MANAGERS.start_managers(request, body_json)
@@ -113,8 +116,9 @@ class AppServer():
 
         # FastAPI アプリケーションの作成
         self.app = FastAPI()
-        self.host = host
-        self.port = port
+        # コンテナ実行時は API_HOST=0.0.0.0 等を環境変数で上書きする
+        self.host = os.environ.get("API_HOST", host)
+        self.port = int(os.environ.get("API_PORT", port))
         # config setting
         conf_path = './conf/conf_dev.json'
         if run_env == 'PROD':
@@ -123,6 +127,8 @@ class AppServer():
         self.conf = AppConfig(conf_path)
         self.logger = AppLogger(self.conf)
         self.batch_logger = BatchLogger(self.conf)
+        # ステータス共有 / ジョブ配信用 Redis クライアント
+        self.redis = create_redis_client(self.conf)
         origins = [f"http://{self.host}:{self.port}",]
         self.app.add_middleware(
             CORSMiddleware,
@@ -141,7 +147,8 @@ class AppServer():
                 self.app.state,
                 threading.Lock(),
                 self.conf,
-                self.logger
+                self.logger,
+                self.redis
         )
         self.app_state = app_state
         self.app_state.system_encode = 'utf-8'
@@ -168,7 +175,8 @@ class AppServer():
         BackendTasks.setup(
             self.conf,
             self.app_state,
-            self.batch_logger
+            self.batch_logger,
+            self.redis
         )
 
     def setup_managers(self, app_state: AppState):
@@ -204,6 +212,7 @@ class AppServer():
         self.app.include_router(drawing_highlight.router)
         self.app.include_router(update_label_init.router)
         self.app.include_router(login.router)
+        self.app.include_router(data_retention.router)
 
     def start(self, env_str):
         import uvicorn

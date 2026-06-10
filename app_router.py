@@ -31,14 +31,9 @@ class AppRoute(APIRoute):
         return {
             "user": status.user,
             "epic": status.epic,
-            "group_id": status.group_id,
-            "operations": [{
-                "operation": ope.operation,
-                "operation_id": ope.operation_id,
-                "status": Status.status_to_str(ope.status)
-            } for ope in status.operations],
-            "others": status.others,
-            "group_status": Status.status_to_str(status.group_status),
+            "operation": status.operation,
+            "operation_id": status.operation_id,
+            "status": Status.status_to_str(status.status),
             "create_time": status.create_time
         }
 
@@ -49,15 +44,12 @@ class AppRoute(APIRoute):
         async def custom_route_handler(request: Request) -> Response:
             logger = self.app_state.getLogger()
             state = request.state
-            req_str = "custom route hander"
-            req_str += " request state hasattr chek"
+            req_str = "custom route handler"
             req_str += f"\nuser:{hasattr(state, 'user')}"
             req_str += f"\nepic:{hasattr(state, 'epic')}"
-            req_str += f"\ngroup_id:{hasattr(state, 'group_id')}"
-            req_str += f"\noperations:{hasattr(state, 'operations')}"
-            req_str += f"\nothers:{hasattr(state, 'others')}"
-            req_str += f"\ngroup_status:{hasattr(state, 'group_status')}"
-            # RODO other attr
+            req_str += f"\noperation:{hasattr(state, 'operation')}"
+            req_str += f"\noperation_id:{hasattr(state, 'operation_id')}"
+            req_str += f"\nstatus:{hasattr(state, 'status')}"
             logger.log(
                 AppStatus.get_dummy_status(),
                 AppLogger.DEBUG,
@@ -65,15 +57,9 @@ class AppRoute(APIRoute):
             )
             req_status = AppStatus.create_from_state(request.state)
             url = '/'.join(str(request.url).split('/')[3:])
-            logger.log(
-                req_status,
-                AppLogger.INFO,
-                f"routing [{url}] START")
+            logger.log(req_status, AppLogger.INFO, f"routing [{url}] START")
             response = await original_route_handler(request)
-            logger.log(
-                req_status,
-                AppLogger.INFO,
-                f"routing [{url}] END")
+            logger.log(req_status, AppLogger.INFO, f"routing [{url}] END")
             return response
 
         return custom_route_handler
