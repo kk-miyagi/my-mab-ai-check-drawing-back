@@ -14,6 +14,8 @@ from app_db import AppDB
 from app_login import AppLogin
 from app_backend_task import BackendTasks
 from state.app_status import AppStatus
+from app_redis import create_redis_client
+import os
 import router.issue_operation_id as issue_operation_id
 import router.login as login
 import router.issue_group_id as issue_group_id
@@ -115,8 +117,8 @@ class AppServer():
 
         # FastAPI アプリケーションの作成
         self.app = FastAPI()
-        self.host = host
-        self.port = port
+        self.host = os.environ.get("API_HOST", host)
+        self.port = int(os.environ.get("API_PORT", port))
         # config setting
         conf_path = './conf/conf_dev.json'
         if run_env == 'PROD':
@@ -125,6 +127,7 @@ class AppServer():
         self.conf = AppConfig(conf_path)
         self.logger = AppLogger(self.conf)
         self.batch_logger = BatchLogger(self.conf)
+        self.redis = create_redis_client(self.conf)
         origins = [f"http://{self.host}:{self.port}",]
         self.app.add_middleware(
             CORSMiddleware,
@@ -143,7 +146,8 @@ class AppServer():
                 self.app.state,
                 threading.Lock(),
                 self.conf,
-                self.logger
+                self.logger,
+                self.redis
         )
         self.app_state = app_state
         self.app_state.system_encode = 'utf-8'
@@ -170,7 +174,8 @@ class AppServer():
         BackendTasks.setup(
             self.conf,
             self.app_state,
-            self.batch_logger
+            self.batch_logger,
+            self.redis
         )
 
     def setup_managers(self, app_state: AppState):

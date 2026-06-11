@@ -9,11 +9,12 @@ from app_logger import AppLogger
 
 class AppState:
 
-    def __init__(self, app_state, lock, conf: AppConfig, logger: AppLogger):
+    def __init__(self, app_state, lock, conf: AppConfig, logger: AppLogger, redis: None):
         self.app_state = app_state
         self.lock = lock
         self.conf = conf
         self.logger = logger
+        self.redis = redis
         self.add_state_methods()
 
     def get_members(self):

@@ -24,7 +24,11 @@ class AppConfig:
         '_batch_log_backup_count',
         '_batch_log_file_name',
         '_batch_log_encoding',
-        '_initialized',
+        '_REDIS_CONF_KEY',
+        '_redis_host',
+        '_redis_port',
+        '_redis_password',
+        '_redis_ssl',
         '_DATABASE_CONF_KEY',
         '_db_name',
         '_create_user_table',
@@ -34,7 +38,12 @@ class AppConfig:
         '_secret_key',
         '_algorithms',
         '_expire_min',
-        '_secure_cookie'
+        '_secure_cookie',
+        '_DATA_RETENTION_CONF_KEY',
+        '_data_retention_api_key',
+        '_data_retention_source_dirs',
+        '_data_retention_deletion_dir',
+        '_initialized'
     )
 
     def __init__(self, config_path):
@@ -43,16 +52,23 @@ class AppConfig:
 
         # backend task cofig setting
         self.__backend_conf_init(json_conf)
+        # redis / queue setting
+        self.__redis_conf_init(json_conf)
+        self.__queue_conf_init(json_conf)
         # app status setting
         self.__app_status_conf_init(json_conf)
         # log setting set config object
         self.__logger_conf_init(json_conf)
         # batch log setting set config object
         self.__batch_logger_conf_init(json_conf)
+        # redis setting set config object
+        self.__redis_conf_init(json_conf)
         # database config object
         self.__database_conf_init(json_conf)
         # login config object
         self.__login_conf_init(json_conf)
+        # data retention config object
+        self.__data_retention_conf_init(json_conf)
 
     def __backend_conf_init(self, json_conf):
         self.__setattr__("_BACKEND_TASKS_CONF_KEY", 'BACKEND_TASKS')
@@ -76,9 +92,71 @@ class AppConfig:
         self.__setattr__('_expire_min', db_conf['expire-min'])
         self.__setattr__('_secure_cookie', db_conf['secure-cookie'])
 
+    def __data_retention_conf_init(self, conf):
+        self.__setattr__("_DATA_RETENTION_CONF_KEY", "DATA_RETENTION")
+        dr_conf = conf[self._DATA_RETENTION_CONF_KEY]
+        self.__setattr__('_data_retention_api_key', dr_conf['api_key'])
+        self.__setattr__(
+                '_data_retention_source_dirs', dr_conf['source_dirs'])
+        self.__setattr__(
+                '_data_retention_deletion_dir', dr_conf['deletion_dir'])
+
     @property
     def backend_tasks(self):
         return self._backend_tasks
+
+    def __redis_conf_init(self, conf):
+        self.__setattr__("_REDIS_CONF_KEY", 'REDIS')
+        redis_conf = conf.get(self._REDIS_CONF_KEY, {})
+        self.__setattr__('_redis_host', redis_conf.get('host', 'localhost'))
+        self.__setattr__('_redis_port', redis_conf.get('port', 6379))
+        self.__setattr__('_redis_db', redis_conf.get('db', 0))
+        self.__setattr__('_redis_password', redis_conf.get('password', ''))
+        self.__setattr__('_redis_ssl', redis_conf.get('ssl', False))
+
+    def __queue_conf_init(self, conf):
+        self.__setattr__("_QUEUE_CONF_KEY", 'QUEUE')
+        queue_conf = conf.get(self._QUEUE_CONF_KEY, {})
+        self.__setattr__('_queue_stream', queue_conf.get('stream', 'jobs:batch'))
+        self.__setattr__('_queue_group', queue_conf.get('group', 'batch-workers'))
+        self.__setattr__('_queue_consumer', queue_conf.get('consumer', ''))
+        self.__setattr__('_queue_block_ms', queue_conf.get('block_ms', 5000))
+
+    @property
+    def redis_host(self):
+        return self._redis_host
+
+    @property
+    def redis_port(self):
+        return self._redis_port
+
+    @property
+    def redis_db(self):
+        return self._redis_db
+
+    @property
+    def redis_password(self):
+        return self._redis_password
+
+    @property
+    def redis_ssl(self):
+        return self._redis_ssl
+
+    @property
+    def queue_stream(self):
+        return self._queue_stream
+
+    @property
+    def queue_group(self):
+        return self._queue_group
+
+    @property
+    def queue_consumer(self):
+        return self._queue_consumer
+
+    @property
+    def queue_block_ms(self):
+        return self._queue_block_ms
 
     def __app_status_conf_init(self, conf):
         self.__setattr__("_APP_STATUS_CONF_KEY", 'APP_STATUS')
@@ -122,6 +200,14 @@ class AppConfig:
                 '_batch_log_file_name', logger_conf['log_file_name'])
         self.__setattr__(
                 '_batch_log_encoding', logger_conf['log_encoding'])
+
+    def __redis_conf_init(self, conf):
+        self.__setattr__("_REDIS_CONF_KEY", 'REDIS')
+        redis_conf = conf[self._REDIS_CONF_KEY]
+        self.__setattr__('_redis_host', redis_conf['host'])
+        self.__setattr__('_redis_port', redis_conf['port'])
+        self.__setattr__('_redis_password', redis_conf['password'])
+        self.__setattr__('_redis_ssl', redis_conf['ssl'])
 
     @property
     def expire(self):
@@ -184,6 +270,22 @@ class AppConfig:
         return self._batch_log_file_name
 
     @property
+    def redis_host(self):
+        return self._redis_host
+
+    @property
+    def redis_port(self):
+        return self._redis_port
+
+    @property
+    def redis_password(self):
+        return self._redis_password
+
+    @property
+    def redis_ssl(self):
+        return self._redis_ssl
+
+    @property
     def db_name(self):
         return self._db_name
 
@@ -214,6 +316,18 @@ class AppConfig:
     @property
     def get_secure_cookie(self):
         return self._secure_cookie
+
+    @property
+    def data_retention_api_key(self):
+        return self._data_retention_api_key
+
+    @property
+    def data_retention_source_dirs(self):
+        return self._data_retention_source_dirs
+
+    @property
+    def data_retention_deletion_dir(self):
+        return self._data_retention_deletion_dir
 
     def __setattr__(self, key, value):
         # 属性変更禁止
