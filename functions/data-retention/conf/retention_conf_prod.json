@@ -1,14 +1,9 @@
 {
-    "RETENTION": { "storage_expire_sec": 604800 },
-    "APP_STATUS_PREFIX": "app_status",
-    "TARGET_STATUSES": [-1, 2, 3],
     "REDIS": {
         "host": "redis-check-drawing-prod.redis.cache.windows.net",
         "port": 6380,
         "password": "",
         "ssl": true
     },
-    "API_BASE_URL": "https://CHANGE-ME-prod-app-host",
-    "API_KEY": "change-me-prod",
-    "DRY_RUN": false
+    "QUEUE": { "stream": "jobs:batch" }
 }

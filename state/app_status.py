@@ -71,6 +71,14 @@ class AppStatus:
     others: hash
     create_time: int
 
+    APP_STATUS_USER = "user"
+    APP_STATUS_EPIC = "epic"
+    APP_STATUS_GRP_ID = "group_id"
+    APP_STATUS_GRP_STATUS = "status"
+    APP_STATUS_OPERATIONS = "operations"
+    APP_STATUS_OTHERS = "others"
+    APP_STATUS_TIME = "create_time"
+
     @classmethod
     def create_from_request(cls, body):
         return AppStatus(
@@ -97,25 +105,30 @@ class AppStatus:
 
     @classmethod
     def get_dummy_status(cls):
-        return AppStatus('SYSTEM', 'SYSTEM', 'SYSTEM', 'SYSTEM', Status.START, -1)
+        return AppStatus(
+            'SYSTEM', 'SYSTEM', 'SYSTEM', Status.START, [], {}, -1)
 
     @classmethod
     def _is_none_and_black(cls, val):
         return (val is None) or len(str(val).strip()) == 0
 
     def is_not_none(self):
+        # キー生成に必要な識別子（user / epic / group_id）が揃っているか。
         return all([
             not self._is_none_and_black(self.user),
             not self._is_none_and_black(self.epic),
-            not self._is_none_and_black(self.operation_id),
+            not self._is_none_and_black(self.group_id),
         ])
 
     def get_hash_key(self):
+        # app_status の Redis キーはグループ単位（user_epic_group_id）。
+        # 1 グループ = 1 キーで operations を保持する。save/load が同一キーになる。
+        # 成果物ディレクトリは別途 "{hash_key}_{operation}_{operation_id}" 命名のため、
+        # retention はこの group キーを前方一致で配下の操作ディレクトリごと削除できる。
         return '_'.join([
             self.user or '',
             self.epic or '',
-            self.operation or '',
-            self.operation_id or ''
+            self.group_id or '',
         ])
 
     @staticmethod

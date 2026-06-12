@@ -1,14 +1,9 @@
 {
-    "RETENTION": { "storage_expire_sec": 604800 },
-    "APP_STATUS_PREFIX": "app_status",
-    "TARGET_STATUSES": [-1, 2, 3],
     "REDIS": {
         "host": "redis-check-drawing-dev.redis.cache.windows.net",
         "port": 6380,
         "password": "",
         "ssl": true
     },
-    "API_BASE_URL": "http://localhost:8000",
-    "API_KEY": "dev-data-retention-key",
-    "DRY_RUN": false
+    "QUEUE": { "stream": "jobs:batch" }
 }

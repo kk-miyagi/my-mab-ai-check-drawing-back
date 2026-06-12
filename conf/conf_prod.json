@@ -1,6 +1,6 @@
 {
     "APP_STATUS":{
-       "expire": 86400 
+       "expire": 3024000
     },
     "REDIS":{
 	"host": "localhost",
@@ -59,7 +59,7 @@
 	"secure-cookie": true 
     },
     "DATA_RETENTION": {
-        "api_key": "change-me-prod",
+        "storage_expire_sec": 2592000,
         "source_dirs": [
             "./multi-fileupload",
             "./create-label-responce",
@@ -67,7 +67,6 @@
             "./drawing-highlight-responce",
             "./drawing-review-responce",
             "./update-label-response"
-        ],
-        "deletion_dir": "./to-delete"
+        ]
     }
 }

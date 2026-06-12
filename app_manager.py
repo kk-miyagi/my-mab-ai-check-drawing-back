@@ -86,7 +86,9 @@ class Managers:
         app_state.create_app_status()
         state_status = app_state.get_eq_app_status(req_status)
         if state_status is not None:
-            req_status.status = Status.ERROR
+            # update_app_status は group_status を見るため、.status ではなく
+            # group_status を ERROR にする（旧コードは .status を書いており無視されていた）。
+            req_status.group_status = Status.ERROR
             manager.app_state.update_app_status(
                     req_status
             )

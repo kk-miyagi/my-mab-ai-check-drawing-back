@@ -40,9 +40,8 @@ class AppConfig:
         '_expire_min',
         '_secure_cookie',
         '_DATA_RETENTION_CONF_KEY',
-        '_data_retention_api_key',
         '_data_retention_source_dirs',
-        '_data_retention_deletion_dir',
+        '_data_retention_storage_expire_sec',
         '_initialized'
     )
 
@@ -95,11 +94,11 @@ class AppConfig:
     def __data_retention_conf_init(self, conf):
         self.__setattr__("_DATA_RETENTION_CONF_KEY", "DATA_RETENTION")
         dr_conf = conf[self._DATA_RETENTION_CONF_KEY]
-        self.__setattr__('_data_retention_api_key', dr_conf['api_key'])
         self.__setattr__(
                 '_data_retention_source_dirs', dr_conf['source_dirs'])
         self.__setattr__(
-                '_data_retention_deletion_dir', dr_conf['deletion_dir'])
+                '_data_retention_storage_expire_sec',
+                dr_conf['storage_expire_sec'])
 
     @property
     def backend_tasks(self):
@@ -318,16 +317,12 @@ class AppConfig:
         return self._secure_cookie
 
     @property
-    def data_retention_api_key(self):
-        return self._data_retention_api_key
-
-    @property
     def data_retention_source_dirs(self):
         return self._data_retention_source_dirs
 
     @property
-    def data_retention_deletion_dir(self):
-        return self._data_retention_deletion_dir
+    def data_retention_storage_expire_sec(self):
+        return self._data_retention_storage_expire_sec
 
     def __setattr__(self, key, value):
         # 属性変更禁止
