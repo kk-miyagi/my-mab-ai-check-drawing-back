@@ -1,0 +1,10 @@
+# Data retention — enqueue a delete JOB onto the Redis Stream on a schedule.
+# Run by supercronic inside the docker-compose `retention-cron` service.
+# Fields: minute hour day-of-month month day-of-week  command
+#
+# NOTE: supercronic execs the command directly (no shell expansion), so the
+# environment (DEV/PROD) is passed as a literal arg. The Redis target is taken
+# from REDIS_* env vars on the service (see docker-compose.yml).
+#
+# Daily at 18:00 (container timezone, UTC by default).
+0 18 * * * python /app/functions/data-retention/main.py DEV

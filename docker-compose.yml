@@ -2,6 +2,7 @@
 #   - ジョブ配信  : Redis Streams + Consumer Group (stream "jobs:batch")
 #   - ステータス  : Redis に保存（app_status:* キー、両コンテナで共有）
 #   - 成果物ファイル: named volume を両コンテナにマウントして共有
+#   - 保持期間削除: retention-cron が supercronic で定期的に削除ジョブを XADD
 #
 # 起動:   docker compose up --build
 # scale:  docker compose up --scale batch=3   (Streams のため各ジョブは1 workerのみ処理)
@@ -77,6 +78,24 @@ services:
       - update_label_response:/app/update-label-response
       - app_logs:/app/logs
       - ./mab-ai-check-drawing-sa-key.json:/app/mab-ai-check-drawing-sa-key.json:ro
+
+  # 保持期間削除の trigger。supercronic が crontab に従い定期的に main.py を実行し、
+  # 削除ジョブを Redis Streams(jobs:batch) へ XADD する（実削除は batch が行う）。
+  # ファイル volume は不要（enqueue のみ）。Redis 接続は REDIS_* env で上書き。
+  retention-cron:
+    build: .
+    command: ["supercronic", "/app/functions/data-retention/retention.cron"]
+    environment:
+      RUN_ENV: DEV
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_SSL: "false"
+      # cron の時刻基準。既定 UTC（"0 18 * * *" = 18:00 UTC）。
+      # JST にしたい場合は TZ: Asia/Tokyo（イメージに tzdata が必要）。
+      TZ: UTC
+    depends_on:
+      redis:
+        condition: service_healthy
 
 volumes:
   redis_data:
