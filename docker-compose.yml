@@ -1,0 +1,89 @@
+# FastAPI(api) と Batch worker(batch) を別コンテナで起動し、Redis 経由で連携する。
+#   - ジョブ配信  : Redis Streams + Consumer Group (stream "jobs:batch")
+#   - ステータス  : Redis に保存（app_status:* キー、両コンテナで共有）
+#   - 成果物ファイル: named volume を両コンテナにマウントして共有
+#
+# 起動:   docker compose up --build
+# scale:  docker compose up --scale batch=3   (Streams のため各ジョブは1 workerのみ処理)
+
+# 両コンテナで共有するデータ用ボリューム定義（YAML アンカーで共通化）
+x-shared-volumes: &shared-volumes
+  - multi_fileupload:/app/multi-fileupload
+  - create_label_responce:/app/create-label-responce
+  - drawing_review_responce:/app/drawing-review-responce
+  - drawing_compare_responce:/app/drawing-compare-responce
+  - drawing_highlight_responce:/app/drawing-highlight-responce
+  - update_label_response:/app/update-label-response
+  - app_logs:/app/logs
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: .
+    command: ["python", "test_app.py", "DEV"]
+    environment:
+      RUN_ENV: DEV
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      API_HOST: 0.0.0.0
+      API_PORT: "8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - multi_fileupload:/app/multi-fileupload
+      - create_label_responce:/app/create-label-responce
+      - drawing_review_responce:/app/drawing-review-responce
+      - drawing_compare_responce:/app/drawing-compare-responce
+      - drawing_highlight_responce:/app/drawing-highlight-responce
+      - update_label_response:/app/update-label-response
+      - app_logs:/app/logs
+      # ログイン用 sqlite（既存ユーザーを保持したい場合にマウント）
+      - ./check-drawing.db:/app/check-drawing.db
+
+  batch:
+    build: .
+    command: ["python", "batch_worker.py", "DEV"]
+    environment:
+      RUN_ENV: DEV
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      # Gemini / Vision 用サービスアカウント（イメージに焼かずマウント）
+      GOOGLE_CLOUD_PROJECT: mab-ai-check-drawing
+      GOOGLE_APPLICATION_CREDENTIALS: /app/mab-ai-check-drawing-sa-key.json
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - multi_fileupload:/app/multi-fileupload
+      - create_label_responce:/app/create-label-responce
+      - drawing_review_responce:/app/drawing-review-responce
+      - drawing_compare_responce:/app/drawing-compare-responce
+      - drawing_highlight_responce:/app/drawing-highlight-responce
+      - update_label_response:/app/update-label-response
+      - app_logs:/app/logs
+      - ./mab-ai-check-drawing-sa-key.json:/app/mab-ai-check-drawing-sa-key.json:ro
+
+volumes:
+  redis_data:
+  multi_fileupload:
+  create_label_responce:
+  drawing_review_responce:
+  drawing_compare_responce:
+  drawing_highlight_responce:
+  update_label_response:
+  app_logs:
